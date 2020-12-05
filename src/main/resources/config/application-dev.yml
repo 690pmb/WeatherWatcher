@@ -1,0 +1,7 @@
+spring:
+  datasource:
+    url: jdbc:mariadb://localhost:3307/weather
+    username: root
+    password: Mariadb_690
+    driver-class-name: org.mariadb.jdbc.Driver
+  server.port : 7878
