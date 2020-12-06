@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: weather-watcher
+  liquibase:
+    database-change-log-lock-table: WEATHER_DATABASECHANGELOGLOCK
+    database-change-log-table: WEATHER_DATABASECHANGELOG
+    change-log: classpath:db/master.xml
+  jpa:
+    hibernate:
+      ddl-auto: none
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+        implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
+    show-sql: false
+    properties:
+      hibernate.id.new_generator_mappings: true
+      hibernate.connection.provider_disables_autocommit: true
+      hibernate.generate_statistics: false
+  jackson.time-zone: Europe/Paris

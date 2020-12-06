@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+	
+	<changeSet id="20201206-1" author="PMB">
+		
+		<createTable tableName="user">
+			<column name="id" type="BIGINT" autoIncrement="true">
+				<constraints primaryKey="true" nullable="false"/>
+			</column>
+			<column name="email" type="VARCHAR(255)">
+				<constraints nullable="false"/>
+			</column>
+			<column name="password" type="VARCHAR(255)">
+				<constraints nullable="false"/>
+			</column>			
+		</createTable>
+		
+		<createIndex 
+			indexName="user_email" tableName="user" unique="false">
+			<column name="email" />
+		</createIndex>
+		
+	</changeSet>
+	
+</databaseChangeLog>
