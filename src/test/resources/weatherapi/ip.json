@@ -1,0 +1,17 @@
+{
+   "ip":"95.60.1.280",
+   "type":"ipv4",
+   "continent_code":"EU",
+   "continent_name":"Europe",
+   "country_code":"FR",
+   "country_name":"France",
+   "is_eu":true,
+   "geoname_id":2996944,
+   "city":"Lyon",
+   "region":"",
+   "lat":45.748,
+   "lon":4.85,
+   "tz_id":"Europe/Paris",
+   "localtime_epoch":1612863926,
+   "localtime":"2021-02-09 10:45"
+}

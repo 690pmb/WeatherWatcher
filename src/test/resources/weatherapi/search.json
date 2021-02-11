@@ -1,0 +1,92 @@
+[
+   {
+      "id":795567,
+      "name":"Lyon, Rhone-Alpes, France",
+      "region":"Rhone-Alpes",
+      "country":"France",
+      "lat":45.75,
+      "lon":4.85,
+      "url":"lyon-rhone-alpes-france"
+   },
+   {
+      "id":795569,
+      "name":"Lyons, Rhone-Alpes, France",
+      "region":"Rhone-Alpes",
+      "country":"France",
+      "lat":45.75,
+      "lon":4.85,
+      "url":"lyons-rhone-alpes-france"
+   },
+   {
+      "id":784234,
+      "name":"La Guillotiere, Rhone-Alpes, France",
+      "region":"Rhone-Alpes",
+      "country":"France",
+      "lat":45.75,
+      "lon":4.85,
+      "url":"la-guillotiere-rhone-alpes-france"
+   },
+   {
+      "id":779059,
+      "name":"Guillotiere, Rhone-Alpes, France",
+      "region":"Rhone-Alpes",
+      "country":"France",
+      "lat":45.75,
+      "lon":4.85,
+      "url":"guillotiere-rhone-alpes-france"
+   },
+   {
+      "id":776444,
+      "name":"Fourviere, Rhone-Alpes, France",
+      "region":"Rhone-Alpes",
+      "country":"France",
+      "lat":45.77,
+      "lon":4.83,
+      "url":"fourviere-rhone-alpes-france"
+   },
+   {
+      "id":776445,
+      "name":"Fourvieres, Rhone-Alpes, France",
+      "region":"Rhone-Alpes",
+      "country":"France",
+      "lat":45.77,
+      "lon":4.83,
+      "url":"fourvieres-rhone-alpes-france"
+   },
+   {
+      "id":822581,
+      "name":"Villeurbanne, Rhone-Alpes, France",
+      "region":"Rhone-Alpes",
+      "country":"France",
+      "lat":45.77,
+      "lon":4.88,
+      "url":"villeurbanne-rhone-alpes-france"
+   },
+   {
+      "id":800026,
+      "name":"Montplaisir, Rhone-Alpes, France",
+      "region":"Rhone-Alpes",
+      "country":"France",
+      "lat":45.73,
+      "lon":4.88,
+      "url":"montplaisir-rhone-alpes-france"
+   },
+   {
+      "id":798980,
+      "name":"Monplaisir, Rhone-Alpes, France",
+      "region":"Rhone-Alpes",
+      "country":"France",
+      "lat":45.73,
+      "lon":4.88,
+      "url":"monplaisir-rhone-alpes-france"
+   },
+   {
+      "id":783387,
+      "name":"La Croix Rousse, Rhone-Alpes, France",
+      "region":"Rhone-Alpes",
+      "country":"France",
+      "lat":45.78,
+      "lon":4.83,
+      "url":"la-croix-rousse-rhone-alpes-france"
+   }
+]
