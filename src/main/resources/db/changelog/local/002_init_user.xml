@@ -6,8 +6,9 @@
 	<changeSet id="20201206-2" author="PMB" context="local">
 		
 		<insert tableName="user">
-			<column name="email" value="test@gmail.com"/>
-			<column name="password" value="test"/>
+			<column name="login" value="test"/>
+			<column name="password" value="$2y$12$6vkG12s7.OOWXVRZmE3k/uzBowTrvUq59cArSp7glXOR41nnerRnq"/>
+			<column name="favourite_location" value="Lyon"/>
 		</insert>
 		
 	</changeSet>
