@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -10,16 +11,17 @@
         <relativePath />
     </parent>
 
-    <groupId>pmb</groupId>
-    <artifactId>weather-watcher</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>weather-watcher</name>
-    <description>Demo project for Spring Boot</description>
+	<groupId>pmb</groupId>
+	<artifactId>weather-watcher</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>weather-watcher</name>
+	<packaging>jar</packaging>
 
-    <properties>
-        <java.version>11</java.version>
-        <json-unit-spring.version>2.24.0</json-unit-spring.version>
-    </properties>
+	<properties>
+		<java.version>11</java.version>
+		<json-unit-spring.version>2.24.0</json-unit-spring.version>
+		<jacoco-maven-plugin.version>0.8.6</jacoco-maven-plugin.version>
+	</properties>
 
     <dependencies>
         <dependency>
@@ -74,13 +76,40 @@
         </dependency>
     </dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
+	<scm>
+		<url>https://github.com/69pmb/WeatherWatcher/</url>
+		<connection>scm:git:ssh://git@github.com/69pmb/WeatherWatcher.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com/69pmb/WeatherWatcher.git</developerConnection>
+		<tag>HEAD</tag>
+	</scm>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>${jacoco-maven-plugin.version}</version>
+				<executions>
+					<execution>
+						<id>pre-unit-tests</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>post-unit-test</id>
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 
 </project>
