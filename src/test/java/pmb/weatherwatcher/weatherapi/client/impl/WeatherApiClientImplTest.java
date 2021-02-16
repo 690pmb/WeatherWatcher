@@ -11,7 +11,6 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withUnauthorizedRequest;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
@@ -55,7 +54,7 @@ class WeatherApiClientImplTest {
     }
 
     @Nested
-    class getForecastWeather {
+    class GetForecastWeather {
 
         @Test
         void success() throws IOException {
@@ -70,7 +69,7 @@ class WeatherApiClientImplTest {
         }
 
         @Test
-        void error() throws IOException {
+        void error() {
             server.expect(requestTo("https://api.weatherapi.com/v1/forecast.json?key=api_key_test&q=lyon&lang=it")).andRespond(withBadRequest());
 
             assertThrows(WeatherApiClientException.class, () -> weatherApiClientImpl.getForecastWeather("lyon", null, Language.ITALIAN));
@@ -79,7 +78,7 @@ class WeatherApiClientImplTest {
     }
 
     @Nested
-    class getIpLookup {
+    class GetIpLookup {
 
         @Test
         void success() throws IOException {
@@ -94,7 +93,7 @@ class WeatherApiClientImplTest {
         }
 
         @Test
-        void error() throws IOException {
+        void error() {
             server.expect(requestTo("https://api.weatherapi.com/v1/ip.json?key=api_key_test&q=90.25.12.180")).andRespond(withUnauthorizedRequest());
 
             assertThrows(WeatherApiClientException.class, () -> weatherApiClientImpl.getIpLookup("90.25.12.180"));
@@ -103,7 +102,7 @@ class WeatherApiClientImplTest {
     }
 
     @Nested
-    class searchLocations {
+    class SearchLocations {
 
         @Test
         void success() throws IOException {
@@ -118,7 +117,7 @@ class WeatherApiClientImplTest {
         }
 
         @Test
-        void empty() throws IOException {
+        void empty() {
             server.expect(requestTo("https://api.weatherapi.com/v1/search.json?key=api_key_test&q=lyon"))
                     .andRespond(withSuccess("", MediaType.APPLICATION_JSON));
 
@@ -128,7 +127,7 @@ class WeatherApiClientImplTest {
         }
 
         @Test
-        void error() throws IOException {
+        void error() {
             server.expect(requestTo("https://api.weatherapi.com/v1/search.json?key=api_key_test&q=test")).andRespond(withServerError());
 
             assertThrows(WeatherApiClientException.class, () -> weatherApiClientImpl.searchLocations("test"));
@@ -136,7 +135,7 @@ class WeatherApiClientImplTest {
 
     }
 
-    private String readResponseFile(String fileName) throws IOException, FileNotFoundException {
+    private String readResponseFile(String fileName) throws IOException {
         return Files.readString(ResourceUtils.getFile("classpath:weatherapi/" + fileName).toPath());
     }
 

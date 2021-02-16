@@ -1,75 +1,48 @@
 package pmb.weatherwatcher.model;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-
+/**
+ * User database entity.
+ */
 @Entity
 @Table(name = "user")
-public class User implements UserDetails {
-    private static final long serialVersionUID = 1L;
+public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "email")
-    private String username;
+    private String login;
 
     private String password;
 
-    public Long getId() {
-        return id;
+    @Column(name = "favourite_location")
+    private String favouriteLocation;
+
+    public User() {}
+
+    /**
+     * {@link User} constructor.
+     *
+     * @param login user's name
+     * @param password his password
+     * @param favouriteLocation suggested location when needed location
+     */
+    public User(String login, String password, String favouriteLocation) {
+        this.login = login;
+        this.password = password;
+        this.favouriteLocation = favouriteLocation;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public String getLogin() {
+        return login;
     }
 
-    @Override
-    public String getUsername() {
-        return username;
+    public void setLogin(String login) {
+        this.login = login;
     }
 
-    @Override
-    public boolean isAccountNonExpired() {
-        return false;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return false;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return false;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return false;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return new ArrayList<>();
-    }
-
-    @Override
     public String getPassword() {
         return password;
     }
@@ -77,4 +50,13 @@ public class User implements UserDetails {
     public void setPassword(String password) {
         this.password = password;
     }
+
+    public String getFavouriteLocation() {
+        return favouriteLocation;
+    }
+
+    public void setFavouriteLocation(String favouriteLocation) {
+        this.favouriteLocation = favouriteLocation;
+    }
+
 }

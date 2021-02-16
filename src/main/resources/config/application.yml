@@ -21,3 +21,8 @@ spring:
 weather-api:
   base-url: https://api.weatherapi.com/v1
   api-key: 
+
+jwt:
+  secretkey: secretkey
+  duration: 2592000 # 30j ( -> secondes)
+  
