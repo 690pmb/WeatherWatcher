@@ -12,6 +12,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Claims;
@@ -80,7 +81,7 @@ public class JwtTokenProvider {
     }
 
     /**
-     * Authenticates a user with given token.
+     * Return an Authentication object of the given token.
      *
      * @param token containing valid credential user
      * @return a {@link UsernamePasswordAuthenticationToken} authenticated
@@ -102,9 +103,8 @@ public class JwtTokenProvider {
         if (null == authentication) {
             return Optional.empty();
         }
-        if (authentication.getPrincipal() instanceof UserDto) {
-            UserDto user = (UserDto) authentication.getPrincipal();
-            return Optional.of(user.getUsername());
+        if (authentication.getPrincipal() instanceof UserDetails) {
+            return Optional.of(((UserDetails) authentication.getPrincipal()).getUsername());
         }
         if (authentication.getPrincipal() instanceof String) {
             return Optional.of((String) authentication.getPrincipal());

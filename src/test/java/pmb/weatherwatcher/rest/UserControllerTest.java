@@ -4,15 +4,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.UnsupportedEncodingException;
 import java.util.function.Function;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator.ReplaceUnderscores;
 import org.junit.jupiter.api.Nested;
@@ -26,6 +30,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -33,6 +38,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import pmb.weatherwatcher.dto.JwtTokenDto;
+import pmb.weatherwatcher.dto.PasswordDto;
 import pmb.weatherwatcher.dto.UserDto;
 import pmb.weatherwatcher.exception.AlreadyExistException;
 import pmb.weatherwatcher.security.JwtTokenProvider;
@@ -42,6 +48,7 @@ import pmb.weatherwatcher.service.UserService;
 @WebMvcTest(controllers = UserController.class)
 @ActiveProfiles("test")
 @Import(JwtTokenProvider.class)
+@MockBean(MyUserDetailsService.class)
 @DisplayNameGeneration(value = ReplaceUnderscores.class)
 class UserControllerTest {
 
@@ -51,9 +58,13 @@ class UserControllerTest {
     private ObjectMapper objectMapper;
     @MockBean
     private UserService userService;
-    @MockBean
-    private MyUserDetailsService myUserDetailsService;
     private static final UserDto DUMMY_USER = new UserDto("test", "password", "lyon");
+    private static final PasswordDto DUMMY_PASSWORD = new PasswordDto("password", "password2");
+
+    @AfterEach
+    void tearDown() {
+        verifyNoMoreInteractions(userService);
+    }
 
     @Nested
     class Signin {
@@ -104,13 +115,15 @@ class UserControllerTest {
 
         @Test
         void ok() throws Exception {
+            ArgumentCaptor<UserDto> capture = ArgumentCaptor.forClass(UserDto.class);
             when(userService.save(any())).thenAnswer(a -> a.getArgument(0));
 
             assertThat(DUMMY_USER).usingRecursiveComparison().isEqualTo(objectMapper.readValue(readResponse.apply(mockMvc
                     .perform(post("/users/signup").content(objectMapper.writeValueAsString(DUMMY_USER)).contentType(MediaType.APPLICATION_JSON_VALUE))
-                    .andExpect(status().isOk())), UserDto.class));
+                    .andExpect(status().isCreated())), UserDto.class));
 
-            verify(userService).save(any());
+            verify(userService).save(capture.capture());
+            assertThat(capture.getValue()).usingRecursiveComparison().isEqualTo(DUMMY_USER);
         }
 
         @Test
@@ -139,6 +152,45 @@ class UserControllerTest {
                     .andExpect(status().isInternalServerError());
 
             verify(userService).save(any());
+        }
+
+    }
+
+    @Nested
+    class UpdatePassword {
+
+        @Test
+        @WithMockUser
+        void ok() throws Exception {
+            ArgumentCaptor<PasswordDto> capture = ArgumentCaptor.forClass(PasswordDto.class);
+            doNothing().when(userService).updatePassword(any());
+
+            mockMvc.perform(
+                    put("/users/password").content(objectMapper.writeValueAsString(DUMMY_PASSWORD)).contentType(MediaType.APPLICATION_JSON_VALUE))
+                    .andExpect(status().isNoContent());
+
+            verify(userService).updatePassword(capture.capture());
+            assertThat(capture.getValue()).usingRecursiveComparison().isEqualTo(DUMMY_PASSWORD);
+        }
+
+        @WithMockUser
+        @ParameterizedTest(name = "Given new password ''{0}'' and old password ''{1}'' when updates password then bad request")
+        @CsvSource({ ", password", "o, password", "01234567891011121314151617181920, password", "password,", "password, o",
+                "password, 01234567891011121314151617181920", })
+        void when_failed_validation_then_bad_request(String newPassword, String oldPassword) throws Exception {
+            mockMvc.perform(put("/users/password").content(objectMapper.writeValueAsString(new PasswordDto(oldPassword, newPassword)))
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isBadRequest());
+
+            verify(userService, never()).updatePassword(any());
+        }
+
+        @Test
+        void not_authenticated_then_unauthorized() throws Exception {
+            mockMvc.perform(
+                    put("/users/password").content(objectMapper.writeValueAsString(DUMMY_PASSWORD)).contentType(MediaType.APPLICATION_JSON_VALUE))
+                    .andExpect(status().isForbidden());
+
+            verify(userService, never()).updatePassword(any());
         }
 
     }

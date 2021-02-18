@@ -5,3 +5,5 @@ spring:
     password: Mariadb_690
     driver-class-name: org.mariadb.jdbc.Driver
   server.port : 7878
+management:
+  endpoint.health.show-details: WHEN_AUTHORIZED

@@ -17,6 +17,8 @@ spring:
       hibernate.connection.provider_disables_autocommit: true
       hibernate.generate_statistics: false
   jackson.time-zone: Europe/Paris
+management:
+  endpoints.web.exposure.include: "*"
 
 weather-api:
   base-url: https://api.weatherapi.com/v1
