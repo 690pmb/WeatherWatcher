@@ -3,13 +3,16 @@ package pmb.weatherwatcher.service;
 import javax.validation.Valid;
 
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import pmb.weatherwatcher.dto.JwtTokenDto;
+import pmb.weatherwatcher.dto.PasswordDto;
 import pmb.weatherwatcher.dto.UserDto;
 import pmb.weatherwatcher.exception.AlreadyExistException;
 import pmb.weatherwatcher.model.User;
@@ -61,6 +64,21 @@ public class UserService {
         JwtTokenDto jwtToken = new JwtTokenDto(jwtTokenProvider.create(authentication));
         SecurityContextHolder.getContext().setAuthentication(authentication);
         return jwtToken;
+    }
+
+    /**
+     * Checks if old password is correct and then updates user with new password.
+     *
+     * @param password holding new & old passwords
+     */
+    public void updatePassword(@Valid PasswordDto password) {
+        User user = JwtTokenProvider.getCurrentUserLogin().flatMap(userRepository::findById)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        if (!bCryptPasswordEncoder.matches(password.getOldPassword(), user.getPassword())) {
+            throw new BadCredentialsException("Invalid credentials");
+        }
+        user.setPassword(bCryptPasswordEncoder.encode(password.getNewPassword()));
+        userRepository.save(user);
     }
 
 }

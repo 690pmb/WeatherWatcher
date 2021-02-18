@@ -43,9 +43,9 @@ public class SecurityConfig
 
     @Override
     protected void configure(final HttpSecurity http) throws Exception {
-        http.csrf().disable().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().authorizeRequests()
-                .antMatchers("/users/signin*").permitAll().antMatchers("/users/signup*").permitAll().anyRequest().authenticated().and()
-                .addFilterBefore(new JwtTokenFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
+        http.csrf().disable().headers().frameOptions().disable().and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and().authorizeRequests().antMatchers("/users/signin*").permitAll().antMatchers("/users/signup*").permitAll().anyRequest()
+                .authenticated().and().addFilterBefore(new JwtTokenFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
     }
 
     @Bean

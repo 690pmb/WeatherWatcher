@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
-	
-	<changeSet id="20201206-2" author="PMB" context="local">
-		
-		<insert tableName="user">
-			<column name="login" value="test"/>
-			<column name="password" value="$2y$12$6vkG12s7.OOWXVRZmE3k/uzBowTrvUq59cArSp7glXOR41nnerRnq"/>
-			<column name="favourite_location" value="Lyon"/>
-		</insert>
-		
-	</changeSet>
-	
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <changeSet id="20201206-2" author="PMB" context="local">
+
+        <insert tableName="user">
+            <column name="login" value="test" />
+            <!-- password value is password -->
+            <column name="password" value="$2y$12$Vt1hN3hypfQpst1vpetqqOhk.GgYFtVOVrcUYIJLqUyyuE.Ljmnc." />
+            <column name="favourite_location" value="Lyon" />
+        </insert>
+
+    </changeSet>
+
 </databaseChangeLog>
