@@ -6,6 +6,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import pmb.weatherwatcher.dto.UserDto;
+import pmb.weatherwatcher.mapper.UserMapper;
 import pmb.weatherwatcher.repository.UserRepository;
 
 /**
@@ -16,14 +17,16 @@ public class MyUserDetailsService
         implements UserDetailsService {
 
     private UserRepository userRepository;
+    private UserMapper userMapper;
 
-    public MyUserDetailsService(UserRepository userRepository) {
+    public MyUserDetailsService(UserRepository userRepository, UserMapper userMapper) {
         this.userRepository = userRepository;
+        this.userMapper = userMapper;
     }
 
     @Override
     public UserDetails loadUserByUsername(String login) {
-        return userRepository.findById(login).map(user -> new UserDto(user.getLogin(), user.getPassword(), user.getFavouriteLocation()))
+        return userRepository.findById(login).map(userMapper::toDto)
                 .orElseThrow(() -> new UsernameNotFoundException("user: " + login + " not found"));
     }
 

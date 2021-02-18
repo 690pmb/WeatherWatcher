@@ -19,11 +19,12 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import pmb.weatherwatcher.dto.UserDto;
+import pmb.weatherwatcher.mapper.UserMapperImpl;
 import pmb.weatherwatcher.model.User;
 import pmb.weatherwatcher.repository.UserRepository;
 
 @DisplayNameGeneration(value = ReplaceUnderscores.class)
-@Import(MyUserDetailsService.class)
+@Import({ MyUserDetailsService.class, UserMapperImpl.class })
 @ExtendWith(SpringExtension.class)
 class MyUserDetailsServiceTest {
 
