@@ -1,5 +1,7 @@
 package pmb.weatherwatcher.security;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -11,8 +13,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 /**
  * Configuring Spring Security
@@ -43,9 +45,10 @@ public class SecurityConfig
 
     @Override
     protected void configure(final HttpSecurity http) throws Exception {
-        http.csrf().disable().headers().frameOptions().disable().and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and().authorizeRequests().antMatchers("/users/signin*").permitAll().antMatchers("/users/signup*").permitAll().anyRequest()
-                .authenticated().and().addFilterBefore(new JwtTokenFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
+        http.cors().and().csrf().disable().headers().frameOptions().disable().and().sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().authorizeRequests().antMatchers("/users/signin*").permitAll()
+                .antMatchers("/users/signup*").permitAll().anyRequest().authenticated().and()
+                .addFilterBefore(new JwtTokenFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
     }
 
     @Bean
@@ -54,10 +57,14 @@ public class SecurityConfig
     }
 
     @Bean
-    CorsConfigurationSource corsConfigurationSource() {
-        final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", new CorsConfiguration().applyPermitDefaultValues());
-        return source;
+    public CorsFilter corsFilter() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of(CorsConfiguration.ALL));
+        configuration.setAllowedMethods(List.of(CorsConfiguration.ALL));
+        configuration.setAllowedHeaders(List.of(CorsConfiguration.ALL));
+        source.registerCorsConfiguration("/**", configuration);
+        return new CorsFilter(source);
     }
 
     @Bean
