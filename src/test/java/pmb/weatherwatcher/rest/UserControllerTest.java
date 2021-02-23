@@ -188,7 +188,7 @@ class UserControllerTest {
         void not_authenticated_then_unauthorized() throws Exception {
             mockMvc.perform(
                     put("/users/password").content(objectMapper.writeValueAsString(DUMMY_PASSWORD)).contentType(MediaType.APPLICATION_JSON_VALUE))
-                    .andExpect(status().isForbidden());
+                    .andExpect(status().isUnauthorized());
 
             verify(userService, never()).updatePassword(any());
         }
