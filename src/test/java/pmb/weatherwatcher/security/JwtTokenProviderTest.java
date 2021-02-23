@@ -23,7 +23,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import pmb.weatherwatcher.dto.UserDto;
+import pmb.weatherwatcher.dto.user.UserDto;
 
 @DisplayNameGeneration(value = ReplaceUnderscores.class)
 @ExtendWith(SpringExtension.class)

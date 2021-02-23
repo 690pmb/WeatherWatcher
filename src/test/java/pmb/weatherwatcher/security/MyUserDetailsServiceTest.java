@@ -21,7 +21,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import pmb.weatherwatcher.dto.UserDto;
+import pmb.weatherwatcher.dto.user.UserDto;
 import pmb.weatherwatcher.mapper.UserMapperImpl;
 import pmb.weatherwatcher.model.User;
 import pmb.weatherwatcher.repository.UserRepository;

@@ -1,4 +1,4 @@
-package pmb.weatherwatcher.dto;
+package pmb.weatherwatcher.dto.user;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;

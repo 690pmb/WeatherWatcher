@@ -37,9 +37,9 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import pmb.weatherwatcher.dto.JwtTokenDto;
-import pmb.weatherwatcher.dto.PasswordDto;
-import pmb.weatherwatcher.dto.UserDto;
+import pmb.weatherwatcher.dto.user.JwtTokenDto;
+import pmb.weatherwatcher.dto.user.PasswordDto;
+import pmb.weatherwatcher.dto.user.UserDto;
 import pmb.weatherwatcher.exception.AlreadyExistException;
 import pmb.weatherwatcher.security.JwtTokenProvider;
 import pmb.weatherwatcher.security.MyUserDetailsService;

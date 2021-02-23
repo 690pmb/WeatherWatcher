@@ -4,7 +4,7 @@ import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import pmb.weatherwatcher.dto.UserDto;
+import pmb.weatherwatcher.dto.user.UserDto;
 import pmb.weatherwatcher.model.User;
 
 /**
