@@ -19,7 +19,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import pmb.weatherwatcher.dto.UserDto;
+import pmb.weatherwatcher.dto.user.UserDto;
 
 /**
  * Jwt token utils class.

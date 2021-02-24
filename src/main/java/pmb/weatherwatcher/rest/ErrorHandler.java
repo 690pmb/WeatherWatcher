@@ -7,7 +7,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -17,6 +16,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import pmb.weatherwatcher.exception.AlreadyExistException;
+import pmb.weatherwatcher.exception.NotFoundException;
 
 /**
  * Handles exceptions across the whole application.
@@ -32,6 +32,11 @@ public class ErrorHandler
     @ExceptionHandler
     public ResponseEntity<String> handleAlreadyExistException(AlreadyExistException exception, NativeWebRequest request) {
         return new ResponseEntity<>(exception.getMessage(), HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<String> handleNotFoundException(NotFoundException exception, NativeWebRequest request) {
+        return new ResponseEntity<>(exception.getMessage(), HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler
@@ -55,12 +60,6 @@ public class ErrorHandler
             WebRequest request) {
         LOG.info("MethodArgumentNotValid", ex);
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(MissingRequestHeaderException.class)
-    public ResponseEntity<String> missingRequestHeaderExceptionHandler(final MissingRequestHeaderException e) {
-        LOG.info("MissingRequestHeader", e);
-        return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(Exception.class)

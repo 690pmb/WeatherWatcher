@@ -1,4 +1,4 @@
-package pmb.weatherwatcher.dto;
+package pmb.weatherwatcher.dto.user;
 
 /**
  * Holding authentication user token.

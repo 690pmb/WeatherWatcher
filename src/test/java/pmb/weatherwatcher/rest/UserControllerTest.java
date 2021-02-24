@@ -13,9 +13,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.io.UnsupportedEncodingException;
-import java.util.function.Function;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator.ReplaceUnderscores;
@@ -33,22 +30,22 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import pmb.weatherwatcher.dto.JwtTokenDto;
-import pmb.weatherwatcher.dto.PasswordDto;
-import pmb.weatherwatcher.dto.UserDto;
+import pmb.weatherwatcher.TestUtils;
+import pmb.weatherwatcher.dto.user.JwtTokenDto;
+import pmb.weatherwatcher.dto.user.PasswordDto;
+import pmb.weatherwatcher.dto.user.UserDto;
 import pmb.weatherwatcher.exception.AlreadyExistException;
 import pmb.weatherwatcher.security.JwtTokenProvider;
 import pmb.weatherwatcher.security.MyUserDetailsService;
 import pmb.weatherwatcher.service.UserService;
 
-@WebMvcTest(controllers = UserController.class)
 @ActiveProfiles("test")
 @Import(JwtTokenProvider.class)
 @MockBean(MyUserDetailsService.class)
+@WebMvcTest(controllers = UserController.class)
 @DisplayNameGeneration(value = ReplaceUnderscores.class)
 class UserControllerTest {
 
@@ -77,9 +74,12 @@ class UserControllerTest {
             when(userService.login(any())).thenReturn(expected);
 
             assertEquals(expected.getToken(),
-                    objectMapper.readValue(readResponse.apply(mockMvc.perform(
-                            post("/users/signin").content(objectMapper.writeValueAsString(DUMMY_USER)).contentType(MediaType.APPLICATION_JSON_VALUE))
-                            .andExpect(status().isOk())), JwtTokenDto.class).getToken());
+                    objectMapper
+                            .readValue(TestUtils.readResponse
+                                    .apply(mockMvc.perform(post("/users/signin").content(objectMapper.writeValueAsString(DUMMY_USER))
+                                            .contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk())),
+                                    JwtTokenDto.class)
+                            .getToken());
 
             verify(userService).login(login.capture());
 
@@ -118,7 +118,7 @@ class UserControllerTest {
             ArgumentCaptor<UserDto> capture = ArgumentCaptor.forClass(UserDto.class);
             when(userService.save(any())).thenAnswer(a -> a.getArgument(0));
 
-            assertThat(DUMMY_USER).usingRecursiveComparison().isEqualTo(objectMapper.readValue(readResponse.apply(mockMvc
+            assertThat(DUMMY_USER).usingRecursiveComparison().isEqualTo(objectMapper.readValue(TestUtils.readResponse.apply(mockMvc
                     .perform(post("/users/signup").content(objectMapper.writeValueAsString(DUMMY_USER)).contentType(MediaType.APPLICATION_JSON_VALUE))
                     .andExpect(status().isCreated())), UserDto.class));
 
@@ -188,19 +188,11 @@ class UserControllerTest {
         void not_authenticated_then_unauthorized() throws Exception {
             mockMvc.perform(
                     put("/users/password").content(objectMapper.writeValueAsString(DUMMY_PASSWORD)).contentType(MediaType.APPLICATION_JSON_VALUE))
-                    .andExpect(status().isForbidden());
+                    .andExpect(status().isUnauthorized());
 
             verify(userService, never()).updatePassword(any());
         }
 
     }
-
-    private Function<ResultActions, String> readResponse = result -> {
-        try {
-            return result.andReturn().getResponse().getContentAsString();
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
-    };
 
 }

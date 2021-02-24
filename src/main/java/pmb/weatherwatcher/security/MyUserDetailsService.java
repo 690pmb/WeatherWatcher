@@ -6,7 +6,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import pmb.weatherwatcher.dto.UserDto;
+import pmb.weatherwatcher.dto.user.UserDto;
 import pmb.weatherwatcher.mapper.UserMapper;
 import pmb.weatherwatcher.repository.UserRepository;
 
