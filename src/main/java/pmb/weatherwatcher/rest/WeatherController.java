@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,9 +44,11 @@ public class WeatherController {
                 .collect(Collectors.toList());
     }
 
-    @GetMapping("/ip/{ip}")
-    public IpDto findLocationByIp(@PathVariable String ip) {
-        return weatherApiClient.getIpLookup(ip).map(ipMapper::toDto).orElseThrow(() -> new NotFoundException("Could not find ip: " + ip));
+    @GetMapping("/ip")
+    public IpDto findLocationByIp(HttpServletRequest httpServletRequest) {
+        String ip = httpServletRequest.getRemoteAddr();
+        return weatherApiClient.getIpLookup(ip).map(ipMapper::toDto)
+                .orElseThrow(() -> new NotFoundException("Could not find location for ip: " + ip));
     }
 
     @GetMapping("/locations")

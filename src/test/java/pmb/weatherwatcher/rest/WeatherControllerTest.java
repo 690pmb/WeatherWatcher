@@ -28,6 +28,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -211,6 +212,11 @@ class WeatherControllerTest {
     @Nested
     class FindLocationByIp {
 
+        RequestPostProcessor remoteAddr = request -> {
+            request.setRemoteAddr("ipv4");
+            return request;
+        };
+
         @Test
         @WithMockUser
         void ok() throws Exception {
@@ -232,9 +238,8 @@ class WeatherControllerTest {
             response.setLocaltime("local");
 
             when(weatherApiClient.getIpLookup("ipv4")).thenReturn(Optional.of(response));
-
             IpDto actual = objectMapper.readValue(TestUtils.readResponse.apply(
-                    mockMvc.perform(get("/weathers/ip/{ip}", "ipv4").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk())),
+                    mockMvc.perform(get("/weathers/ip").with(remoteAddr).contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk())),
                     IpDto.class);
 
             assertAll(() -> assertEquals("ip", actual.getIp()), () -> assertEquals("type", actual.getType()),
@@ -252,14 +257,14 @@ class WeatherControllerTest {
         void not_found() throws Exception {
             when(weatherApiClient.getIpLookup("ipv4")).thenReturn(Optional.empty());
 
-            mockMvc.perform(get("/weathers/ip/{ip}", "ipv4").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isNotFound());
+            mockMvc.perform(get("/weathers/ip").with(remoteAddr).contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isNotFound());
 
             verify(weatherApiClient).getIpLookup("ipv4");
         }
 
         @Test
         void not_authenticate_then_unauthorized() throws Exception {
-            mockMvc.perform(get("/weathers/ip/{ip}", "ipv4").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isUnauthorized());
+            mockMvc.perform(get("/weathers/ip").with(remoteAddr).contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isUnauthorized());
 
             verify(weatherApiClient, never()).getIpLookup("ipv4");
         }
