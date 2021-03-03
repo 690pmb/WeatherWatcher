@@ -72,13 +72,22 @@ public class UserService {
      * @param password holding new & old passwords
      */
     public void updatePassword(@Valid PasswordDto password) {
-        User user = JwtTokenProvider.getCurrentUserLogin().flatMap(userRepository::findById)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        User user = getCurrentUser();
         if (!bCryptPasswordEncoder.matches(password.getOldPassword(), user.getPassword())) {
             throw new BadCredentialsException("Invalid credentials");
         }
         user.setPassword(bCryptPasswordEncoder.encode(password.getNewPassword()));
         userRepository.save(user);
+    }
+
+    /**
+     * Recovers current logged user.
+     *
+     * @return {@link User} authenticated
+     */
+    public User getCurrentUser() {
+        return JwtTokenProvider.getCurrentUserLogin().flatMap(userRepository::findById)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
 }
