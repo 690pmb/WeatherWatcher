@@ -3,6 +3,7 @@ package pmb.weatherwatcher.service;
 import java.util.List;
 import java.util.Optional;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import pmb.weatherwatcher.dto.weather.ForecastDto;
@@ -41,7 +42,8 @@ public class WeatherService {
     public ForecastDto findForecastbyLocation(String location, Integer days, String lang, String ip) {
         return weatherApiClient
                 .getForecastWeather(
-                        Optional.ofNullable(location).or(() -> Optional.ofNullable(userService.getCurrentUser().getFavouriteLocation())).orElse(ip),
+                        Optional.ofNullable(location).filter(StringUtils::isNotBlank)
+                                .or(() -> Optional.ofNullable(userService.getCurrentUser().getFavouriteLocation())).orElse(ip),
                         days, Optional.ofNullable(lang).flatMap(Language::fromCode).orElse(Language.FRENCH))
                 .map(forecastMapper::toDto).orElseThrow(() -> new NotFoundException("Could not find forecast for location: " + location));
     }

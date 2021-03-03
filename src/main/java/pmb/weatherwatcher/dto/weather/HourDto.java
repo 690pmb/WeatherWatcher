@@ -1,38 +1,23 @@
 package pmb.weatherwatcher.dto.weather;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import pmb.weatherwatcher.weatherapi.model.Condition;
 
-public class HourDto
-        implements java.io.Serializable {
+public class HourDto {
 
-    private static final long serialVersionUID = -4742803188539272633L;
     private String time;
-    @JsonProperty("temp_c")
     private Double tempC;
-    @JsonProperty("is_day")
     private Integer isDay;
     private Condition condition;
-    @JsonProperty("wind_kph")
     private Double windKph;
-    @JsonProperty("wind_dir")
     private String windDir;
-    @JsonProperty("pressure_mb")
     private Double pressureMb;
-    @JsonProperty("precip_mm")
     private Double precipMm;
     private Integer humidity;
     private Integer cloud;
-    @JsonProperty("feelslike_c")
     private Double feelsLikeC;
-    @JsonProperty("will_it_rain")
     private Integer willItRain;
-    @JsonProperty("chance_of_rain")
     private Integer chanceOfRain;
-    @JsonProperty("will_it_snow")
     private Integer willItSnow;
-    @JsonProperty("chance_of_snow")
     private Integer chanceOfSnow;
     private Double uv;
 

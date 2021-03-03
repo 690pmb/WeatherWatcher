@@ -29,6 +29,7 @@ import pmb.weatherwatcher.dto.weather.ForecastDto;
 import pmb.weatherwatcher.dto.weather.HourDto;
 import pmb.weatherwatcher.dto.weather.IpDto;
 import pmb.weatherwatcher.exception.NotFoundException;
+import pmb.weatherwatcher.mapper.DayMapperImpl;
 import pmb.weatherwatcher.mapper.ForecastDayMapperImpl;
 import pmb.weatherwatcher.mapper.ForecastMapperImpl;
 import pmb.weatherwatcher.mapper.HourMapperImpl;
@@ -48,7 +49,8 @@ import pmb.weatherwatcher.weatherapi.model.Location;
 import pmb.weatherwatcher.weatherapi.model.SearchJsonResponse;
 
 @ActiveProfiles("test")
-@Import({ WeatherService.class, ForecastMapperImpl.class, ForecastDayMapperImpl.class, IpMapperImpl.class, HourMapperImpl.class })
+@Import({ WeatherService.class, ForecastMapperImpl.class, ForecastDayMapperImpl.class, IpMapperImpl.class, HourMapperImpl.class,
+        DayMapperImpl.class })
 @ExtendWith(SpringExtension.class)
 @DisplayNameGeneration(value = ReplaceUnderscores.class)
 class WeatherServiceTest {

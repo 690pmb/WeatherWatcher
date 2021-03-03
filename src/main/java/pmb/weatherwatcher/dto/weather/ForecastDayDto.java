@@ -3,12 +3,11 @@ package pmb.weatherwatcher.dto.weather;
 import java.util.List;
 
 import pmb.weatherwatcher.weatherapi.model.Astro;
-import pmb.weatherwatcher.weatherapi.model.Day;
 
 public class ForecastDayDto {
 
     private String date;
-    private Day day;
+    private DayDto day;
     private Astro astro;
     private List<HourDto> hour;
 
@@ -20,11 +19,11 @@ public class ForecastDayDto {
         this.date = date;
     }
 
-    public Day getDay() {
+    public DayDto getDay() {
         return day;
     }
 
-    public void setDay(Day day) {
+    public void setDay(DayDto day) {
         this.day = day;
     }
 
