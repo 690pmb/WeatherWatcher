@@ -152,7 +152,6 @@ class WeatherControllerTest {
     class SearchLocations {
 
         @Test
-        @WithMockUser
         void ok() throws Exception {
             SearchJsonResponse response = new SearchJsonResponse();
             response.setId(5);
@@ -176,19 +175,10 @@ class WeatherControllerTest {
         }
 
         @Test
-        @WithMockUser
         void missing_query() throws Exception {
             mockMvc.perform(get("/weathers/locations").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isBadRequest());
 
             verify(weatherService, never()).searchLocations("");
-        }
-
-        @Test
-        void not_authenticate_then_unauthorized() throws Exception {
-            mockMvc.perform(get("/weathers/locations").param("query", "lyon").contentType(MediaType.APPLICATION_JSON_VALUE))
-                    .andExpect(status().isUnauthorized());
-
-            verify(weatherService, never()).searchLocations("lyon");
         }
 
     }
