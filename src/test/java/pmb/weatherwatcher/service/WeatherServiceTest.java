@@ -24,10 +24,12 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import pmb.weatherwatcher.dto.weather.ForecastDayDto;
 import pmb.weatherwatcher.dto.weather.ForecastDto;
 import pmb.weatherwatcher.dto.weather.HourDto;
 import pmb.weatherwatcher.dto.weather.IpDto;
 import pmb.weatherwatcher.exception.NotFoundException;
+import pmb.weatherwatcher.mapper.ForecastDayMapperImpl;
 import pmb.weatherwatcher.mapper.ForecastMapperImpl;
 import pmb.weatherwatcher.mapper.HourMapperImpl;
 import pmb.weatherwatcher.mapper.IpMapperImpl;
@@ -42,10 +44,11 @@ import pmb.weatherwatcher.weatherapi.model.Forecastday;
 import pmb.weatherwatcher.weatherapi.model.Hour;
 import pmb.weatherwatcher.weatherapi.model.IpJsonResponse;
 import pmb.weatherwatcher.weatherapi.model.Language;
+import pmb.weatherwatcher.weatherapi.model.Location;
 import pmb.weatherwatcher.weatherapi.model.SearchJsonResponse;
 
 @ActiveProfiles("test")
-@Import({ WeatherService.class, ForecastMapperImpl.class, IpMapperImpl.class, HourMapperImpl.class })
+@Import({ WeatherService.class, ForecastMapperImpl.class, ForecastDayMapperImpl.class, IpMapperImpl.class, HourMapperImpl.class })
 @ExtendWith(SpringExtension.class)
 @DisplayNameGeneration(value = ReplaceUnderscores.class)
 class WeatherServiceTest {
@@ -68,6 +71,9 @@ class WeatherServiceTest {
         @Test
         void ok() {
             ForecastJsonResponse response = new ForecastJsonResponse();
+            Location location = new Location();
+            location.setName("name");
+            response.setLocation(location);
             Astro astro = buildAstro();
             Forecastday forecastday = new Forecastday();
             forecastday.setAstro(astro);
@@ -82,18 +88,20 @@ class WeatherServiceTest {
 
             when(weatherApiClient.getForecastWeather("lyon", 5, Language.BENGALI)).thenReturn(Optional.of(response));
 
-            List<ForecastDto> actual = weatherService.findForecastbyLocation("lyon", 5, "bn", "ipv4");
+            ForecastDto actual = weatherService.findForecastbyLocation("lyon", 5, "bn", "ipv4");
 
             verify(weatherApiClient).getForecastWeather("lyon", 5, Language.BENGALI);
 
-            Astro actualAstro = actual.get(0).getAstro();
-            assertAll(() -> assertEquals(1, actual.size()), () -> assertEquals(5, actualAstro.getMoonIllumination()),
-                    () -> assertEquals("phase", actualAstro.getMoonPhase()), () -> assertEquals("rise", actualAstro.getMoonrise()),
-                    () -> assertEquals("moon", actualAstro.getMoonset()), () -> assertEquals("set", actualAstro.getSunset()),
-                    () -> assertEquals("sun", actualAstro.getSunrise()), () -> assertEquals("date", actual.get(0).getDate()),
+            List<ForecastDayDto> forecastDay = actual.getForecastDay();
+            Astro actualAstro = forecastDay.get(0).getAstro();
+            assertAll(() -> assertEquals("name", actual.getLocation()), () -> assertEquals(1, forecastDay.size()),
+                    () -> assertEquals(5, actualAstro.getMoonIllumination()), () -> assertEquals("phase", actualAstro.getMoonPhase()),
+                    () -> assertEquals("rise", actualAstro.getMoonrise()), () -> assertEquals("moon", actualAstro.getMoonset()),
+                    () -> assertEquals("set", actualAstro.getSunset()), () -> assertEquals("sun", actualAstro.getSunrise()),
+                    () -> assertEquals("date", forecastDay.get(0).getDate()),
                     () -> assertThat(response.getForecast().getForecastday().get(0).getDay()).usingRecursiveComparison()
-                            .isEqualTo(actual.get(0).getDay()),
-                    () -> assertEquals(1, actual.get(0).getHour().size()), () -> assertHour(actual.get(0).getHour().get(0), response));
+                            .isEqualTo(forecastDay.get(0).getDay()),
+                    () -> assertEquals(1, forecastDay.get(0).getHour().size()), () -> assertHour(forecastDay.get(0).getHour().get(0), response));
         }
 
         @Test
@@ -108,7 +116,7 @@ class WeatherServiceTest {
         }
 
         @Test
-        void ok_with_user_ip() {
+        void not_found_with_user_ip() {
             when(weatherApiClient.getForecastWeather("ipv4", null, Language.FRENCH)).thenReturn(Optional.empty());
             when(userService.getCurrentUser()).thenReturn(new User("test", "test", null));
 

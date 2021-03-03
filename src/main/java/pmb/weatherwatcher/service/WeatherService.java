@@ -2,7 +2,6 @@ package pmb.weatherwatcher.service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -37,16 +36,14 @@ public class WeatherService {
      * @param days number of days of forecast required
      * @param lang language
      * @param ip client IP address
-     * @return list of {@link ForecastDto}
+     * @return a {@link ForecastDto}
      */
-    public List<ForecastDto> findForecastbyLocation(String location, Integer days, String lang, String ip) {
+    public ForecastDto findForecastbyLocation(String location, Integer days, String lang, String ip) {
         return weatherApiClient
                 .getForecastWeather(
                         Optional.ofNullable(location).or(() -> Optional.ofNullable(userService.getCurrentUser().getFavouriteLocation())).orElse(ip),
                         days, Optional.ofNullable(lang).flatMap(Language::fromCode).orElse(Language.FRENCH))
-                .map(response -> response.getForecast().getForecastday())
-                .orElseThrow(() -> new NotFoundException("Could not find forecast for location: " + location)).stream().map(forecastMapper::toDto)
-                .collect(Collectors.toList());
+                .map(forecastMapper::toDto).orElseThrow(() -> new NotFoundException("Could not find forecast for location: " + location));
     }
 
     /**

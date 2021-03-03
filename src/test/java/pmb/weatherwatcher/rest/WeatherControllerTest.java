@@ -70,18 +70,22 @@ class WeatherControllerTest {
         @WithMockUser
         void ok() throws Exception {
             ForecastDto response = new ForecastDto();
-            response.setDate("test");
+            response.setLocation("test");
 
-            when(weatherService.findForecastbyLocation("lyon", 5, "bn", "ipv4")).thenReturn(List.of(response));
+            when(weatherService.findForecastbyLocation("lyon", 5, "bn", "ipv4")).thenReturn(response);
 
-            ForecastDto[] actual = objectMapper.readValue(
-                    TestUtils.readResponse.apply(mockMvc.perform(get("/weathers").with(remoteAddr).param("location", "lyon").param("days", "5")
-                            .param("lang", "bn").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk())),
-                    ForecastDto[].class);
+            assertEquals("test",
+                    objectMapper
+                            .readValue(
+                                    TestUtils.readResponse
+                                            .apply(mockMvc
+                                                    .perform(get("/weathers").with(remoteAddr).param("location", "lyon").param("days", "5")
+                                                            .param("lang", "bn").contentType(MediaType.APPLICATION_JSON_VALUE))
+                                                    .andExpect(status().isOk())),
+                                    ForecastDto.class)
+                            .getLocation());
 
             verify(weatherService).findForecastbyLocation("lyon", 5, "bn", "ipv4");
-
-            assertAll(() -> assertEquals(1, actual.length), () -> assertEquals("test", actual[0].getDate()));
         }
 
         @Test

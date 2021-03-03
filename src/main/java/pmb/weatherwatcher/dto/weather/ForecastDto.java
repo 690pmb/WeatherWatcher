@@ -2,46 +2,25 @@ package pmb.weatherwatcher.dto.weather;
 
 import java.util.List;
 
-import pmb.weatherwatcher.weatherapi.model.Astro;
-import pmb.weatherwatcher.weatherapi.model.Day;
-
 public class ForecastDto {
 
-    private String date;
-    private Day day;
-    private Astro astro;
-    private List<HourDto> hour;
+    private String location;
+    private List<ForecastDayDto> forecastDay;
 
-    public String getDate() {
-        return date;
+    public String getLocation() {
+        return location;
     }
 
-    public void setDate(String date) {
-        this.date = date;
+    public void setLocation(String location) {
+        this.location = location;
     }
 
-    public Day getDay() {
-        return day;
+    public List<ForecastDayDto> getForecastDay() {
+        return forecastDay;
     }
 
-    public void setDay(Day day) {
-        this.day = day;
-    }
-
-    public Astro getAstro() {
-        return astro;
-    }
-
-    public void setAstro(Astro astro) {
-        this.astro = astro;
-    }
-
-    public List<HourDto> getHour() {
-        return hour;
-    }
-
-    public void setHour(List<HourDto> hour) {
-        this.hour = hour;
+    public void setForecastDay(List<ForecastDayDto> forecastDay) {
+        this.forecastDay = forecastDay;
     }
 
 }

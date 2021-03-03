@@ -25,7 +25,7 @@ public class WeatherController {
     }
 
     @GetMapping
-    public List<ForecastDto> findForecastbyLocation(@RequestParam(required = false) String location, @RequestParam(required = false) Integer days,
+    public ForecastDto findForecastbyLocation(@RequestParam(required = false) String location, @RequestParam(required = false) Integer days,
             @RequestParam(required = false) String lang, HttpServletRequest httpServletRequest) {
         return weatherService.findForecastbyLocation(location, days, lang, httpServletRequest.getRemoteAddr());
     }
