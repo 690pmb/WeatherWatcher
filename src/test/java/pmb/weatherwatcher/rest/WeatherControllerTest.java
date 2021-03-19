@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import pmb.weatherwatcher.TestUtils;
 import pmb.weatherwatcher.dto.weather.ForecastDto;
 import pmb.weatherwatcher.dto.weather.IpDto;
+import pmb.weatherwatcher.dto.weather.LocationDto;
 import pmb.weatherwatcher.exception.NotFoundException;
 import pmb.weatherwatcher.security.JwtTokenProvider;
 import pmb.weatherwatcher.security.MyUserDetailsService;
@@ -70,7 +71,9 @@ class WeatherControllerTest {
         @WithMockUser
         void ok() throws Exception {
             ForecastDto response = new ForecastDto();
-            response.setLocation("test");
+            LocationDto location = new LocationDto();
+            location.setName("test");
+            response.setLocation(location);
 
             when(weatherService.findForecastbyLocation("lyon", 5, "bn", "ipv4")).thenReturn(response);
 
@@ -83,7 +86,7 @@ class WeatherControllerTest {
                                                             .param("lang", "bn").contentType(MediaType.APPLICATION_JSON_VALUE))
                                                     .andExpect(status().isOk())),
                                     ForecastDto.class)
-                            .getLocation());
+                            .getLocation().getName());
 
             verify(weatherService).findForecastbyLocation("lyon", 5, "bn", "ipv4");
         }

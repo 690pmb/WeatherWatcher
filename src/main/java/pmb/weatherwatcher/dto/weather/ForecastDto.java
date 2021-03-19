@@ -4,14 +4,14 @@ import java.util.List;
 
 public class ForecastDto {
 
-    private String location;
+    private LocationDto location;
     private List<ForecastDayDto> forecastDay;
 
-    public String getLocation() {
+    public LocationDto getLocation() {
         return location;
     }
 
-    public void setLocation(String location) {
+    public void setLocation(LocationDto location) {
         this.location = location;
     }
 

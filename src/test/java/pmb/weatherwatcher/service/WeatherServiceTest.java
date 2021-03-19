@@ -5,6 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -34,6 +37,7 @@ import pmb.weatherwatcher.mapper.ForecastDayMapperImpl;
 import pmb.weatherwatcher.mapper.ForecastMapperImpl;
 import pmb.weatherwatcher.mapper.HourMapperImpl;
 import pmb.weatherwatcher.mapper.IpMapperImpl;
+import pmb.weatherwatcher.mapper.LocationMapperImpl;
 import pmb.weatherwatcher.model.User;
 import pmb.weatherwatcher.weatherapi.client.WeatherApiClient;
 import pmb.weatherwatcher.weatherapi.model.Astro;
@@ -49,8 +53,8 @@ import pmb.weatherwatcher.weatherapi.model.Location;
 import pmb.weatherwatcher.weatherapi.model.SearchJsonResponse;
 
 @ActiveProfiles("test")
-@Import({ WeatherService.class, ForecastMapperImpl.class, ForecastDayMapperImpl.class, IpMapperImpl.class, HourMapperImpl.class,
-        DayMapperImpl.class })
+@Import({ WeatherService.class, ForecastMapperImpl.class, ForecastDayMapperImpl.class, IpMapperImpl.class, HourMapperImpl.class, DayMapperImpl.class,
+        LocationMapperImpl.class })
 @ExtendWith(SpringExtension.class)
 @DisplayNameGeneration(value = ReplaceUnderscores.class)
 class WeatherServiceTest {
@@ -71,7 +75,7 @@ class WeatherServiceTest {
     class FindForecastbyLocation {
 
         @Test
-        void ok() {
+        void given_location() {
             ForecastJsonResponse response = new ForecastJsonResponse();
             Location location = new Location();
             location.setName("name");
@@ -96,7 +100,7 @@ class WeatherServiceTest {
 
             List<ForecastDayDto> forecastDay = actual.getForecastDay();
             Astro actualAstro = forecastDay.get(0).getAstro();
-            assertAll(() -> assertEquals("name", actual.getLocation()), () -> assertEquals(1, forecastDay.size()),
+            assertAll(() -> assertEquals("name", actual.getLocation().getName()), () -> assertEquals(1, forecastDay.size()),
                     () -> assertEquals(5, actualAstro.getMoonIllumination()), () -> assertEquals("phase", actualAstro.getMoonPhase()),
                     () -> assertEquals("rise", actualAstro.getMoonrise()), () -> assertEquals("moon", actualAstro.getMoonset()),
                     () -> assertEquals("set", actualAstro.getSunset()), () -> assertEquals("sun", actualAstro.getSunrise()),
