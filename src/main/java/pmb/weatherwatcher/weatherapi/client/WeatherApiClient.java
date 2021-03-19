@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 
 import pmb.weatherwatcher.weatherapi.model.ForecastJsonResponse;
-import pmb.weatherwatcher.weatherapi.model.IpJsonResponse;
 import pmb.weatherwatcher.weatherapi.model.Language;
 import pmb.weatherwatcher.weatherapi.model.SearchJsonResponse;
 
@@ -19,14 +18,6 @@ public interface WeatherApiClient {
      * @return an Optional {@link ForecastJsonResponse}
      */
     Optional<ForecastJsonResponse> getForecastWeather(String location, Integer days, Language lang);
-
-    /**
-     * Gets a location from an IP address.
-     *
-     * @param ipAddress IP address (IPv4 and IPv6 supported)
-     * @return an Optional {@link IpJsonResponse}
-     */
-    Optional<IpJsonResponse> getIpLookup(String ipAddress);
 
     /**
      * Searches matching cities and towns.

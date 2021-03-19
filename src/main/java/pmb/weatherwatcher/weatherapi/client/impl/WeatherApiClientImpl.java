@@ -18,7 +18,6 @@ import pmb.weatherwatcher.weatherapi.client.WeatherApiClient;
 import pmb.weatherwatcher.weatherapi.config.WeatherApiProperties;
 import pmb.weatherwatcher.weatherapi.exception.WeatherApiClientException;
 import pmb.weatherwatcher.weatherapi.model.ForecastJsonResponse;
-import pmb.weatherwatcher.weatherapi.model.IpJsonResponse;
 import pmb.weatherwatcher.weatherapi.model.Language;
 import pmb.weatherwatcher.weatherapi.model.SearchJsonResponse;
 
@@ -35,7 +34,6 @@ public class WeatherApiClientImpl
     private static final String PARAM_LANGUAGE = "lang";
     private static final String URL_FORECAST = "/forecast.json";
     private static final String URL_SEARCH = "/search.json";
-    private static final String URL_IP_LOOKUP = "/ip.json";
 
     private RestTemplate restTemplate;
     private WeatherApiProperties weatherApiProperties;
@@ -54,13 +52,6 @@ public class WeatherApiClientImpl
         }
         params.add(PARAM_LANGUAGE, lang.getCode());
         return get(URL_FORECAST, params, ForecastJsonResponse.class);
-    }
-
-    @Override
-    public Optional<IpJsonResponse> getIpLookup(String ipAddress) {
-        LinkedMultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add(PARAM_QUERY, ipAddress);
-        return get(URL_IP_LOOKUP, params, IpJsonResponse.class);
     }
 
     @Override

@@ -9,7 +9,6 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withBadRequest;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withUnauthorizedRequest;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -32,7 +31,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import pmb.weatherwatcher.weatherapi.config.WeatherApiProperties;
 import pmb.weatherwatcher.weatherapi.exception.WeatherApiClientException;
 import pmb.weatherwatcher.weatherapi.model.ForecastJsonResponse;
-import pmb.weatherwatcher.weatherapi.model.IpJsonResponse;
 import pmb.weatherwatcher.weatherapi.model.Language;
 import pmb.weatherwatcher.weatherapi.model.SearchJsonResponse;
 
@@ -73,30 +71,6 @@ class WeatherApiClientImplTest {
             server.expect(requestTo("https://api.weatherapi.com/v1/forecast.json?key=api_key_test&q=lyon&lang=it")).andRespond(withBadRequest());
 
             assertThrows(WeatherApiClientException.class, () -> weatherApiClientImpl.getForecastWeather("lyon", null, Language.ITALIAN));
-        }
-
-    }
-
-    @Nested
-    class GetIpLookup {
-
-        @Test
-        void success() throws IOException {
-            String ip = readResponseFile("ip.json");
-
-            server.expect(requestTo("https://api.weatherapi.com/v1/ip.json?key=api_key_test&q=90.25.12.280"))
-                    .andRespond(withSuccess(ip, MediaType.APPLICATION_JSON));
-
-            Optional<IpJsonResponse> result = weatherApiClientImpl.getIpLookup("90.25.12.280");
-
-            assertAll(() -> assertTrue(result.isPresent()), () -> assertJsonEquals(ip, objectMapper.writeValueAsString(result.get())));
-        }
-
-        @Test
-        void error() {
-            server.expect(requestTo("https://api.weatherapi.com/v1/ip.json?key=api_key_test&q=90.25.12.180")).andRespond(withUnauthorizedRequest());
-
-            assertThrows(WeatherApiClientException.class, () -> weatherApiClientImpl.getIpLookup("90.25.12.180"));
         }
 
     }

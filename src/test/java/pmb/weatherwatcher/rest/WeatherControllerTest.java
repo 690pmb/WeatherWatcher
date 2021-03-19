@@ -26,14 +26,13 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import pmb.weatherwatcher.TestUtils;
 import pmb.weatherwatcher.dto.weather.ForecastDto;
-import pmb.weatherwatcher.dto.weather.IpDto;
 import pmb.weatherwatcher.dto.weather.LocationDto;
+import pmb.weatherwatcher.exception.NoContentException;
 import pmb.weatherwatcher.exception.NotFoundException;
 import pmb.weatherwatcher.security.JwtTokenProvider;
 import pmb.weatherwatcher.security.MyUserDetailsService;
@@ -59,11 +58,6 @@ class WeatherControllerTest {
         verifyNoMoreInteractions(weatherService);
     }
 
-    RequestPostProcessor remoteAddr = request -> {
-        request.setRemoteAddr("ipv4");
-        return request;
-    };
-
     @Nested
     class FindForecastbyLocation {
 
@@ -75,78 +69,45 @@ class WeatherControllerTest {
             location.setName("test");
             response.setLocation(location);
 
-            when(weatherService.findForecastbyLocation("lyon", 5, "bn", "ipv4")).thenReturn(response);
+            when(weatherService.findForecastbyLocation("lyon", 5, "bn")).thenReturn(response);
 
             assertEquals("test",
-                    objectMapper
-                            .readValue(
-                                    TestUtils.readResponse
-                                            .apply(mockMvc
-                                                    .perform(get("/weathers").with(remoteAddr).param("location", "lyon").param("days", "5")
-                                                            .param("lang", "bn").contentType(MediaType.APPLICATION_JSON_VALUE))
-                                                    .andExpect(status().isOk())),
-                                    ForecastDto.class)
-                            .getLocation().getName());
+                    objectMapper.readValue(
+                            TestUtils.readResponse.apply(mockMvc.perform(get("/weathers").param("location", "lyon").param("days", "5")
+                                    .param("lang", "bn").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk())),
+                            ForecastDto.class).getLocation().getName());
 
-            verify(weatherService).findForecastbyLocation("lyon", 5, "bn", "ipv4");
+            verify(weatherService).findForecastbyLocation("lyon", 5, "bn");
         }
 
         @Test
         @WithMockUser
         void not_found() throws Exception {
-            when(weatherService.findForecastbyLocation(null, null, null, "ipv4")).thenThrow(new NotFoundException("Error"));
+            when(weatherService.findForecastbyLocation(null, null, null)).thenThrow(new NotFoundException("Error"));
 
-            mockMvc.perform(get("/weathers").with(remoteAddr).contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isNotFound())
+            mockMvc.perform(get("/weathers").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isNotFound())
                     .andExpect(jsonPath("$").value("Error"));
 
-            verify(weatherService).findForecastbyLocation(null, null, null, "ipv4");
+            verify(weatherService).findForecastbyLocation(null, null, null);
+        }
+
+        @Test
+        @WithMockUser
+        void not_content() throws Exception {
+            when(weatherService.findForecastbyLocation(null, 6, null)).thenThrow(new NoContentException("Error"));
+
+            mockMvc.perform(get("/weathers").param("days", "6").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isNoContent())
+                    .andExpect(jsonPath("$").value("Error"));
+
+            verify(weatherService).findForecastbyLocation(null, 6, null);
         }
 
         @Test
         void when_not_logged_then_unauthorized() throws Exception {
-            mockMvc.perform(
-                    get("/weathers").with(remoteAddr).param("location", "lyon").param("days", "5").contentType(MediaType.APPLICATION_JSON_VALUE))
+            mockMvc.perform(get("/weathers").param("location", "lyon").param("days", "5").contentType(MediaType.APPLICATION_JSON_VALUE))
                     .andExpect(status().isUnauthorized()).andExpect(jsonPath("$").doesNotExist());
 
-            verify(weatherService, never()).findForecastbyLocation("lyon", 5, null, "ipv4");
-        }
-
-    }
-
-    @Nested
-    class FindLocationByIp {
-
-        @Test
-        @WithMockUser
-        void ok() throws Exception {
-            IpDto response = new IpDto();
-            response.setIp("test");
-
-            when(weatherService.findLocationByIp("ipv4")).thenReturn(response);
-
-            assertEquals("test",
-                    objectMapper.readValue(TestUtils.readResponse.apply(mockMvc
-                            .perform(get("/weathers/ip").with(remoteAddr).contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk())),
-                            IpDto.class).getIp());
-
-            verify(weatherService).findLocationByIp("ipv4");
-        }
-
-        @Test
-        @WithMockUser
-        void not_found() throws Exception {
-            when(weatherService.findLocationByIp("ipv4")).thenThrow(NotFoundException.class);
-
-            mockMvc.perform(get("/weathers/ip").with(remoteAddr).contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isNotFound());
-
-            verify(weatherService).findLocationByIp("ipv4");
-        }
-
-        @Test
-        void not_authenticate_then_unauthorized() throws Exception {
-            mockMvc.perform(get("/weathers/ip").with(remoteAddr).contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isUnauthorized());
-
-            verify(weatherService, never()).findLocationByIp("ipv4");
+            verify(weatherService, never()).findForecastbyLocation("lyon", 5, null);
         }
 
     }

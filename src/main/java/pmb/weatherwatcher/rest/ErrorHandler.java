@@ -16,6 +16,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import pmb.weatherwatcher.exception.AlreadyExistException;
+import pmb.weatherwatcher.exception.NoContentException;
 import pmb.weatherwatcher.exception.NotFoundException;
 
 /**
@@ -37,6 +38,11 @@ public class ErrorHandler
     @ExceptionHandler
     public ResponseEntity<String> handleNotFoundException(NotFoundException exception, NativeWebRequest request) {
         return new ResponseEntity<>(exception.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<String> handleNoContentException(NoContentException exception, NativeWebRequest request) {
+        return new ResponseEntity<>(exception.getMessage(), HttpStatus.NO_CONTENT);
     }
 
     @ExceptionHandler

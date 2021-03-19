@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -30,13 +29,12 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import pmb.weatherwatcher.dto.weather.ForecastDayDto;
 import pmb.weatherwatcher.dto.weather.ForecastDto;
 import pmb.weatherwatcher.dto.weather.HourDto;
-import pmb.weatherwatcher.dto.weather.IpDto;
+import pmb.weatherwatcher.exception.NoContentException;
 import pmb.weatherwatcher.exception.NotFoundException;
 import pmb.weatherwatcher.mapper.DayMapperImpl;
 import pmb.weatherwatcher.mapper.ForecastDayMapperImpl;
 import pmb.weatherwatcher.mapper.ForecastMapperImpl;
 import pmb.weatherwatcher.mapper.HourMapperImpl;
-import pmb.weatherwatcher.mapper.IpMapperImpl;
 import pmb.weatherwatcher.mapper.LocationMapperImpl;
 import pmb.weatherwatcher.model.User;
 import pmb.weatherwatcher.weatherapi.client.WeatherApiClient;
@@ -47,13 +45,12 @@ import pmb.weatherwatcher.weatherapi.model.Forecast;
 import pmb.weatherwatcher.weatherapi.model.ForecastJsonResponse;
 import pmb.weatherwatcher.weatherapi.model.Forecastday;
 import pmb.weatherwatcher.weatherapi.model.Hour;
-import pmb.weatherwatcher.weatherapi.model.IpJsonResponse;
 import pmb.weatherwatcher.weatherapi.model.Language;
 import pmb.weatherwatcher.weatherapi.model.Location;
 import pmb.weatherwatcher.weatherapi.model.SearchJsonResponse;
 
 @ActiveProfiles("test")
-@Import({ WeatherService.class, ForecastMapperImpl.class, ForecastDayMapperImpl.class, IpMapperImpl.class, HourMapperImpl.class, DayMapperImpl.class,
+@Import({ WeatherService.class, ForecastMapperImpl.class, ForecastDayMapperImpl.class, HourMapperImpl.class, DayMapperImpl.class,
         LocationMapperImpl.class })
 @ExtendWith(SpringExtension.class)
 @DisplayNameGeneration(value = ReplaceUnderscores.class)
@@ -94,7 +91,7 @@ class WeatherServiceTest {
 
             when(weatherApiClient.getForecastWeather("lyon", 5, Language.BENGALI)).thenReturn(Optional.of(response));
 
-            ForecastDto actual = weatherService.findForecastbyLocation("lyon", 5, "bn", "ipv4");
+            ForecastDto actual = weatherService.findForecastbyLocation("lyon", 5, "bn");
 
             verify(weatherApiClient).getForecastWeather("lyon", 5, Language.BENGALI);
 
@@ -115,20 +112,19 @@ class WeatherServiceTest {
             when(weatherApiClient.getForecastWeather("london", null, Language.FRENCH)).thenReturn(Optional.empty());
             when(userService.getCurrentUser()).thenReturn(new User("test", "test", "london"));
 
-            assertThrows(NotFoundException.class, () -> weatherService.findForecastbyLocation(null, null, null, "ipv4"));
+            assertThrows(NotFoundException.class, () -> weatherService.findForecastbyLocation(null, null, null));
 
             verify(weatherApiClient).getForecastWeather("london", null, Language.FRENCH);
             verify(userService).getCurrentUser();
         }
 
         @Test
-        void not_found_with_user_ip() {
-            when(weatherApiClient.getForecastWeather("ipv4", null, Language.FRENCH)).thenReturn(Optional.empty());
+        void no_location_nor_user_favorite_then_no_content() {
             when(userService.getCurrentUser()).thenReturn(new User("test", "test", null));
 
-            assertThrows(NotFoundException.class, () -> weatherService.findForecastbyLocation(null, null, null, "ipv4"));
+            assertThrows(NoContentException.class, () -> weatherService.findForecastbyLocation(null, null, null));
 
-            verify(weatherApiClient).getForecastWeather("ipv4", null, Language.FRENCH);
+            verify(weatherApiClient, never()).getForecastWeather(any(), eq(null), eq(Language.FRENCH));
             verify(userService).getCurrentUser();
         }
 
@@ -209,53 +205,6 @@ class WeatherServiceTest {
             astro.setSunrise("sun");
             astro.setSunset("set");
             return astro;
-        }
-
-    }
-
-    @Nested
-    class FindLocationByIp {
-
-        @Test
-        void ok() {
-            IpJsonResponse response = new IpJsonResponse();
-            response.setCity("lyon");
-            response.setContinentCode("code");
-            response.setContinentName("name");
-            response.setCountryCode("country");
-            response.setCountryName("fr");
-            response.setIp("ip");
-            response.setType("type");
-            response.setIsEu(true);
-            response.setGeoNameId(96);
-            response.setRegion("rhone");
-            response.setLat(5.36);
-            response.setLon(96.14);
-            response.setTzId("zone");
-            response.setLocaltimeEpoch(5952);
-            response.setLocaltime("local");
-
-            when(weatherApiClient.getIpLookup("ipv4")).thenReturn(Optional.of(response));
-
-            IpDto actual = weatherService.findLocationByIp("ipv4");
-
-            assertAll(() -> assertEquals("ip", actual.getIp()), () -> assertEquals("type", actual.getType()),
-                    () -> assertEquals("code", actual.getContinentCode()), () -> assertEquals("name", actual.getContinentName()),
-                    () -> assertEquals("country", actual.getCountryCode()), () -> assertEquals("fr", actual.getCountryName()),
-                    () -> assertTrue(actual.getIsEu()), () -> assertEquals("lyon", actual.getCity()), () -> assertEquals("rhone", actual.getRegion()),
-                    () -> assertEquals(5.36, actual.getLat()), () -> assertEquals(96.14, actual.getLon()),
-                    () -> assertEquals("zone", actual.getTzId()));
-
-            verify(weatherApiClient).getIpLookup("ipv4");
-        }
-
-        @Test
-        void not_found() {
-            when(weatherApiClient.getIpLookup("ipv4")).thenReturn(Optional.empty());
-
-            assertThrows(NotFoundException.class, () -> weatherService.findLocationByIp("ipv4"));
-
-            verify(weatherApiClient).getIpLookup("ipv4");
         }
 
     }

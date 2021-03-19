@@ -1,7 +1,10 @@
 package pmb.weatherwatcher.service;
 
+import java.util.Optional;
+
 import javax.validation.Valid;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -48,7 +51,8 @@ public class UserService {
         userRepository.findById(user.getUsername()).ifPresent(u -> {
             throw new AlreadyExistException("User with name '" + user.getUsername() + "' already exist");
         });
-        User saved = userRepository.save(new User(user.getUsername(), bCryptPasswordEncoder.encode(user.getPassword()), user.getFavouriteLocation()));
+        User saved = userRepository.save(new User(user.getUsername(), bCryptPasswordEncoder.encode(user.getPassword()),
+                Optional.ofNullable(user.getFavouriteLocation()).map(StringUtils::trim).filter(StringUtils::isNotBlank).orElse(null)));
         return new UserDto(saved.getLogin(), null, saved.getFavouriteLocation());
     }
 
