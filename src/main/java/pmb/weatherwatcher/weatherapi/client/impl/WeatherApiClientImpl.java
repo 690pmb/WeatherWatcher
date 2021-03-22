@@ -74,7 +74,7 @@ public class WeatherApiClientImpl
 
     private String buildUrl(String path, MultiValueMap<String, String> params) {
         return UriComponentsBuilder.fromUriString(weatherApiProperties.getBaseUrl()).path(path)
-                .queryParam(PARAM_API_KEY, weatherApiProperties.getApiKey()).queryParams(params).toUriString();
+                .queryParam(PARAM_API_KEY, weatherApiProperties.getApiKey()).queryParams(params).build(false).toUriString();
     }
 
 }
