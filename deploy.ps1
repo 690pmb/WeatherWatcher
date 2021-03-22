@@ -13,6 +13,5 @@ cd $workspace
 $jar = "weather-watcher-" + $pom.project.version + ".jar"
 Copy-Item -Force -Path ("target\" + $jar) -Destination $web
 Write-Host "APP SUCCESSFULLY DEPLOYED" -ForegroundColor Green
-Write-Host "Starting App..." -ForegroundColor Cyan
-cd $web
-java -"Dserver.port=7878" -jar -"Dspring.profiles.active=dev" $jar
+Write-Host "Copying to clipboard running script" -ForegroundColor Cyan
+Set-Clipboard -Value @("cd /volume1/web/weather", "rm -f nohup.out", "ps ax | grep java | grep -v 'grep' | cut -d '?' -f1 | xargs kill -9", ("nohup java -Dserver.port=7878 -jar -Dspring.profiles.active=dev " + $jar + " &"))
