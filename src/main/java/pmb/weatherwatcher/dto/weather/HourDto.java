@@ -6,7 +6,7 @@ public class HourDto {
 
     private String time;
     private Double tempC;
-    private Integer isDay;
+    private Boolean isDay;
     private Condition condition;
     private Double windKph;
     private String windDir;
@@ -37,11 +37,11 @@ public class HourDto {
         this.tempC = tempC;
     }
 
-    public Integer getIsDay() {
+    public Boolean getIsDay() {
         return isDay;
     }
 
-    public void setIsDay(Integer isDay) {
+    public void setIsDay(Boolean isDay) {
         this.isDay = isDay;
     }
 

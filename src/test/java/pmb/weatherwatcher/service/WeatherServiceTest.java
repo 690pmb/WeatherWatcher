@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -130,7 +131,7 @@ class WeatherServiceTest {
 
         private void assertHour(HourDto hourDto, ForecastJsonResponse response) {
             assertAll(() -> assertEquals("time", hourDto.getTime()), () -> assertEquals(95D, hourDto.getTempC()),
-                    () -> assertEquals(5, hourDto.getIsDay()),
+                    () -> assertTrue(hourDto.getIsDay()),
                     () -> assertThat(hourDto.getCondition()).usingRecursiveComparison()
                             .isEqualTo(response.getForecast().getForecastday().get(0).getHour().get(0).getCondition()),
                     () -> assertEquals(9D, hourDto.getWindKph()), () -> assertEquals("dir", hourDto.getWindDir()),
@@ -146,7 +147,7 @@ class WeatherServiceTest {
             hour.setTimeEpoch(96);
             hour.setTime("time");
             hour.setTempC(95D);
-            hour.setIsDay(5);
+            hour.setIsDay(1);
             hour.setCondition(buildCondition());
             hour.setWindKph(9D);
             hour.setWindDegree(62);
