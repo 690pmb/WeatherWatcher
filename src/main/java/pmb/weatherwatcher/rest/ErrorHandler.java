@@ -16,6 +16,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import pmb.weatherwatcher.exception.AlreadyExistException;
+import pmb.weatherwatcher.exception.BadRequestException;
 import pmb.weatherwatcher.exception.NoContentException;
 import pmb.weatherwatcher.exception.NotFoundException;
 
@@ -48,6 +49,11 @@ public class ErrorHandler
     @ExceptionHandler
     public ResponseEntity<String> handleAuthenticationException(AuthenticationException exception, NativeWebRequest request) {
         return new ResponseEntity<>(exception.getMessage(), HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<String> handleBadRequestException(BadRequestException exception, NativeWebRequest request) {
+        return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler
