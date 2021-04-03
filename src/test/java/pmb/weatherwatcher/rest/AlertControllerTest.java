@@ -7,6 +7,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -120,6 +121,33 @@ class AlertControllerTest {
                     .andExpect(status().isBadRequest());
 
             verify(alertService).save(any());
+        }
+
+    }
+
+    @Nested
+    class GetAllByUser {
+
+        @Test
+        void when_not_logged_then_unauthorized() throws Exception {
+            mockMvc.perform(get("/alerts").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$").doesNotExist());
+
+            verify(alertService, never()).findAllForCurrentUser();
+        }
+
+        @Test
+        @WithMockUser
+        void ok() throws Exception {
+            when(alertService.findAllForCurrentUser()).thenReturn(List.of(DUMMY_ALERT));
+
+            assertThat(DUMMY_ALERT).usingRecursiveComparison()
+                    .isEqualTo(objectMapper.readValue(
+                            TestUtils.readResponse
+                                    .apply(mockMvc.perform(get("/alerts").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk())),
+                            AlertDto[].class)[0]);
+
+            verify(alertService).findAllForCurrentUser();
         }
 
     }

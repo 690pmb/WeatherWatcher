@@ -1,5 +1,6 @@
 package pmb.weatherwatcher.service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -55,6 +56,15 @@ public class AlertService {
         if (Stream.of(monitoredDays.getNextDay(), monitoredDays.getSameDay(), monitoredDays.getTwoDayLater()).allMatch(BooleanUtils::isNotTrue)) {
             throw new BadRequestException("Given alert has no monitored days");
         }
+    }
+
+    /**
+     * Finds all alerts for the currently logged user.
+     *
+     * @return
+     */
+    public List<AlertDto> findAllForCurrentUser() {
+        return alertMapper.toDtoList(alertRepository.findByUserLogin(userService.getCurrentUser().getLogin()));
     }
 
 }

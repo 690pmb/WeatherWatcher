@@ -114,6 +114,24 @@ class AlertServiceTest {
 
     }
 
+    @Test
+    void findAll() {
+        Alert a1 = new Alert();
+        a1.setId(1L);
+        Alert a2 = new Alert();
+        a2.setId(2L);
+
+        when(userService.getCurrentUser()).thenReturn(new User("test", "sfdg", "Lyon"));
+        when(alertRepository.findByUserLogin("test")).thenReturn(List.of(a1, a2));
+
+        List<AlertDto> result = alertService.findAllForCurrentUser();
+
+        assertAll(() -> assertEquals(2, result.size()), () -> assertEquals(1L, result.get(0).getId()), () -> assertEquals(2L, result.get(1).getId()));
+
+        verify(userService).getCurrentUser();
+        verify(alertRepository).findByUserLogin("test");
+    }
+
     static Stream<Arguments> invalidAlertProvider() {
         return Stream.of(
                 Arguments.of(
