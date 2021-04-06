@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -16,6 +17,7 @@ import static org.mockito.Mockito.when;
 import java.time.DayOfWeek;
 import java.time.OffsetTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -130,6 +132,50 @@ class AlertServiceTest {
 
         verify(userService).getCurrentUser();
         verify(alertRepository).findByUserLogin("test");
+    }
+
+    @Nested
+    class Update {
+
+        @Test
+        void ok() {
+            DUMMY_ALERT.setId(5L);
+            DUMMY_ALERT.getMonitoredFields().get(0).setMax(null);
+
+            when(alertRepository.findById(5L)).thenReturn(Optional.of(new Alert()));
+            when(userService.getCurrentUser()).thenReturn(new User("test", "sfdg", "Lyon"));
+            when(alertRepository.save(any())).thenAnswer(a -> a.getArgument(0));
+
+            AlertDto result = alertService.update(DUMMY_ALERT);
+
+            assertThat(DUMMY_ALERT).usingRecursiveComparison().as("result").isEqualTo(result);
+
+            verify(alertRepository).findById(5L);
+            verify(userService).getCurrentUser();
+            verify(alertRepository).save(any());
+        }
+
+        @Test
+        void id_null_then_bad_request() {
+            assertThrows(BadRequestException.class, () -> alertService.update(DUMMY_ALERT), "Alert to update with id 'null' is unknown");
+
+            verify(alertRepository, never()).findById(anyLong());
+            verify(userService, never()).getCurrentUser();
+            verify(alertRepository, never()).save(any());
+        }
+
+        @Test
+        void alert_not_found_then_bad_request() {
+            DUMMY_ALERT.setId(5L);
+            when(alertRepository.findById(5L)).thenReturn(Optional.empty());
+
+            assertThrows(BadRequestException.class, () -> alertService.update(DUMMY_ALERT), "Alert to update with id '5' is unknown");
+
+            verify(alertRepository).findById(5L);
+            verify(userService, never()).getCurrentUser();
+            verify(alertRepository, never()).save(any());
+        }
+
     }
 
     static Stream<Arguments> invalidAlertProvider() {

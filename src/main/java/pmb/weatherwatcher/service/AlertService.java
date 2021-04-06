@@ -67,4 +67,16 @@ public class AlertService {
         return alertMapper.toDtoList(alertRepository.findByUserLogin(userService.getCurrentUser().getLogin()));
     }
 
+    /**
+     * Updates the given alert.
+     *
+     * @param alert new alert
+     * @return the updated alert
+     */
+    public AlertDto update(AlertDto alert) {
+        Optional.ofNullable(alert.getId()).flatMap(alertRepository::findById)
+                .orElseThrow(() -> new BadRequestException("Alert to update with id '" + alert.getId() + "' is unknown"));
+        return save(alert);
+    }
+
 }
