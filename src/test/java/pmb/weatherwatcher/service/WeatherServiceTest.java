@@ -66,7 +66,7 @@ class WeatherServiceTest {
 
     @AfterEach
     void tearDown() {
-        verifyNoMoreInteractions(weatherApiClient);
+        verifyNoMoreInteractions(weatherApiClient, userService);
     }
 
     @Nested

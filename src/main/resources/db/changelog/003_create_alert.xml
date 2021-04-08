@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <changeSet id="20210402-1" author="PMB">
+        <createTable tableName="alert">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="trigger_hour" type="TIME">
+                <constraints nullable="false" />
+            </column>
+            <column name="location" type="VARCHAR(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="force_notification" type="boolean" />
+            <column name="same_day" type="boolean" />
+            <column name="next_day" type="boolean" />
+            <column name="two_day_later" type="boolean" />
+            <column name="user" type="VARCHAR(30)">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseColumnNames="user" baseTableName="alert"
+            constraintName="fk_user" referencedColumnNames="login" referencedTableName="user" />
+    </changeSet>
+
+    <changeSet id="20210402-2" author="PMB">
+        <createTable tableName="monitored_field">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="field" type="VARCHAR(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="min" type="int" />
+            <column name="max" type="int" />
+            <column name="alert" type="bigint">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseColumnNames="alert" baseTableName="monitored_field"
+            constraintName="fk_alert_monitored_field" referencedColumnNames="id" referencedTableName="alert" />
+    </changeSet>
+
+    <changeSet id="20210402-3" author="PMB">
+        <createTable tableName="trigger_day">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="alert" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="day" type="VARCHAR(30)">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseColumnNames="alert" baseTableName="trigger_day"
+            constraintName="fk_alert_trigger_day" referencedColumnNames="id" referencedTableName="alert" />
+    </changeSet>
+
+    <changeSet id="20210402-4" author="PMB">
+        <createTable tableName="alert_monitored_hour">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="alert" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="hour" type="TIME">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseColumnNames="alert" baseTableName="alert_monitored_hour"
+            constraintName="fk_monitored_hour" referencedColumnNames="id" referencedTableName="alert" />
+    </changeSet>
+
+</databaseChangeLog>

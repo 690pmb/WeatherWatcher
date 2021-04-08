@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <changeSet id="20210402-5" author="PMB" context="local">
+
+        <insert tableName="alert">
+            <column name="id" value="1" />
+            <column name="trigger_hour" value="09:15" />
+            <column name="location" value="Lyon" />
+            <column name="force_notification" valueBoolean="true" />
+            <column name="same_day" valueBoolean="true" />
+            <column name="next_day" valueBoolean="false" />
+            <column name="two_day_later" valueBoolean="true" />
+            <column name="user" value="test" />
+        </insert>
+
+        <!-- monitored_field -->
+        <insert tableName="monitored_field">
+            <column name="id" value="1" />
+            <column name="field" value="TEMP" />
+            <column name="min" value="2" />
+            <column name="max" value="15" />
+            <column name="alert" value="1" />
+        </insert>
+        <insert tableName="monitored_field">
+            <column name="id" value="2" />
+            <column name="field" value="WIND" />
+            <column name="max" value="20" />
+            <column name="alert" value="1" />
+        </insert>
+
+        <!-- trigger_day -->
+        <insert tableName="trigger_day">
+            <column name="id" value="1" />
+            <column name="alert" value="1" />
+            <column name="day" value="MONDAY" />
+        </insert>
+        <insert tableName="trigger_day">
+            <column name="id" value="2" />
+            <column name="alert" value="1" />
+            <column name="day" value="FRIDAY" />
+        </insert>
+
+        <!-- alert_monitored_hour -->
+        <insert tableName="alert_monitored_hour">
+            <column name="id" value="1" />
+            <column name="alert" value="1" />
+            <column name="hour" value="18:25" />
+        </insert>
+        <insert tableName="alert_monitored_hour">
+            <column name="id" value="2" />
+            <column name="alert" value="1" />
+            <column name="hour" value="14:00" />
+        </insert>
+
+    </changeSet>
+
+</databaseChangeLog>
