@@ -61,7 +61,7 @@ public class Alert {
     @ElementCollection(fetch = FetchType.EAGER, targetClass = OffsetTime.class)
     private List<OffsetTime> monitoredHours;
 
-    @OneToMany(mappedBy = "alert", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "alert", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MonitoredField> monitoredFields;
 
     private String location;

@@ -80,4 +80,15 @@ public class AlertService {
         return save(alert);
     }
 
+    /**
+     * Deletes alert having given id for the currently logged user.
+     *
+     * @param id alert identifier to delete
+     */
+    public void delete(Long id) {
+        alertRepository.findByIdAndUserLogin(id, userService.getCurrentUser().getLogin()).ifPresentOrElse(alertRepository::delete, () -> {
+            throw new BadRequestException("Alert to delete with id '" + id + "' doesn't exist or doesn't belong to logged user");
+        });
+    }
+
 }

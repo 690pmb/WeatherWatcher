@@ -3,10 +3,12 @@ package pmb.weatherwatcher.alert.rest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -174,6 +176,37 @@ class AlertControllerTest {
                     .andExpect(status().isOk())), AlertDto.class));
 
             verify(alertService).update(any());
+        }
+
+    }
+
+    @Nested
+    class Delete {
+
+        @Test
+        void when_not_logged_then_unauthorized() throws Exception {
+            mockMvc.perform(delete("/alerts/{id}", 2L).contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$").doesNotExist());
+
+            verify(alertService, never()).delete(2L);
+        }
+
+        @Test
+        @WithMockUser
+        void invalid_id_given_then_bad_request() throws Exception {
+            mockMvc.perform(delete("/alerts/{id}", "test").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isBadRequest());
+
+            verify(alertService, never()).delete(2L);
+        }
+
+        @Test
+        @WithMockUser
+        void ok() throws Exception {
+            doNothing().when(alertService).delete(2L);
+
+            mockMvc.perform(delete("/alerts/{id}", 2L).contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
+
+            verify(alertService).delete(2L);
         }
 
     }
