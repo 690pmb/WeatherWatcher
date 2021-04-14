@@ -235,7 +235,16 @@ class AlertServiceTest {
                         AlertUtils.buildAlertDto(null, Set.of(DayOfWeek.MONDAY), OffsetTime.now(),
                                 AlertUtils.buildMonitoredDaysDto(null, false, null), Set.of(OffsetTime.now()),
                                 List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 2, 10)), "lyon", null),
-                        "Given alert has no monitored days"));
+                        "Given alert has no monitored days"),
+                Arguments.of(AlertUtils.buildAlertDto(6L, Set.of(DayOfWeek.MONDAY), OffsetTime.now(),
+                        AlertUtils.buildMonitoredDaysDto(null, false, null), Set.of(OffsetTime.now()),
+                        List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 2, 10)), "lyon", null),
+                        "Ids must be null when creating an alert"),
+                Arguments.of(
+                        AlertUtils.buildAlertDto(null, Set.of(DayOfWeek.MONDAY), OffsetTime.now(),
+                                AlertUtils.buildMonitoredDaysDto(null, false, null), Set.of(OffsetTime.now()),
+                                List.of(AlertUtils.buildMonitoredFieldDto(3L, WeatherField.FEELS_LIKE, 2, 10)), "lyon", null),
+                        "Ids must be null when creating an alert"));
     }
 
 }

@@ -1,6 +1,7 @@
 package pmb.weatherwatcher.alert.service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import pmb.weatherwatcher.alert.dto.AlertDto;
 import pmb.weatherwatcher.alert.dto.MonitoredDaysDto;
+import pmb.weatherwatcher.alert.dto.MonitoredFieldDto;
 import pmb.weatherwatcher.alert.mapper.AlertMapper;
 import pmb.weatherwatcher.alert.model.Alert;
 import pmb.weatherwatcher.alert.repository.AlertRepository;
@@ -46,6 +48,9 @@ public class AlertService {
      * @return the saved alert
      */
     public AlertDto create(AlertDto alert) {
+        if (alert.getId() != null || alert.getMonitoredFields().stream().map(MonitoredFieldDto::getId).anyMatch(Objects::nonNull)) {
+            throw new BadRequestException("Ids must be null when creating an alert");
+        }
         return save(alert, null);
     }
 
