@@ -22,6 +22,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.BatchSize;
+
 import pmb.weatherwatcher.user.model.User;
 
 /**
@@ -41,7 +43,7 @@ public class Alert {
     @Column(name = "day")
     @Enumerated(EnumType.STRING)
     @CollectionTable(name = "trigger_day", joinColumns = @JoinColumn(name = "alert", referencedColumnName = "id"))
-    @ElementCollection(fetch = FetchType.EAGER, targetClass = DayOfWeek.class)
+    @ElementCollection(targetClass = DayOfWeek.class)
     private Set<DayOfWeek> triggerDays;
 
     @Embedded
@@ -58,10 +60,11 @@ public class Alert {
      */
     @Column(name = "hour")
     @CollectionTable(name = "alert_monitored_hour", joinColumns = @JoinColumn(name = "alert", referencedColumnName = "id"))
-    @ElementCollection(fetch = FetchType.EAGER, targetClass = OffsetTime.class)
-    private List<OffsetTime> monitoredHours;
+    @ElementCollection(targetClass = OffsetTime.class)
+    private Set<OffsetTime> monitoredHours;
 
-    @OneToMany(mappedBy = "alert", cascade = CascadeType.ALL)
+    @BatchSize(size = 10)
+    @OneToMany(mappedBy = "alert", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MonitoredField> monitoredFields;
 
     private String location;
@@ -70,7 +73,7 @@ public class Alert {
     private Boolean forceNotification;
 
     @JoinColumn(name = "user", referencedColumnName = "login")
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private User user;
 
     public Long getId() {
@@ -105,11 +108,11 @@ public class Alert {
         this.triggerHour = triggerHour;
     }
 
-    public List<OffsetTime> getMonitoredHours() {
+    public Set<OffsetTime> getMonitoredHours() {
         return monitoredHours;
     }
 
-    public void setMonitoredHours(List<OffsetTime> monitoredHours) {
+    public void setMonitoredHours(Set<OffsetTime> monitoredHours) {
         this.monitoredHours = monitoredHours;
     }
 

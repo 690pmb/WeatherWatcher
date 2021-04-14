@@ -39,7 +39,7 @@ public class MonitoredField {
     private Integer max;
 
     @JoinColumn(name = "alert", referencedColumnName = "id")
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private Alert alert;
 
     public Long getId() {

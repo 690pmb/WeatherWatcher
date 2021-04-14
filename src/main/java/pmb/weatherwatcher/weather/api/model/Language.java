@@ -47,7 +47,7 @@ public enum Language {
     CANTONESE("zh_yue"),
     ZULU("zu");
 
-    private String code;
+    private final String code;
 
     private Language(String code) {
         this.code = code;

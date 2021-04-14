@@ -58,13 +58,13 @@ public class ErrorHandler
 
     @ExceptionHandler
     public ResponseEntity<Object> handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException ex, WebRequest request) {
-        return new ResponseEntity<>("Type of parameter " + ex.getName() + " doesn't match with definition.", HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>("Type of parameter '" + ex.getName() + "' doesn't match with definition.", HttpStatus.BAD_REQUEST);
     }
 
     @Override
     protected ResponseEntity<Object> handleMissingServletRequestParameter(MissingServletRequestParameterException ex, HttpHeaders headers,
             HttpStatus status, WebRequest request) {
-        return new ResponseEntity<>("Parameter " + ex.getParameterName() + " is missing.", HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>("Parameter '" + ex.getParameterName() + "' is missing.", HttpStatus.BAD_REQUEST);
     }
 
     @Override

@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -66,7 +67,7 @@ class AlertServiceTest {
     @BeforeEach
     void tearUp() {
         DUMMY_ALERT = AlertUtils.buildAlertDto(null, Set.of(DayOfWeek.MONDAY), OffsetTime.now(), AlertUtils.buildMonitoredDaysDto(true, false, true),
-                List.of(OffsetTime.now()), List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 10, 35)), "lyon", null);
+                Set.of(OffsetTime.now()), List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 10, 35)), "lyon", null);
     }
 
     @AfterEach
@@ -84,7 +85,7 @@ class AlertServiceTest {
             when(alertRepository.save(any())).thenAnswer(a -> a.getArgument(0));
             when(userService.getCurrentUser()).thenReturn(new User("test", "sfdg", "Lyon"));
 
-            AlertDto result = alertService.save(DUMMY_ALERT);
+            AlertDto result = alertService.create(DUMMY_ALERT);
 
             verify(alertRepository).save(captureSaved.capture());
             verify(userService).getCurrentUser();
@@ -96,7 +97,8 @@ class AlertServiceTest {
                     () -> assertFalse(saved.getMonitoredDays().getNextDay(), "nextDay"),
                     () -> assertTrue(saved.getMonitoredDays().getTwoDayLater(), "twoDay"),
                     () -> assertEquals(DUMMY_ALERT.getTriggerHour(), saved.getTriggerHour(), "triggerHour"),
-                    () -> assertEquals(DUMMY_ALERT.getMonitoredHours().get(0), saved.getMonitoredHours().get(0), "monitoredHour"),
+                    () -> assertEquals(DUMMY_ALERT.getMonitoredHours().iterator().next(), saved.getMonitoredHours().iterator().next(),
+                            "monitoredHour"),
                     () -> assertEquals("lyon", saved.getLocation(), "location"), () -> assertNull(saved.getForceNotification(), "force"),
                     () -> assertNull(saved.getMonitoredFields().get(0).getId(), "fieldId"),
                     () -> assertEquals(WeatherField.FEELS_LIKE, saved.getMonitoredFields().get(0).getField(), "field"),
@@ -109,7 +111,7 @@ class AlertServiceTest {
         @ParameterizedTest(name = "Given invalid alert #{index} then bad request exception")
         @MethodSource("pmb.weatherwatcher.alert.service.AlertServiceTest#invalidAlertProvider")
         void given_invalid_alert_then_bad_request(AlertDto alert, String errorMsg) {
-            assertThrows(BadRequestException.class, () -> alertService.save(alert), errorMsg);
+            assertThrows(BadRequestException.class, () -> alertService.create(alert), errorMsg);
 
             verify(alertRepository, never()).save(any());
             verify(userService, never()).getCurrentUser();
@@ -125,14 +127,14 @@ class AlertServiceTest {
         a2.setId(2L);
 
         when(userService.getCurrentUser()).thenReturn(new User("test", "sfdg", "Lyon"));
-        when(alertRepository.findByUserLogin("test")).thenReturn(List.of(a1, a2));
+        when(alertRepository.findDistinctByUserLogin("test")).thenReturn(List.of(a1, a2));
 
         List<AlertDto> result = alertService.findAllForCurrentUser();
 
         assertAll(() -> assertEquals(2, result.size()), () -> assertEquals(1L, result.get(0).getId()), () -> assertEquals(2L, result.get(1).getId()));
 
         verify(userService).getCurrentUser();
-        verify(alertRepository).findByUserLogin("test");
+        verify(alertRepository).findDistinctByUserLogin("test");
     }
 
     @Nested
@@ -143,16 +145,16 @@ class AlertServiceTest {
             DUMMY_ALERT.setId(5L);
             DUMMY_ALERT.getMonitoredFields().get(0).setMax(null);
 
-            when(alertRepository.findById(5L)).thenReturn(Optional.of(new Alert()));
             when(userService.getCurrentUser()).thenReturn(new User("test", "sfdg", "Lyon"));
+            when(alertRepository.findByIdAndUserLogin(5L, "test")).thenReturn(Optional.of(new Alert()));
             when(alertRepository.save(any())).thenAnswer(a -> a.getArgument(0));
 
             AlertDto result = alertService.update(DUMMY_ALERT);
 
             assertThat(DUMMY_ALERT).usingRecursiveComparison().as("result").isEqualTo(result);
 
-            verify(alertRepository).findById(5L);
             verify(userService).getCurrentUser();
+            verify(alertRepository).findByIdAndUserLogin(5L, "test");
             verify(alertRepository).save(any());
         }
 
@@ -168,13 +170,51 @@ class AlertServiceTest {
         @Test
         void alert_not_found_then_bad_request() {
             DUMMY_ALERT.setId(5L);
-            when(alertRepository.findById(5L)).thenReturn(Optional.empty());
+            when(userService.getCurrentUser()).thenReturn(new User("test", "sfdg", "Lyon"));
+            when(alertRepository.findByIdAndUserLogin(5L, "test")).thenReturn(Optional.empty());
 
             assertThrows(BadRequestException.class, () -> alertService.update(DUMMY_ALERT), "Alert to update with id '5' is unknown");
 
-            verify(alertRepository).findById(5L);
-            verify(userService, never()).getCurrentUser();
+            verify(userService).getCurrentUser();
+            verify(alertRepository).findByIdAndUserLogin(5L, "test");
             verify(alertRepository, never()).save(any());
+        }
+
+    }
+
+    @Nested
+    class Delete {
+
+        @Test
+        void alert_not_found_then_bad_request() {
+            when(userService.getCurrentUser()).thenReturn(new User("test", "sfdg", "Lyon"));
+            when(alertRepository.findByIdAndUserLogin(5L, "test")).thenReturn(Optional.empty());
+
+            assertThrows(BadRequestException.class, () -> alertService.delete(5L),
+                    "Alert to delete with id '5' doesn't exist or doesn't belong to logged user");
+
+            verify(userService).getCurrentUser();
+            verify(alertRepository).findByIdAndUserLogin(5L, "test");
+            verify(alertRepository, never()).delete(any());
+        }
+
+        @Test
+        void ok() {
+            Alert alert = new Alert();
+            alert.setId(56L);
+            ArgumentCaptor<Alert> deletedCaptor = ArgumentCaptor.forClass(Alert.class);
+
+            when(userService.getCurrentUser()).thenReturn(new User("test", "sfdg", "Lyon"));
+            when(alertRepository.findByIdAndUserLogin(5L, "test")).thenReturn(Optional.of(alert));
+            doNothing().when(alertRepository).delete(any());
+
+            alertService.delete(5L);
+
+            verify(userService).getCurrentUser();
+            verify(alertRepository).findByIdAndUserLogin(5L, "test");
+            verify(alertRepository).delete(deletedCaptor.capture());
+
+            assertEquals(56L, deletedCaptor.getValue().getId());
         }
 
     }
@@ -183,19 +223,28 @@ class AlertServiceTest {
         return Stream.of(
                 Arguments.of(
                         AlertUtils.buildAlertDto(null, Set.of(DayOfWeek.MONDAY), OffsetTime.now(),
-                                AlertUtils.buildMonitoredDaysDto(true, false, true), List.of(OffsetTime.now()),
+                                AlertUtils.buildMonitoredDaysDto(true, false, true), Set.of(OffsetTime.now()),
                                 List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, null, null)), "lyon", null),
                         "Monitored field 'FEELS_LIKE' has its min and max values undefined"),
                 Arguments.of(
                         AlertUtils.buildAlertDto(null, Set.of(DayOfWeek.MONDAY), OffsetTime.now(),
-                                AlertUtils.buildMonitoredDaysDto(true, false, true), List.of(OffsetTime.now()),
+                                AlertUtils.buildMonitoredDaysDto(true, false, true), Set.of(OffsetTime.now()),
                                 List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 35, 10)), "lyon", null),
                         "Monitored field 'FEELS_LIKE' has its min value greater than its max value: '[35, 10]'"),
                 Arguments.of(
                         AlertUtils.buildAlertDto(null, Set.of(DayOfWeek.MONDAY), OffsetTime.now(),
-                                AlertUtils.buildMonitoredDaysDto(null, false, null), List.of(OffsetTime.now()),
+                                AlertUtils.buildMonitoredDaysDto(null, false, null), Set.of(OffsetTime.now()),
                                 List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 2, 10)), "lyon", null),
-                        "Given alert has no monitored days"));
+                        "Given alert has no monitored days"),
+                Arguments.of(AlertUtils.buildAlertDto(6L, Set.of(DayOfWeek.MONDAY), OffsetTime.now(),
+                        AlertUtils.buildMonitoredDaysDto(null, false, null), Set.of(OffsetTime.now()),
+                        List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 2, 10)), "lyon", null),
+                        "Ids must be null when creating an alert"),
+                Arguments.of(
+                        AlertUtils.buildAlertDto(null, Set.of(DayOfWeek.MONDAY), OffsetTime.now(),
+                                AlertUtils.buildMonitoredDaysDto(null, false, null), Set.of(OffsetTime.now()),
+                                List.of(AlertUtils.buildMonitoredFieldDto(3L, WeatherField.FEELS_LIKE, 2, 10)), "lyon", null),
+                        "Ids must be null when creating an alert"));
     }
 
 }
