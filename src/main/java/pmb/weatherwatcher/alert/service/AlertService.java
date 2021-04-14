@@ -13,6 +13,7 @@ import pmb.weatherwatcher.alert.mapper.AlertMapper;
 import pmb.weatherwatcher.alert.model.Alert;
 import pmb.weatherwatcher.alert.repository.AlertRepository;
 import pmb.weatherwatcher.common.exception.BadRequestException;
+import pmb.weatherwatcher.user.model.User;
 import pmb.weatherwatcher.user.service.UserService;
 
 /**
@@ -31,17 +32,21 @@ public class AlertService {
         this.userService = userService;
     }
 
+    private AlertDto save(AlertDto alert, User currentUser) {
+        validate(alert);
+        Alert toSave = alertMapper.toEntity(alert);
+        toSave.setUser(Optional.ofNullable(currentUser).orElseGet(() -> userService.getCurrentUser()));
+        return alertMapper.toDto(alertRepository.save(toSave));
+    }
+
     /**
-     * Validates and saves given alert for the currently logged user.
+     * Validates and creates given alert for the currently logged user.
      *
      * @param alert to save
      * @return the saved alert
      */
-    public AlertDto save(AlertDto alert) {
-        validate(alert);
-        Alert toSave = alertMapper.toEntity(alert);
-        toSave.setUser(userService.getCurrentUser());
-        return alertMapper.toDto(alertRepository.save(toSave));
+    public AlertDto create(AlertDto alert) {
+        return save(alert, null);
     }
 
     private void validate(AlertDto alert) {
@@ -62,22 +67,24 @@ public class AlertService {
     /**
      * Finds all alerts for the currently logged user.
      *
-     * @return
+     * @return a list of alerts
      */
     public List<AlertDto> findAllForCurrentUser() {
-        return alertMapper.toDtoList(alertRepository.findByUserLogin(userService.getCurrentUser().getLogin()));
+        return alertMapper.toDtoList(alertRepository.findDistinctByUserLogin(userService.getCurrentUser().getLogin()));
     }
 
     /**
-     * Updates the given alert.
+     * Validates and updates the given alert for the currently logged user.
      *
      * @param alert new alert
      * @return the updated alert
      */
     public AlertDto update(AlertDto alert) {
-        Optional.ofNullable(alert.getId()).flatMap(alertRepository::findById)
-                .orElseThrow(() -> new BadRequestException("Alert to update with id '" + alert.getId() + "' is unknown"));
-        return save(alert);
+        return Optional.ofNullable(alert.getId()).flatMap(id -> {
+            User currentUser = userService.getCurrentUser();
+            return alertRepository.findByIdAndUserLogin(id, currentUser.getLogin()).map(a -> currentUser);
+        }).map(currentUser -> save(alert, currentUser))
+                .orElseThrow(() -> new BadRequestException("Alert to update with id '" + alert.getId() + "' for logged user is unknown"));
     }
 
     /**

@@ -67,7 +67,7 @@ class AlertControllerTest {
     private AlertService alertService;
 
     private static final AlertDto DUMMY_ALERT = AlertUtils.buildAlertDto(null, Set.of(DayOfWeek.MONDAY), OffsetTime.now(), new MonitoredDaysDto(),
-            List.of(OffsetTime.now()), List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, null, null)), "lyon", null);
+            Set.of(OffsetTime.now()), List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, null, null)), "lyon", null);
 
     @AfterEach
     void tearDown() {
@@ -82,7 +82,7 @@ class AlertControllerTest {
             mockMvc.perform(post("/alerts").content(objectMapper.writeValueAsString(DUMMY_ALERT)).contentType(MediaType.APPLICATION_JSON_VALUE))
                     .andExpect(status().isUnauthorized()).andExpect(jsonPath("$").doesNotExist());
 
-            verify(alertService, never()).save(any());
+            verify(alertService, never()).create(any());
         }
 
         @WithMockUser
@@ -93,37 +93,37 @@ class AlertControllerTest {
                     .andExpect(status().isBadRequest()).andExpect(jsonPath("$").value(Matchers.not(Matchers.matchesPattern(".*with \\d+ errors.*"))))
                     .andExpect(jsonPath("$").value(Matchers.containsString("Field error in object 'alertDto' on field '" + field)));
 
-            verify(alertService, never()).save(any());
+            verify(alertService, never()).create(any());
         }
 
         @Test
         @WithMockUser
         void ok() throws Exception {
             AlertDto alert = AlertUtils.buildAlertDto(9L, Set.of(DayOfWeek.MONDAY), OffsetTime.now(), new MonitoredDaysDto(),
-                    List.of(OffsetTime.now()), List.of(AlertUtils.buildMonitoredFieldDto(5L, WeatherField.FEELS_LIKE, 62, 12)), "lyon", false);
+                    Set.of(OffsetTime.now()), List.of(AlertUtils.buildMonitoredFieldDto(5L, WeatherField.FEELS_LIKE, 62, 12)), "lyon", false);
 
-            when(alertService.save(any())).thenAnswer(a -> a.getArgument(0));
+            when(alertService.create(any())).thenAnswer(a -> a.getArgument(0));
 
             assertThat(alert).usingRecursiveComparison()
                     .isEqualTo(objectMapper.readValue(TestUtils.readResponse.apply(mockMvc
                             .perform(post("/alerts").content(objectMapper.writeValueAsString(alert)).contentType(MediaType.APPLICATION_JSON_VALUE))
                             .andExpect(status().isOk())), AlertDto.class));
 
-            verify(alertService).save(any());
+            verify(alertService).create(any());
         }
 
         @Test
         @WithMockUser
         void given_service_throw_bad_req_exception_then_400() throws Exception {
             AlertDto alert = AlertUtils.buildAlertDto(9L, Set.of(DayOfWeek.MONDAY), OffsetTime.now(), new MonitoredDaysDto(),
-                    List.of(OffsetTime.now()), List.of(AlertUtils.buildMonitoredFieldDto(5L, WeatherField.FEELS_LIKE, 62, 12)), "lyon", true);
+                    Set.of(OffsetTime.now()), List.of(AlertUtils.buildMonitoredFieldDto(5L, WeatherField.FEELS_LIKE, 62, 12)), "lyon", true);
 
-            when(alertService.save(any())).thenThrow(BadRequestException.class);
+            when(alertService.create(any())).thenThrow(BadRequestException.class);
 
             mockMvc.perform(post("/alerts").content(objectMapper.writeValueAsString(alert)).contentType(MediaType.APPLICATION_JSON_VALUE))
                     .andExpect(status().isBadRequest());
 
-            verify(alertService).save(any());
+            verify(alertService).create(any());
         }
 
     }
@@ -213,27 +213,27 @@ class AlertControllerTest {
 
     static Stream<Arguments> invalidAlertProvider() {
         return Stream.of(
-                arguments(AlertUtils.buildAlertDto(5L, null, OffsetTime.now(), new MonitoredDaysDto(), List.of(OffsetTime.now()),
+                arguments(AlertUtils.buildAlertDto(5L, null, OffsetTime.now(), new MonitoredDaysDto(), Set.of(OffsetTime.now()),
                         List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 10, 35)), "lyon", true), "triggerDays"),
-                arguments(AlertUtils.buildAlertDto(5L, Collections.emptySet(), OffsetTime.now(), new MonitoredDaysDto(), List.of(OffsetTime.now()),
+                arguments(AlertUtils.buildAlertDto(5L, Collections.emptySet(), OffsetTime.now(), new MonitoredDaysDto(), Set.of(OffsetTime.now()),
                         List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 10, 35)), "lyon", true), "triggerDays"),
-                arguments(AlertUtils.buildAlertDto(5L, Set.of(DayOfWeek.MONDAY), null, new MonitoredDaysDto(), List.of(OffsetTime.now()),
+                arguments(AlertUtils.buildAlertDto(5L, Set.of(DayOfWeek.MONDAY), null, new MonitoredDaysDto(), Set.of(OffsetTime.now()),
                         List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 10, 35)), "lyon", true), "triggerHour"),
-                arguments(AlertUtils.buildAlertDto(5L, Set.of(DayOfWeek.MONDAY), OffsetTime.now(), null, List.of(OffsetTime.now()),
+                arguments(AlertUtils.buildAlertDto(5L, Set.of(DayOfWeek.MONDAY), OffsetTime.now(), null, Set.of(OffsetTime.now()),
                         List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 10, 35)), "lyon", true), "monitoredDays"),
                 arguments(AlertUtils.buildAlertDto(5L, Set.of(DayOfWeek.MONDAY), OffsetTime.now(), new MonitoredDaysDto(), null,
                         List.of(AlertUtils.buildMonitoredFieldDto(9L, WeatherField.FEELS_LIKE, 10, 35)), "lyon", true), "monitoredHours"),
-                arguments(AlertUtils.buildAlertDto(5L, Set.of(DayOfWeek.MONDAY), OffsetTime.now(), new MonitoredDaysDto(), Collections.emptyList(),
+                arguments(AlertUtils.buildAlertDto(5L, Set.of(DayOfWeek.MONDAY), OffsetTime.now(), new MonitoredDaysDto(), Collections.emptySet(),
                         List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 10, 35)), "lyon", true), "monitoredHours"),
-                arguments(AlertUtils.buildAlertDto(5L, Set.of(DayOfWeek.MONDAY), OffsetTime.now(), new MonitoredDaysDto(), List.of(OffsetTime.now()),
+                arguments(AlertUtils.buildAlertDto(5L, Set.of(DayOfWeek.MONDAY), OffsetTime.now(), new MonitoredDaysDto(), Set.of(OffsetTime.now()),
                         null, "lyon", true), "monitoredFields"),
-                arguments(AlertUtils.buildAlertDto(5L, Set.of(DayOfWeek.MONDAY), OffsetTime.now(), new MonitoredDaysDto(), List.of(OffsetTime.now()),
+                arguments(AlertUtils.buildAlertDto(5L, Set.of(DayOfWeek.MONDAY), OffsetTime.now(), new MonitoredDaysDto(), Set.of(OffsetTime.now()),
                         Collections.emptyList(), "lyon", true), "monitoredFields"),
-                arguments(AlertUtils.buildAlertDto(5L, Set.of(DayOfWeek.MONDAY), OffsetTime.now(), new MonitoredDaysDto(), List.of(OffsetTime.now()),
+                arguments(AlertUtils.buildAlertDto(5L, Set.of(DayOfWeek.MONDAY), OffsetTime.now(), new MonitoredDaysDto(), Set.of(OffsetTime.now()),
                         List.of(AlertUtils.buildMonitoredFieldDto(null, null, 10, 35)), "lyon", true), "monitoredFields"),
-                arguments(AlertUtils.buildAlertDto(5L, Set.of(DayOfWeek.MONDAY), OffsetTime.now(), new MonitoredDaysDto(), List.of(OffsetTime.now()),
+                arguments(AlertUtils.buildAlertDto(5L, Set.of(DayOfWeek.MONDAY), OffsetTime.now(), new MonitoredDaysDto(), Set.of(OffsetTime.now()),
                         List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.HUMIDITY, 10, 35)), null, true), "location"),
-                arguments(AlertUtils.buildAlertDto(5L, Set.of(DayOfWeek.MONDAY), OffsetTime.now(), new MonitoredDaysDto(), List.of(OffsetTime.now()),
+                arguments(AlertUtils.buildAlertDto(5L, Set.of(DayOfWeek.MONDAY), OffsetTime.now(), new MonitoredDaysDto(), Set.of(OffsetTime.now()),
                         List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.HUMIDITY, 10, 35)), "  ", true), "location"));
     }
 

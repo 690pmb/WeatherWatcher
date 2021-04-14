@@ -15,7 +15,7 @@ public final class AlertUtils {
     private AlertUtils() {}
 
     public static AlertDto buildAlertDto(Long id, Set<DayOfWeek> triggerDays, OffsetTime triggerHour, MonitoredDaysDto monitoredDays,
-            List<OffsetTime> monitoredHours, List<MonitoredFieldDto> monitoredFields, String location, Boolean force) {
+            Set<OffsetTime> monitoredHours, List<MonitoredFieldDto> monitoredFields, String location, Boolean force) {
         AlertDto alert = new AlertDto();
         alert.setId(id);
         alert.setTriggerDays(triggerDays);

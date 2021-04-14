@@ -36,7 +36,7 @@ public class AlertDto {
      * Tells which hours are monitored.
      */
     @NotEmpty
-    private List<OffsetTime> monitoredHours;
+    private Set<OffsetTime> monitoredHours;
 
     @NotEmpty
     private List<@Valid MonitoredFieldDto> monitoredFields;
@@ -78,11 +78,11 @@ public class AlertDto {
         this.triggerHour = triggerHour;
     }
 
-    public List<OffsetTime> getMonitoredHours() {
+    public Set<OffsetTime> getMonitoredHours() {
         return monitoredHours;
     }
 
-    public void setMonitoredHours(List<OffsetTime> monitoredHours) {
+    public void setMonitoredHours(Set<OffsetTime> monitoredHours) {
         this.monitoredHours = monitoredHours;
     }
 

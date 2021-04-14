@@ -36,7 +36,7 @@ public class AlertController {
     @PostMapping
     public AlertDto post(@RequestBody @Valid AlertDto alert) {
         LOGGER.debug("creating alert");
-        return alertService.save(alert);
+        return alertService.create(alert);
     }
 
     @PutMapping
