@@ -1,3 +1,4 @@
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=pmb:weather-watcher&metric=alert_status)](https://sonarcloud.io/dashboard?id=pmb:weather-watcher)
 # WeatherWatcher
 
 ### How to run it in local:  
