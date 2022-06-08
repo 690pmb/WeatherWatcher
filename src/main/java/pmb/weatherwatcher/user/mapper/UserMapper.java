@@ -11,7 +11,7 @@ import pmb.weatherwatcher.user.model.User;
 /**
  * Maps {@link UserDto} with {@link User}.
  */
-@Mapper
+@Mapper(componentModel = "spring")
 public interface UserMapper
         extends EntityDtoMapper<User, UserDto> {
 

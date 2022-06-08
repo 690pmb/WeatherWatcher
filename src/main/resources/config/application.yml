@@ -1,6 +1,10 @@
 spring:
   application:
     name: weather-watcher
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    username: root
+    password: weather
   liquibase:
     database-change-log-lock-table: WEATHER_DATABASECHANGELOGLOCK
     database-change-log-table: WEATHER_DATABASECHANGELOG
@@ -27,4 +31,3 @@ weather-api:
 jwt:
   secretkey: secretkey
   duration: 2592000 # 30j ( -> secondes)
-  
