@@ -42,6 +42,16 @@
             <column name="alert" value="1" />
             <column name="day" value="FRIDAY" />
         </insert>
+        <insert tableName="trigger_day">
+            <column name="id" value="3" />
+            <column name="alert" value="1" />
+            <column name="day" value="TUESDAY" />
+        </insert>
+        <insert tableName="trigger_day">
+            <column name="id" value="4" />
+            <column name="alert" value="1" />
+            <column name="day" value="SUNDAY" />
+        </insert>
 
         <!-- alert_monitored_hour -->
         <insert tableName="alert_monitored_hour">
@@ -53,6 +63,74 @@
             <column name="id" value="2" />
             <column name="alert" value="1" />
             <column name="hour" value="14:00" />
+        </insert>
+        <insert tableName="alert_monitored_hour">
+            <column name="id" value="3" />
+            <column name="alert" value="1" />
+            <column name="hour" value="16:00" />
+        </insert>
+        <insert tableName="alert_monitored_hour">
+            <column name="id" value="4" />
+            <column name="alert" value="1" />
+            <column name="hour" value="20:30" />
+        </insert>
+
+    </changeSet>
+
+    <changeSet id="20210416-1" author="PMB" context="local">
+
+        <insert tableName="alert">
+            <column name="id" value="2" />
+            <column name="trigger_hour" value="12:45" />
+            <column name="location" value="Lyon" />
+            <column name="force_notification" valueBoolean="false" />
+            <column name="same_day" valueBoolean="false" />
+            <column name="next_day" valueBoolean="true" />
+            <column name="two_day_later" valueBoolean="false" />
+            <column name="user" value="test" />
+        </insert>
+
+        <!-- monitored_field -->
+        <insert tableName="monitored_field">
+            <column name="id" value="3" />
+            <column name="field" value="TEMP" />
+            <column name="min" value="2" />
+            <column name="max" value="15" />
+            <column name="alert" value="2" />
+        </insert>
+
+        <!-- trigger_day -->
+        <insert tableName="trigger_day">
+            <column name="id" value="5" />
+            <column name="alert" value="2" />
+            <column name="day" value="MONDAY" />
+        </insert>
+        <insert tableName="trigger_day">
+            <column name="id" value="6" />
+            <column name="alert" value="2" />
+            <column name="day" value="FRIDAY" />
+        </insert>
+        <insert tableName="trigger_day">
+            <column name="id" value="7" />
+            <column name="alert" value="2" />
+            <column name="day" value="TUESDAY" />
+        </insert>
+        <insert tableName="trigger_day">
+            <column name="id" value="8" />
+            <column name="alert" value="2" />
+            <column name="day" value="WEDNESDAY" />
+        </insert>
+        <insert tableName="trigger_day">
+            <column name="id" value="9" />
+            <column name="alert" value="2" />
+            <column name="day" value="THURSDAY" />
+        </insert>
+
+        <!-- alert_monitored_hour -->
+        <insert tableName="alert_monitored_hour">
+            <column name="id" value="5" />
+            <column name="alert" value="2" />
+            <column name="hour" value="18:25" />
         </insert>
 
     </changeSet>
