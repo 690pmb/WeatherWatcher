@@ -1,0 +1,22 @@
+version: "3.7"
+services:
+  weather:
+    image: weather
+    restart: always
+    ports:
+      - "7878:8080"
+    depends_on:
+      - maria_db
+    environment:
+      - "SPRING_PROFILES_ACTIVE=dev"
+      - "SPRING_DATASOURCE_URL=jdbc:mariadb://maria_db:3306/weather"
+  maria_db:
+    image: "tobi312/rpi-mariadb:10.3"
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MARIADB_DATABASE: weather
+      MYSQL_USER: root
+      MYSQL_PASSWORD: weather
+      MARIADB_ROOT_PASSWORD: weather
