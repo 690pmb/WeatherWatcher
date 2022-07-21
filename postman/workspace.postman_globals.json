@@ -1,0 +1,14 @@
+{
+	"id": "8bc1a340-b81c-4411-8316-511a8a75e82c",
+	"values": [
+		{
+			"key": "token",
+			"value": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0IiwibG9jYXRpb24iOiJMeW9uIiwianRpIjoiOWU3ZDdkOGUtZjVlNy00NGFjLWFjZDctODQyMGY0NGYwNTQyIiwiaWF0IjoxNjU3OTE0ODA0LCJleHAiOjE2NjA1MDY4MDR9.MrmPe0akfsXByglvp4dmtSjfxNivUXGCtB-6wPebQPExz74X7m4BAyPT1BEJ3nimRjrBso8wck94oJXJ1u6LVw",
+			"enabled": true
+		}
+	],
+	"name": "Globals",
+	"_postman_variable_scope": "globals",
+	"_postman_exported_at": "2022-07-21T22:10:20.008Z",
+	"_postman_exported_using": "Postman/9.24.2"
+}

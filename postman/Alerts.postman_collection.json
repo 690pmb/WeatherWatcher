@@ -1,0 +1,65 @@
+{
+	"info": {
+		"_postman_id": "61992572-bd8e-41d3-9a67-fefb7d45a36b",
+		"name": "Alerts",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "15226756"
+	},
+	"item": [
+		{
+			"name": "Create alert",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"triggerDays\": [\r\n        \"MONDAY\"\r\n    ],\r\n    \"monitoredDays\": {\r\n        \"sameDay\": true,\r\n        \"nextDay\": false,\r\n        \"twoDayLater\": false\r\n    },\r\n    \"triggerHour\": \"08:15Z\",\r\n    \"monitoredHours\": [\r\n        \"09:00Z\",\r\n        \"18:00Z\"\r\n    ],\r\n    \"monitoredFields\": [\r\n        {\r\n            \"field\": \"temp\",\r\n            \"min\": 10,\r\n            \"max\": 30\r\n        }\r\n    ],\r\n    \"location\": \"Lyon\",\r\n    \"user\": \"test\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{url}}/alerts",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"alerts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all by user",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url}}/alerts",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"alerts"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
