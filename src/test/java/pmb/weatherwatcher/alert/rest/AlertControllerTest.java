@@ -1,6 +1,8 @@
 package pmb.weatherwatcher.alert.rest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
@@ -31,6 +33,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -183,30 +187,48 @@ class AlertControllerTest {
     @Nested
     class Delete {
 
+        @Captor
+        ArgumentCaptor<List<Long>> captorIds;
+
         @Test
         void when_not_logged_then_unauthorized() throws Exception {
-            mockMvc.perform(delete("/alerts/{id}", 2L).contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$").doesNotExist());
+            mockMvc.perform(delete("/alerts").param("ids", "2,3").contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(status().isUnauthorized()).andExpect(jsonPath("$").doesNotExist());
 
-            verify(alertService, never()).delete(2L);
+            verify(alertService, never()).delete(any());
+        }
+
+        @Test
+        @WithMockUser
+        void missing_ids_then_bad_request() throws Exception {
+            mockMvc.perform(delete("/alerts").contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(status().isBadRequest());
+
+            verify(alertService, never()).delete(any());
         }
 
         @Test
         @WithMockUser
         void invalid_id_given_then_bad_request() throws Exception {
-            mockMvc.perform(delete("/alerts/{id}", "test").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isBadRequest());
+            mockMvc.perform(delete("/alerts").param("ids", "2.3").contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(status().isBadRequest());
 
-            verify(alertService, never()).delete(2L);
+            verify(alertService, never()).delete(any());
         }
 
         @Test
         @WithMockUser
         void ok() throws Exception {
-            doNothing().when(alertService).delete(2L);
+            doNothing().when(alertService).delete(List.of(2L, 3L));
 
-            mockMvc.perform(delete("/alerts/{id}", 2L).contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
+            mockMvc.perform(delete("/alerts").param("ids", "2,3").contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(status().isOk());
 
-            verify(alertService).delete(2L);
+            verify(alertService).delete(captorIds.capture());
+
+            List<Long> captured = captorIds.getValue();
+            assertAll(() -> assertEquals(2, captured.size()), () -> assertEquals(2L, captured.get(0)),
+                    () -> assertEquals(3L, captured.get(1)));
         }
 
     }

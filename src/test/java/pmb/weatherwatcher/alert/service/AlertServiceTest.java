@@ -11,6 +11,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -190,7 +191,7 @@ class AlertServiceTest {
             when(userService.getCurrentUser()).thenReturn(new User("test", "sfdg", "Lyon"));
             when(alertRepository.findByIdAndUserLogin(5L, "test")).thenReturn(Optional.empty());
 
-            assertThrows(BadRequestException.class, () -> alertService.delete(5L),
+            assertThrows(BadRequestException.class, () -> alertService.delete(List.of(5L)),
                     "Alert to delete with id '5' doesn't exist or doesn't belong to logged user");
 
             verify(userService).getCurrentUser();
@@ -206,13 +207,15 @@ class AlertServiceTest {
 
             when(userService.getCurrentUser()).thenReturn(new User("test", "sfdg", "Lyon"));
             when(alertRepository.findByIdAndUserLogin(5L, "test")).thenReturn(Optional.of(alert));
+            when(alertRepository.findByIdAndUserLogin(8L, "test")).thenReturn(Optional.of(alert));
             doNothing().when(alertRepository).delete(any());
 
-            alertService.delete(5L);
+            alertService.delete(List.of(5L, 8L));
 
-            verify(userService).getCurrentUser();
+            verify(userService, times(2)).getCurrentUser();
             verify(alertRepository).findByIdAndUserLogin(5L, "test");
-            verify(alertRepository).delete(deletedCaptor.capture());
+            verify(alertRepository).findByIdAndUserLogin(8L, "test");
+            verify(alertRepository, times(2)).delete(deletedCaptor.capture());
 
             assertEquals(56L, deletedCaptor.getValue().getId());
         }
