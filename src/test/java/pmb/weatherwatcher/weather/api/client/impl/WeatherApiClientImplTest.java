@@ -10,11 +10,11 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.Optional;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -25,92 +25,104 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ResourceUtils;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import pmb.weatherwatcher.weather.api.config.WeatherApiProperties;
 import pmb.weatherwatcher.weather.api.exception.WeatherApiClientException;
 import pmb.weatherwatcher.weather.api.model.ForecastJsonResponse;
 import pmb.weatherwatcher.weather.api.model.Language;
 import pmb.weatherwatcher.weather.api.model.SearchJsonResponse;
 
-@RestClientTest(components = { WeatherApiClientImpl.class, WeatherApiProperties.class }, properties = "weather-api.api-key=api_key_test")
+@RestClientTest(
+    components = {WeatherApiClientImpl.class, WeatherApiProperties.class},
+    properties = "weather-api.api-key=api_key_test")
 @AutoConfigureWebClient(registerRestTemplate = true)
 class WeatherApiClientImplTest {
 
-    @Autowired
-    private MockRestServiceServer server;
-    @Autowired
-    private ObjectMapper objectMapper;
-    @Autowired
-    private WeatherApiClientImpl weatherApiClientImpl;
+  @Autowired private MockRestServiceServer server;
+  @Autowired private ObjectMapper objectMapper;
+  @Autowired private WeatherApiClientImpl weatherApiClientImpl;
 
-    @AfterEach
-    void tearDown() {
-        server.verify();
-        server.reset();
+  @AfterEach
+  void tearDown() {
+    server.verify();
+    server.reset();
+  }
+
+  @Nested
+  class GetForecastWeather {
+
+    @Test
+    void success() throws IOException {
+      String forecast = readResponseFile("forecast.json");
+
+      server
+          .expect(
+              requestTo(
+                  "https://api.weatherapi.com/v1/forecast.json?key=api_key_test&q=lyon&days=2&lang=fi"))
+          .andRespond(withSuccess(forecast, MediaType.APPLICATION_JSON));
+
+      Optional<ForecastJsonResponse> result =
+          weatherApiClientImpl.getForecastWeather("lyon", 2, Language.FINNISH);
+
+      assertAll(
+          () -> assertTrue(result.isPresent()),
+          () -> assertJsonEquals(forecast, objectMapper.writeValueAsString(result.get())));
     }
 
-    @Nested
-    class GetForecastWeather {
+    @Test
+    void error() {
+      server
+          .expect(
+              requestTo(
+                  "https://api.weatherapi.com/v1/forecast.json?key=api_key_test&q=lyon&lang=it"))
+          .andRespond(withBadRequest());
 
-        @Test
-        void success() throws IOException {
-            String forecast = readResponseFile("forecast.json");
+      assertThrows(
+          WeatherApiClientException.class,
+          () -> weatherApiClientImpl.getForecastWeather("lyon", null, Language.ITALIAN));
+    }
+  }
 
-            server.expect(requestTo("https://api.weatherapi.com/v1/forecast.json?key=api_key_test&q=lyon&days=2&lang=fi"))
-                    .andRespond(withSuccess(forecast, MediaType.APPLICATION_JSON));
+  @Nested
+  class SearchLocations {
 
-            Optional<ForecastJsonResponse> result = weatherApiClientImpl.getForecastWeather("lyon", 2, Language.FINNISH);
+    @Test
+    void success() throws IOException {
+      String search = readResponseFile("search.json");
 
-            assertAll(() -> assertTrue(result.isPresent()), () -> assertJsonEquals(forecast, objectMapper.writeValueAsString(result.get())));
-        }
+      server
+          .expect(requestTo("https://api.weatherapi.com/v1/search.json?key=api_key_test&q=lyon"))
+          .andRespond(withSuccess(search, MediaType.APPLICATION_JSON));
 
-        @Test
-        void error() {
-            server.expect(requestTo("https://api.weatherapi.com/v1/forecast.json?key=api_key_test&q=lyon&lang=it")).andRespond(withBadRequest());
+      List<SearchJsonResponse> result = weatherApiClientImpl.searchLocations("lyon");
 
-            assertThrows(WeatherApiClientException.class, () -> weatherApiClientImpl.getForecastWeather("lyon", null, Language.ITALIAN));
-        }
-
+      assertAll(
+          () -> assertFalse(CollectionUtils.isEmpty(result)),
+          () -> assertJsonEquals(search, objectMapper.writeValueAsString(result)));
     }
 
-    @Nested
-    class SearchLocations {
+    @Test
+    void empty() {
+      server
+          .expect(requestTo("https://api.weatherapi.com/v1/search.json?key=api_key_test&q=lyon"))
+          .andRespond(withSuccess("", MediaType.APPLICATION_JSON));
 
-        @Test
-        void success() throws IOException {
-            String search = readResponseFile("search.json");
+      List<SearchJsonResponse> result = weatherApiClientImpl.searchLocations("lyon");
 
-            server.expect(requestTo("https://api.weatherapi.com/v1/search.json?key=api_key_test&q=lyon"))
-                    .andRespond(withSuccess(search, MediaType.APPLICATION_JSON));
-
-            List<SearchJsonResponse> result = weatherApiClientImpl.searchLocations("lyon");
-
-            assertAll(() -> assertFalse(CollectionUtils.isEmpty(result)), () -> assertJsonEquals(search, objectMapper.writeValueAsString(result)));
-        }
-
-        @Test
-        void empty() {
-            server.expect(requestTo("https://api.weatherapi.com/v1/search.json?key=api_key_test&q=lyon"))
-                    .andRespond(withSuccess("", MediaType.APPLICATION_JSON));
-
-            List<SearchJsonResponse> result = weatherApiClientImpl.searchLocations("lyon");
-
-            assertTrue(CollectionUtils.isEmpty(result));
-        }
-
-        @Test
-        void error() {
-            server.expect(requestTo("https://api.weatherapi.com/v1/search.json?key=api_key_test&q=test")).andRespond(withServerError());
-
-            assertThrows(WeatherApiClientException.class, () -> weatherApiClientImpl.searchLocations("test"));
-        }
-
+      assertTrue(CollectionUtils.isEmpty(result));
     }
 
-    private String readResponseFile(String fileName) throws IOException {
-        return Files.readString(ResourceUtils.getFile("classpath:weatherapi/" + fileName).toPath());
-    }
+    @Test
+    void error() {
+      server
+          .expect(requestTo("https://api.weatherapi.com/v1/search.json?key=api_key_test&q=test"))
+          .andRespond(withServerError());
 
+      assertThrows(
+          WeatherApiClientException.class, () -> weatherApiClientImpl.searchLocations("test"));
+    }
+  }
+
+  private String readResponseFile(String fileName) throws IOException {
+    return Files.readString(ResourceUtils.getFile("classpath:weatherapi/" + fileName).toPath());
+  }
 }

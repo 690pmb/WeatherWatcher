@@ -23,6 +23,7 @@
         <mapstruct.version>1.4.2.Final</mapstruct.version>
         <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
         <guava.version>31.0.1-jre</guava.version>
+        <git-code-format-maven-plugin.version>3.4</git-code-format-maven-plugin.version>
     </properties>
 
     <dependencies>
@@ -166,6 +167,20 @@
                         <phase>test</phase>
                         <goals>
                             <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.cosium.code</groupId>
+                <artifactId>git-code-format-maven-plugin</artifactId>
+                <version>${git-code-format-maven-plugin.version}</version>
+                <executions>
+                    <!-- On commit, format the modified java files -->
+                    <execution>
+                        <id>install-formatter-hook</id>
+                        <goals>
+                            <goal>install-hooks</goal>
                         </goals>
                     </execution>
                 </executions>

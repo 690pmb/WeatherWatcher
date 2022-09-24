@@ -2,185 +2,163 @@ package pmb.weatherwatcher.weather.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class Day
-        implements java.io.Serializable {
+public class Day implements java.io.Serializable {
 
-    private static final long serialVersionUID = 6234553622804019665L;
-    @JsonProperty("maxtemp_c")
-    private Double maxTempC;
-    @JsonProperty("mintemp_c")
-    private Double minTempC;
-    @JsonProperty("avgtemp_c")
-    private Double avgTempC;
-    @JsonProperty("maxwind_kph")
-    private Double maxWindKph;
-    @JsonProperty("totalprecip_mm")
-    private Double totalPrecipMm;
-    @JsonProperty("avgvis_km")
-    private Double avgVisKm;
-    @JsonProperty("avghumidity")
-    private Double avgHumidity;
-    private Condition condition;
-    private Double uv;
-    @JsonProperty("daily_will_it_rain")
-    private Integer dailyWillItRain;
-    @JsonProperty("daily_chance_of_rain")
-    private Integer dailyChanceOfRain;
-    @JsonProperty("daily_will_it_snow")
-    private Integer dailyWillItSnow;
-    @JsonProperty("daily_chance_of_snow")
-    private Integer dailyChanceOfSnow;
+  private static final long serialVersionUID = 6234553622804019665L;
 
-    /**
-     * GETTER Maximum temperature in celsius for the day.
-     */
-    public Double getMaxTempC() {
-        return maxTempC;
-    }
+  @JsonProperty("maxtemp_c")
+  private Double maxTempC;
 
-    /**
-     * SETTER Maximum temperature in celsius for the day.
-     */
-    public void setMaxTempC(Double value) {
-        maxTempC = value;
-    }
+  @JsonProperty("mintemp_c")
+  private Double minTempC;
 
-    /**
-     * GETTER Minimum temperature in celsius for the day
-     */
-    public Double getMinTempC() {
-        return minTempC;
-    }
+  @JsonProperty("avgtemp_c")
+  private Double avgTempC;
 
-    /**
-     * SETTER Minimum temperature in celsius for the day
-     */
-    public void setMinTempC(Double value) {
-        minTempC = value;
-    }
+  @JsonProperty("maxwind_kph")
+  private Double maxWindKph;
 
-    /**
-     * GETTER Average temperature in celsius for the day
-     */
-    public Double getAvgTempC() {
-        return avgTempC;
-    }
+  @JsonProperty("totalprecip_mm")
+  private Double totalPrecipMm;
 
-    /**
-     * SETTER Average temperature in celsius for the day
-     */
-    public void setAvgTempC(Double value) {
-        avgTempC = value;
-    }
+  @JsonProperty("avgvis_km")
+  private Double avgVisKm;
 
-    /**
-     * GETTER Maximum wind speed in kilometer per hour
-     */
-    public Double getMaxWindKph() {
-        return maxWindKph;
-    }
+  @JsonProperty("avghumidity")
+  private Double avgHumidity;
 
-    /**
-     * SETTER Maximum wind speed in kilometer per hour
-     */
-    public void setMaxWindKph(Double value) {
-        maxWindKph = value;
-    }
+  private Condition condition;
+  private Double uv;
 
-    /**
-     * GETTER Total precipitation in milimeter
-     */
-    public Double getTotalPrecipMm() {
-        return totalPrecipMm;
-    }
+  @JsonProperty("daily_will_it_rain")
+  private Integer dailyWillItRain;
 
-    /**
-     * SETTER Total precipitation in milimeter
-     */
-    public void setTotalPrecipMm(Double value) {
-        totalPrecipMm = value;
-    }
+  @JsonProperty("daily_chance_of_rain")
+  private Integer dailyChanceOfRain;
 
-    /**
-     * GETTER Average visibility in kilometer
-     */
-    public Double getAvgVisKm() {
-        return avgVisKm;
-    }
+  @JsonProperty("daily_will_it_snow")
+  private Integer dailyWillItSnow;
 
-    /**
-     * SETTER Average visibility in kilometer
-     */
-    public void setAvgVisKm(Double value) {
-        avgVisKm = value;
-    }
+  @JsonProperty("daily_chance_of_snow")
+  private Integer dailyChanceOfSnow;
 
-    /**
-     * GETTER Average humidity as percentage
-     */
-    public Double getAvgHumidity() {
-        return avgHumidity;
-    }
+  /** GETTER Maximum temperature in celsius for the day. */
+  public Double getMaxTempC() {
+    return maxTempC;
+  }
 
-    /**
-     * SETTER Average humidity as percentage
-     */
-    public void setAvgHumidity(Double value) {
-        avgHumidity = value;
-    }
+  /** SETTER Maximum temperature in celsius for the day. */
+  public void setMaxTempC(Double value) {
+    maxTempC = value;
+  }
 
-    public Condition getCondition() {
-        return condition;
-    }
+  /** GETTER Minimum temperature in celsius for the day */
+  public Double getMinTempC() {
+    return minTempC;
+  }
 
-    public void setCondition(Condition value) {
-        condition = value;
-    }
+  /** SETTER Minimum temperature in celsius for the day */
+  public void setMinTempC(Double value) {
+    minTempC = value;
+  }
 
-    /**
-     * GETTER UV Index
-     */
-    public Double getUv() {
-        return uv;
-    }
+  /** GETTER Average temperature in celsius for the day */
+  public Double getAvgTempC() {
+    return avgTempC;
+  }
 
-    /**
-     * SETTER UV Index
-     */
-    public void setUv(Double value) {
-        uv = value;
-    }
+  /** SETTER Average temperature in celsius for the day */
+  public void setAvgTempC(Double value) {
+    avgTempC = value;
+  }
 
-    public Integer getDailyWillItRain() {
-        return dailyWillItRain;
-    }
+  /** GETTER Maximum wind speed in kilometer per hour */
+  public Double getMaxWindKph() {
+    return maxWindKph;
+  }
 
-    public void setDailyWillItRain(Integer dailyWillItRain) {
-        this.dailyWillItRain = dailyWillItRain;
-    }
+  /** SETTER Maximum wind speed in kilometer per hour */
+  public void setMaxWindKph(Double value) {
+    maxWindKph = value;
+  }
 
-    public Integer getDailyChanceOfRain() {
-        return dailyChanceOfRain;
-    }
+  /** GETTER Total precipitation in milimeter */
+  public Double getTotalPrecipMm() {
+    return totalPrecipMm;
+  }
 
-    public void setDailyChanceOfRain(Integer dailyChanceOfRain) {
-        this.dailyChanceOfRain = dailyChanceOfRain;
-    }
+  /** SETTER Total precipitation in milimeter */
+  public void setTotalPrecipMm(Double value) {
+    totalPrecipMm = value;
+  }
 
-    public Integer getDailyWillItSnow() {
-        return dailyWillItSnow;
-    }
+  /** GETTER Average visibility in kilometer */
+  public Double getAvgVisKm() {
+    return avgVisKm;
+  }
 
-    public void setDailyWillItSnow(Integer dailyWillItSnow) {
-        this.dailyWillItSnow = dailyWillItSnow;
-    }
+  /** SETTER Average visibility in kilometer */
+  public void setAvgVisKm(Double value) {
+    avgVisKm = value;
+  }
 
-    public Integer getDailyChanceOfSnow() {
-        return dailyChanceOfSnow;
-    }
+  /** GETTER Average humidity as percentage */
+  public Double getAvgHumidity() {
+    return avgHumidity;
+  }
 
-    public void setDailyChanceOfSnow(Integer dailyChanceOfSnow) {
-        this.dailyChanceOfSnow = dailyChanceOfSnow;
-    }
+  /** SETTER Average humidity as percentage */
+  public void setAvgHumidity(Double value) {
+    avgHumidity = value;
+  }
 
+  public Condition getCondition() {
+    return condition;
+  }
+
+  public void setCondition(Condition value) {
+    condition = value;
+  }
+
+  /** GETTER UV Index */
+  public Double getUv() {
+    return uv;
+  }
+
+  /** SETTER UV Index */
+  public void setUv(Double value) {
+    uv = value;
+  }
+
+  public Integer getDailyWillItRain() {
+    return dailyWillItRain;
+  }
+
+  public void setDailyWillItRain(Integer dailyWillItRain) {
+    this.dailyWillItRain = dailyWillItRain;
+  }
+
+  public Integer getDailyChanceOfRain() {
+    return dailyChanceOfRain;
+  }
+
+  public void setDailyChanceOfRain(Integer dailyChanceOfRain) {
+    this.dailyChanceOfRain = dailyChanceOfRain;
+  }
+
+  public Integer getDailyWillItSnow() {
+    return dailyWillItSnow;
+  }
+
+  public void setDailyWillItSnow(Integer dailyWillItSnow) {
+    this.dailyWillItSnow = dailyWillItSnow;
+  }
+
+  public Integer getDailyChanceOfSnow() {
+    return dailyChanceOfSnow;
+  }
+
+  public void setDailyChanceOfSnow(Integer dailyChanceOfSnow) {
+    this.dailyChanceOfSnow = dailyChanceOfSnow;
+  }
 }

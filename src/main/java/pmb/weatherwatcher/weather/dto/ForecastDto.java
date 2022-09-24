@@ -4,23 +4,22 @@ import java.util.List;
 
 public class ForecastDto {
 
-    private LocationDto location;
-    private List<ForecastDayDto> forecastDay;
+  private LocationDto location;
+  private List<ForecastDayDto> forecastDay;
 
-    public LocationDto getLocation() {
-        return location;
-    }
+  public LocationDto getLocation() {
+    return location;
+  }
 
-    public void setLocation(LocationDto location) {
-        this.location = location;
-    }
+  public void setLocation(LocationDto location) {
+    this.location = location;
+  }
 
-    public List<ForecastDayDto> getForecastDay() {
-        return forecastDay;
-    }
+  public List<ForecastDayDto> getForecastDay() {
+    return forecastDay;
+  }
 
-    public void setForecastDay(List<ForecastDayDto> forecastDay) {
-        this.forecastDay = forecastDay;
-    }
-
+  public void setForecastDay(List<ForecastDayDto> forecastDay) {
+    this.forecastDay = forecastDay;
+  }
 }

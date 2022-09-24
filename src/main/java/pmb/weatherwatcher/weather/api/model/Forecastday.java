@@ -1,82 +1,65 @@
 package pmb.weatherwatcher.weather.api.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+public class Forecastday implements java.io.Serializable {
 
-public class Forecastday
-        implements java.io.Serializable {
+  private static final long serialVersionUID = 5397660598274391661L;
+  private String date;
 
-    private static final long serialVersionUID = 5397660598274391661L;
-    private String date;
-    @JsonProperty("date_epoch")
-    private Integer dateEpoch;
-    private Day day;
-    private List<Hour> hour;
-    private Astro astro;
+  @JsonProperty("date_epoch")
+  private Integer dateEpoch;
 
-    /**
-     * GETTER Forecast date
-     */
-    public String getDate() {
-        return date;
-    }
+  private Day day;
+  private List<Hour> hour;
+  private Astro astro;
 
-    /**
-     * SETTER Forecast date
-     */
-    public void setDate(String value) {
-        date = value;
-    }
+  /** GETTER Forecast date */
+  public String getDate() {
+    return date;
+  }
 
-    /**
-     * GETTER Forecast date as unix time.
-     */
-    public Integer getDateEpoch() {
-        return dateEpoch;
-    }
+  /** SETTER Forecast date */
+  public void setDate(String value) {
+    date = value;
+  }
 
-    /**
-     * SETTER Forecast date as unix time.
-     */
-    public void setDateEpoch(Integer value) {
-        dateEpoch = value;
-    }
+  /** GETTER Forecast date as unix time. */
+  public Integer getDateEpoch() {
+    return dateEpoch;
+  }
 
-    /**
-     * GETTER See day element
-     */
-    public Day getDay() {
-        return day;
-    }
+  /** SETTER Forecast date as unix time. */
+  public void setDateEpoch(Integer value) {
+    dateEpoch = value;
+  }
 
-    /**
-     * SETTER See day element
-     */
-    public void setDay(Day value) {
-        day = value;
-    }
+  /** GETTER See day element */
+  public Day getDay() {
+    return day;
+  }
 
-    /**
-     * GETTER See hour element
-     */
-    public List<Hour> getHour() {
-        return hour;
-    }
+  /** SETTER See day element */
+  public void setDay(Day value) {
+    day = value;
+  }
 
-    /**
-     * SETTER See hour element
-     */
-    public void setHour(List<Hour> hour) {
-        this.hour = hour;
-    }
+  /** GETTER See hour element */
+  public List<Hour> getHour() {
+    return hour;
+  }
 
-    public Astro getAstro() {
-        return astro;
-    }
+  /** SETTER See hour element */
+  public void setHour(List<Hour> hour) {
+    this.hour = hour;
+  }
 
-    public void setAstro(Astro value) {
-        astro = value;
-    }
+  public Astro getAstro() {
+    return astro;
+  }
 
+  public void setAstro(Astro value) {
+    astro = value;
+  }
 }

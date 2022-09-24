@@ -2,89 +2,73 @@ package pmb.weatherwatcher.weather.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class Astro
-        implements java.io.Serializable {
+public class Astro implements java.io.Serializable {
 
-    private static final long serialVersionUID = 8217103204793016969L;
-    private String sunrise;
-    private String sunset;
-    private String moonrise;
-    private String moonset;
-    @JsonProperty("moon_phase")
-    private String moonPhase;
-    @JsonProperty("moon_illumination")
-    private Integer moonIllumination;
+  private static final long serialVersionUID = 8217103204793016969L;
+  private String sunrise;
+  private String sunset;
+  private String moonrise;
+  private String moonset;
 
-    /**
-     * GETTER Sunrise time
-     */
-    public String getSunrise() {
-        return sunrise;
-    }
+  @JsonProperty("moon_phase")
+  private String moonPhase;
 
-    /**
-     * SETTER Sunrise time
-     */
-    public void setSunrise(String value) {
-        sunrise = value;
-    }
+  @JsonProperty("moon_illumination")
+  private Integer moonIllumination;
 
-    /**
-     * GETTER Sunset time
-     */
-    public String getSunset() {
-        return sunset;
-    }
+  /** GETTER Sunrise time */
+  public String getSunrise() {
+    return sunrise;
+  }
 
-    /**
-     * SETTER Sunset time
-     */
-    public void setSunset(String value) {
-        sunset = value;
-    }
+  /** SETTER Sunrise time */
+  public void setSunrise(String value) {
+    sunrise = value;
+  }
 
-    /**
-     * GETTER Moonrise time
-     */
-    public String getMoonrise() {
-        return moonrise;
-    }
+  /** GETTER Sunset time */
+  public String getSunset() {
+    return sunset;
+  }
 
-    /**
-     * SETTER Moonrise time
-     */
-    public void setMoonrise(String value) {
-        moonrise = value;
-    }
+  /** SETTER Sunset time */
+  public void setSunset(String value) {
+    sunset = value;
+  }
 
-    /**
-     * GETTER Moonset time
-     */
-    public String getMoonset() {
-        return moonset;
-    }
+  /** GETTER Moonrise time */
+  public String getMoonrise() {
+    return moonrise;
+  }
 
-    /**
-     * SETTER Moonset time
-     */
-    public void setMoonset(String value) {
-        moonset = value;
-    }
+  /** SETTER Moonrise time */
+  public void setMoonrise(String value) {
+    moonrise = value;
+  }
 
-    public String getMoonPhase() {
-        return moonPhase;
-    }
+  /** GETTER Moonset time */
+  public String getMoonset() {
+    return moonset;
+  }
 
-    public void setMoonPhase(String moonPhase) {
-        this.moonPhase = moonPhase;
-    }
+  /** SETTER Moonset time */
+  public void setMoonset(String value) {
+    moonset = value;
+  }
 
-    public Integer getMoonIllumination() {
-        return moonIllumination;
-    }
+  public String getMoonPhase() {
+    return moonPhase;
+  }
 
-    public void setMoonIllumination(Integer moonIllumination) {
-        this.moonIllumination = moonIllumination;
-    }
+  public void setMoonPhase(String moonPhase) {
+    this.moonPhase = moonPhase;
+  }
 
+  public Integer getMoonIllumination() {
+    return moonIllumination;
+  }
+
+  public void setMoonIllumination(Integer moonIllumination) {
+    this.moonIllumination = moonIllumination;
+  }
 }

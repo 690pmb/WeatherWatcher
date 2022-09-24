@@ -14,7 +14,6 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -31,7 +30,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-
 import pmb.weatherwatcher.common.exception.AlreadyExistException;
 import pmb.weatherwatcher.user.dto.JwtTokenDto;
 import pmb.weatherwatcher.user.dto.PasswordDto;
@@ -44,171 +42,182 @@ import pmb.weatherwatcher.user.security.JwtTokenProvider;
 @ExtendWith(SpringExtension.class)
 class UserServiceTest {
 
-    @MockBean
-    private UserRepository userRepository;
-    @MockBean
-    private AuthenticationManager authenticationManager;
-    @MockBean
-    private JwtTokenProvider jwtTokenProvider;
-    @MockBean
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
-    @Autowired
-    private UserService userService;
+  @MockBean private UserRepository userRepository;
+  @MockBean private AuthenticationManager authenticationManager;
+  @MockBean private JwtTokenProvider jwtTokenProvider;
+  @MockBean private BCryptPasswordEncoder bCryptPasswordEncoder;
+  @Autowired private UserService userService;
 
-    private UserDto DUMMY_USER = new UserDto("test", "pwd", "lyon");
-    private PasswordDto DUMMY_PASSWORD = new PasswordDto("password", "newPassword");
+  private UserDto DUMMY_USER = new UserDto("test", "pwd", "lyon");
+  private PasswordDto DUMMY_PASSWORD = new PasswordDto("password", "newPassword");
 
-    @AfterEach
-    void tearDown() {
-        verifyNoMoreInteractions(userRepository, authenticationManager, jwtTokenProvider, bCryptPasswordEncoder);
+  @AfterEach
+  void tearDown() {
+    verifyNoMoreInteractions(
+        userRepository, authenticationManager, jwtTokenProvider, bCryptPasswordEncoder);
+  }
+
+  @Nested
+  class Save {
+
+    @Test
+    void alreadyExist() {
+      when(userRepository.findById("test")).thenReturn(Optional.of(new User()));
+
+      assertThrows(AlreadyExistException.class, () -> userService.save(DUMMY_USER));
+
+      verify(userRepository).findById("test");
+      verify(userRepository, never()).save(any());
+      verify(bCryptPasswordEncoder, never()).encode(any());
+      verify(authenticationManager, never()).authenticate(any());
     }
 
-    @Nested
-    class Save {
+    @Test
+    void success() {
+      when(userRepository.findById("test")).thenReturn(Optional.empty());
+      when(bCryptPasswordEncoder.encode("test")).thenAnswer(a -> a.getArgument(0));
+      when(userRepository.save(any())).thenAnswer(a -> a.getArgument(0));
 
-        @Test
-        void alreadyExist() {
-            when(userRepository.findById("test")).thenReturn(Optional.of(new User()));
+      UserDto saved = userService.save(DUMMY_USER);
 
-            assertThrows(AlreadyExistException.class, () -> userService.save(DUMMY_USER));
+      assertAll(
+          () -> assertNotNull(saved),
+          () -> assertEquals("test", saved.getUsername()),
+          () -> assertEquals("lyon", saved.getFavouriteLocation()),
+          () -> assertNull(saved.getPassword()),
+          () -> assertTrue(saved.isEnabled()),
+          () -> assertTrue(saved.isAccountNonLocked()),
+          () -> assertTrue(saved.isCredentialsNonExpired()),
+          () -> assertTrue(saved.isAccountNonExpired()));
 
-            verify(userRepository).findById("test");
-            verify(userRepository, never()).save(any());
-            verify(bCryptPasswordEncoder, never()).encode(any());
-            verify(authenticationManager, never()).authenticate(any());
-        }
+      verify(userRepository).findById("test");
+      verify(userRepository).save(any());
+      verify(bCryptPasswordEncoder).encode("pwd");
+      verify(authenticationManager, never()).authenticate(any());
+    }
+  }
 
-        @Test
-        void success() {
-            when(userRepository.findById("test")).thenReturn(Optional.empty());
-            when(bCryptPasswordEncoder.encode("test")).thenAnswer(a -> a.getArgument(0));
-            when(userRepository.save(any())).thenAnswer(a -> a.getArgument(0));
+  @Nested
+  class Login {
 
-            UserDto saved = userService.save(DUMMY_USER);
+    @Test
+    void badCredentials() {
+      ArgumentCaptor<UsernamePasswordAuthenticationToken> token =
+          ArgumentCaptor.forClass(UsernamePasswordAuthenticationToken.class);
 
-            assertAll(() -> assertNotNull(saved), () -> assertEquals("test", saved.getUsername()),
-                    () -> assertEquals("lyon", saved.getFavouriteLocation()), () -> assertNull(saved.getPassword()),
-                    () -> assertTrue(saved.isEnabled()), () -> assertTrue(saved.isAccountNonLocked()),
-                    () -> assertTrue(saved.isCredentialsNonExpired()), () -> assertTrue(saved.isAccountNonExpired()));
+      when(authenticationManager.authenticate(any())).thenThrow(BadCredentialsException.class);
 
-            verify(userRepository).findById("test");
-            verify(userRepository).save(any());
-            verify(bCryptPasswordEncoder).encode("pwd");
-            verify(authenticationManager, never()).authenticate(any());
-        }
+      assertThrows(BadCredentialsException.class, () -> userService.login(DUMMY_USER));
 
+      verify(authenticationManager).authenticate(token.capture());
+      verify(userRepository, never()).findById(any());
+      verify(bCryptPasswordEncoder, never()).encode(any());
+      verify(userRepository, never()).save(any());
+      verify(jwtTokenProvider, never()).create(any());
+
+      UsernamePasswordAuthenticationToken captured = token.getValue();
+      assertAll(
+          () -> assertEquals("test", captured.getName()),
+          () -> assertEquals("pwd", captured.getCredentials()),
+          () -> assertFalse(captured.isAuthenticated()),
+          () -> assertNull(SecurityContextHolder.getContext().getAuthentication()));
     }
 
-    @Nested
-    class Login {
+    @Test
+    void success() {
+      ArgumentCaptor<UsernamePasswordAuthenticationToken> token =
+          ArgumentCaptor.forClass(UsernamePasswordAuthenticationToken.class);
 
-        @Test
-        void badCredentials() {
-            ArgumentCaptor<UsernamePasswordAuthenticationToken> token = ArgumentCaptor.forClass(UsernamePasswordAuthenticationToken.class);
+      when(authenticationManager.authenticate(any())).thenAnswer(a -> a.getArgument(0));
+      when(jwtTokenProvider.create(any())).thenReturn("jwt");
 
-            when(authenticationManager.authenticate(any())).thenThrow(BadCredentialsException.class);
+      JwtTokenDto login = userService.login(DUMMY_USER);
 
-            assertThrows(BadCredentialsException.class, () -> userService.login(DUMMY_USER));
+      verify(authenticationManager).authenticate(token.capture());
+      verify(jwtTokenProvider).create(any());
+      verify(userRepository, never()).findById(any());
+      verify(bCryptPasswordEncoder, never()).encode(any());
+      verify(userRepository, never()).save(any());
 
-            verify(authenticationManager).authenticate(token.capture());
-            verify(userRepository, never()).findById(any());
-            verify(bCryptPasswordEncoder, never()).encode(any());
-            verify(userRepository, never()).save(any());
-            verify(jwtTokenProvider, never()).create(any());
+      UsernamePasswordAuthenticationToken captured = token.getValue();
+      assertAll(
+          () -> assertEquals("jwt", login.getToken()),
+          () -> assertEquals("test", captured.getName()),
+          () -> assertEquals("pwd", captured.getCredentials()),
+          () -> assertFalse(captured.isAuthenticated()),
+          () ->
+              assertEquals(
+                  "test", SecurityContextHolder.getContext().getAuthentication().getName()));
+    }
+  }
 
-            UsernamePasswordAuthenticationToken captured = token.getValue();
-            assertAll(() -> assertEquals("test", captured.getName()), () -> assertEquals("pwd", captured.getCredentials()),
-                    () -> assertFalse(captured.isAuthenticated()), () -> assertNull(SecurityContextHolder.getContext().getAuthentication()));
-        }
+  @Nested
+  class UpdatePassword {
 
-        @Test
-        void success() {
-            ArgumentCaptor<UsernamePasswordAuthenticationToken> token = ArgumentCaptor.forClass(UsernamePasswordAuthenticationToken.class);
+    @Test
+    @WithMockUser(username = "test")
+    void ok() {
+      User user = new User("test", "encryptedPassword", "lyon");
+      ArgumentCaptor<User> captured = ArgumentCaptor.forClass(User.class);
 
-            when(authenticationManager.authenticate(any())).thenAnswer(a -> a.getArgument(0));
-            when(jwtTokenProvider.create(any())).thenReturn("jwt");
+      when(userRepository.findById("test")).thenReturn(Optional.of(user));
+      when(bCryptPasswordEncoder.matches("password", "encryptedPassword")).thenReturn(true);
+      when(bCryptPasswordEncoder.encode("newPassword")).thenAnswer(a -> a.getArgument(0));
+      when(userRepository.save(any())).thenAnswer(a -> a.getArgument(0));
 
-            JwtTokenDto login = userService.login(DUMMY_USER);
+      userService.updatePassword(DUMMY_PASSWORD);
 
-            verify(authenticationManager).authenticate(token.capture());
-            verify(jwtTokenProvider).create(any());
-            verify(userRepository, never()).findById(any());
-            verify(bCryptPasswordEncoder, never()).encode(any());
-            verify(userRepository, never()).save(any());
+      verify(userRepository).findById("test");
+      verify(bCryptPasswordEncoder).matches("password", "encryptedPassword");
+      verify(bCryptPasswordEncoder).encode("newPassword");
+      verify(userRepository).save(captured.capture());
 
-            UsernamePasswordAuthenticationToken captured = token.getValue();
-            assertAll(() -> assertEquals("jwt", login.getToken()), () -> assertEquals("test", captured.getName()),
-                    () -> assertEquals("pwd", captured.getCredentials()), () -> assertFalse(captured.isAuthenticated()),
-                    () -> assertEquals("test", SecurityContextHolder.getContext().getAuthentication().getName()));
-        }
-
+      User savedUser = captured.getValue();
+      assertAll(
+          () -> assertEquals("lyon", savedUser.getFavouriteLocation()),
+          () -> assertEquals("test", savedUser.getLogin()),
+          () -> assertEquals("newPassword", savedUser.getPassword()));
     }
 
-    @Nested
-    class UpdatePassword {
+    @Test
+    void not_loggued_then_not_found() {
+      assertThrows(
+          UsernameNotFoundException.class, () -> userService.updatePassword(DUMMY_PASSWORD));
 
-        @Test
-        @WithMockUser(username = "test")
-        void ok() {
-            User user = new User("test", "encryptedPassword", "lyon");
-            ArgumentCaptor<User> captured = ArgumentCaptor.forClass(User.class);
-
-            when(userRepository.findById("test")).thenReturn(Optional.of(user));
-            when(bCryptPasswordEncoder.matches("password", "encryptedPassword")).thenReturn(true);
-            when(bCryptPasswordEncoder.encode("newPassword")).thenAnswer(a -> a.getArgument(0));
-            when(userRepository.save(any())).thenAnswer(a -> a.getArgument(0));
-
-            userService.updatePassword(DUMMY_PASSWORD);
-
-            verify(userRepository).findById("test");
-            verify(bCryptPasswordEncoder).matches("password", "encryptedPassword");
-            verify(bCryptPasswordEncoder).encode("newPassword");
-            verify(userRepository).save(captured.capture());
-
-            User savedUser = captured.getValue();
-            assertAll(() -> assertEquals("lyon", savedUser.getFavouriteLocation()), () -> assertEquals("test", savedUser.getLogin()),
-                    () -> assertEquals("newPassword", savedUser.getPassword()));
-        }
-
-        @Test
-        void not_loggued_then_not_found() {
-            assertThrows(UsernameNotFoundException.class, () -> userService.updatePassword(DUMMY_PASSWORD));
-
-            verify(userRepository, never()).findById("test");
-            verify(bCryptPasswordEncoder, never()).matches("password", "encryptedPassword");
-            verify(bCryptPasswordEncoder, never()).encode("newPassword");
-            verify(userRepository, never()).save(any());
-        }
-
-        @Test
-        @WithMockUser(username = "test")
-        void not_found_in_db() {
-            when(userRepository.findById("test")).thenReturn(Optional.empty());
-
-            assertThrows(UsernameNotFoundException.class, () -> userService.updatePassword(DUMMY_PASSWORD));
-
-            verify(userRepository).findById("test");
-            verify(bCryptPasswordEncoder, never()).matches("password", "encryptedPassword");
-            verify(bCryptPasswordEncoder, never()).encode("newPassword");
-            verify(userRepository, never()).save(any());
-        }
-
-        @Test
-        @WithMockUser(username = "test")
-        void incorrect_password() {
-            User user = new User("test", "encryptedPassword", "lyon");
-
-            when(userRepository.findById("test")).thenReturn(Optional.of(user));
-            when(bCryptPasswordEncoder.matches("password", "encryptedPassword")).thenReturn(false);
-
-            assertThrows(BadCredentialsException.class, () -> userService.updatePassword(DUMMY_PASSWORD));
-
-            verify(userRepository).findById("test");
-            verify(bCryptPasswordEncoder).matches("password", "encryptedPassword");
-            verify(bCryptPasswordEncoder, never()).encode("newPassword");
-            verify(userRepository, never()).save(any());
-        }
-
+      verify(userRepository, never()).findById("test");
+      verify(bCryptPasswordEncoder, never()).matches("password", "encryptedPassword");
+      verify(bCryptPasswordEncoder, never()).encode("newPassword");
+      verify(userRepository, never()).save(any());
     }
 
+    @Test
+    @WithMockUser(username = "test")
+    void not_found_in_db() {
+      when(userRepository.findById("test")).thenReturn(Optional.empty());
+
+      assertThrows(
+          UsernameNotFoundException.class, () -> userService.updatePassword(DUMMY_PASSWORD));
+
+      verify(userRepository).findById("test");
+      verify(bCryptPasswordEncoder, never()).matches("password", "encryptedPassword");
+      verify(bCryptPasswordEncoder, never()).encode("newPassword");
+      verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    @WithMockUser(username = "test")
+    void incorrect_password() {
+      User user = new User("test", "encryptedPassword", "lyon");
+
+      when(userRepository.findById("test")).thenReturn(Optional.of(user));
+      when(bCryptPasswordEncoder.matches("password", "encryptedPassword")).thenReturn(false);
+
+      assertThrows(BadCredentialsException.class, () -> userService.updatePassword(DUMMY_PASSWORD));
+
+      verify(userRepository).findById("test");
+      verify(bCryptPasswordEncoder).matches("password", "encryptedPassword");
+      verify(bCryptPasswordEncoder, never()).encode("newPassword");
+      verify(userRepository, never()).save(any());
+    }
+  }
 }

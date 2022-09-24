@@ -2,131 +2,100 @@ package pmb.weatherwatcher.weather.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class Location
-        implements java.io.Serializable {
+public class Location implements java.io.Serializable {
 
-    private static final long serialVersionUID = -988571205296280554L;
-    private String name;
-    private String region;
-    private String country;
-    private Double lat;
-    private Double lon;
-    @JsonProperty("tz_id")
-    private String tzId;
-    @JsonProperty("localtime_epoch")
-    private Integer localtimeEpoch;
-    private String localtime;
+  private static final long serialVersionUID = -988571205296280554L;
+  private String name;
+  private String region;
+  private String country;
+  private Double lat;
+  private Double lon;
 
-    /**
-     * GETTER Local area name.
-     */
-    public String getName() {
-        return name;
-    }
+  @JsonProperty("tz_id")
+  private String tzId;
 
-    /**
-     * SETTER Local area name.
-     */
-    public void setName(String value) {
-        name = value;
-    }
+  @JsonProperty("localtime_epoch")
+  private Integer localtimeEpoch;
 
-    /**
-     * GETTER Local area region.
-     */
-    public String getRegion() {
-        return region;
-    }
+  private String localtime;
 
-    /**
-     * SETTER Local area region.
-     */
-    public void setRegion(String value) {
-        region = value;
-    }
+  /** GETTER Local area name. */
+  public String getName() {
+    return name;
+  }
 
-    /**
-     * GETTER Country
-     */
-    public String getCountry() {
-        return country;
-    }
+  /** SETTER Local area name. */
+  public void setName(String value) {
+    name = value;
+  }
 
-    /**
-     * SETTER Country
-     */
-    public void setCountry(String value) {
-        country = value;
-    }
+  /** GETTER Local area region. */
+  public String getRegion() {
+    return region;
+  }
 
-    /**
-     * GETTER Area latitude
-     */
-    public Double getLat() {
-        return lat;
-    }
+  /** SETTER Local area region. */
+  public void setRegion(String value) {
+    region = value;
+  }
 
-    /**
-     * SETTER Area latitude
-     */
-    public void setLat(Double value) {
-        lat = value;
-    }
+  /** GETTER Country */
+  public String getCountry() {
+    return country;
+  }
 
-    /**
-     * GETTER Area longitude
-     */
-    public Double getLon() {
-        return lon;
-    }
+  /** SETTER Country */
+  public void setCountry(String value) {
+    country = value;
+  }
 
-    /**
-     * SETTER Area longitude
-     */
-    public void setLon(Double value) {
-        lon = value;
-    }
+  /** GETTER Area latitude */
+  public Double getLat() {
+    return lat;
+  }
 
-    /**
-     * GETTER Time zone
-     */
-    public String getTzId() {
-        return tzId;
-    }
+  /** SETTER Area latitude */
+  public void setLat(Double value) {
+    lat = value;
+  }
 
-    /**
-     * SETTER Time zone
-     */
-    public void setTzId(String value) {
-        tzId = value;
-    }
+  /** GETTER Area longitude */
+  public Double getLon() {
+    return lon;
+  }
 
-    /**
-     * GETTER Local date and time in unix time
-     */
-    public Integer getLocaltimeEpoch() {
-        return localtimeEpoch;
-    }
+  /** SETTER Area longitude */
+  public void setLon(Double value) {
+    lon = value;
+  }
 
-    /**
-     * SETTER Local date and time in unix time
-     */
-    public void setLocaltimeEpoch(Integer value) {
-        localtimeEpoch = value;
-    }
+  /** GETTER Time zone */
+  public String getTzId() {
+    return tzId;
+  }
 
-    /**
-     * GETTER Local date and time
-     */
-    public String getLocaltime() {
-        return localtime;
-    }
+  /** SETTER Time zone */
+  public void setTzId(String value) {
+    tzId = value;
+  }
 
-    /**
-     * SETTER Local date and time
-     */
-    public void setLocaltime(String value) {
-        localtime = value;
-    }
+  /** GETTER Local date and time in unix time */
+  public Integer getLocaltimeEpoch() {
+    return localtimeEpoch;
+  }
 
+  /** SETTER Local date and time in unix time */
+  public void setLocaltimeEpoch(Integer value) {
+    localtimeEpoch = value;
+  }
+
+  /** GETTER Local date and time */
+  public String getLocaltime() {
+    return localtime;
+  }
+
+  /** SETTER Local date and time */
+  public void setLocaltime(String value) {
+    localtime = value;
+  }
 }

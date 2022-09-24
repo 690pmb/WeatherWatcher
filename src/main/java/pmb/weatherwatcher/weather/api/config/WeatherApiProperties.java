@@ -7,23 +7,22 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties("weather-api")
 public class WeatherApiProperties {
 
-    private String baseUrl;
-    private String apiKey;
+  private String baseUrl;
+  private String apiKey;
 
-    public String getBaseUrl() {
-        return baseUrl;
-    }
+  public String getBaseUrl() {
+    return baseUrl;
+  }
 
-    public void setBaseUrl(String baseUrl) {
-        this.baseUrl = baseUrl;
-    }
+  public void setBaseUrl(String baseUrl) {
+    this.baseUrl = baseUrl;
+  }
 
-    public String getApiKey() {
-        return apiKey;
-    }
+  public String getApiKey() {
+    return apiKey;
+  }
 
-    public void setApiKey(String apiKey) {
-        this.apiKey = apiKey;
-    }
-
+  public void setApiKey(String apiKey) {
+    this.apiKey = apiKey;
+  }
 }

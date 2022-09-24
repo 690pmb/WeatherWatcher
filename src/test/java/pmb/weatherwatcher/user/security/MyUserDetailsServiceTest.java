@@ -9,7 +9,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
-
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator.ReplaceUnderscores;
 import org.junit.jupiter.api.Nested;
@@ -20,79 +19,82 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-
 import pmb.weatherwatcher.user.dto.UserDto;
 import pmb.weatherwatcher.user.mapper.UserMapperImpl;
 import pmb.weatherwatcher.user.model.User;
 import pmb.weatherwatcher.user.repository.UserRepository;
 
 @DisplayNameGeneration(value = ReplaceUnderscores.class)
-@Import({ MyUserDetailsService.class, UserMapperImpl.class })
+@Import({MyUserDetailsService.class, UserMapperImpl.class})
 @ExtendWith(SpringExtension.class)
 class MyUserDetailsServiceTest {
 
-    @MockBean
-    private UserRepository userRepository;
-    @Autowired
-    private MyUserDetailsService myUserDetailsService;
+  @MockBean private UserRepository userRepository;
+  @Autowired private MyUserDetailsService myUserDetailsService;
 
-    @Nested
-    class LoadUserByUsername {
+  @Nested
+  class LoadUserByUsername {
 
-        @Test
-        void ok() {
-            when(userRepository.findById("test")).thenReturn(Optional.of(new User("test", "pwd", "lyon")));
+    @Test
+    void ok() {
+      when(userRepository.findById("test"))
+          .thenReturn(Optional.of(new User("test", "pwd", "lyon")));
 
-            UserDto actual = (UserDto) myUserDetailsService.loadUserByUsername("test");
+      UserDto actual = (UserDto) myUserDetailsService.loadUserByUsername("test");
 
-            assertAll(() -> assertEquals("test", actual.getUsername()), () -> assertEquals("pwd", actual.getPassword()),
-                    () -> assertEquals("lyon", actual.getFavouriteLocation()));
+      assertAll(
+          () -> assertEquals("test", actual.getUsername()),
+          () -> assertEquals("pwd", actual.getPassword()),
+          () -> assertEquals("lyon", actual.getFavouriteLocation()));
 
-            verify(userRepository).findById("test");
-        }
-
-        @Test
-        void not_found() {
-            when(userRepository.findById("test")).thenReturn(Optional.empty());
-
-            assertThrows(UsernameNotFoundException.class, () -> myUserDetailsService.loadUserByUsername("test"));
-
-            verify(userRepository).findById("test");
-        }
-
+      verify(userRepository).findById("test");
     }
 
-    @Nested
-    class UpdatePassword {
+    @Test
+    void not_found() {
+      when(userRepository.findById("test")).thenReturn(Optional.empty());
 
-        @Test
-        void ok() {
-            UserDto dto = new UserDto("test", "pwd", "lyon");
+      assertThrows(
+          UsernameNotFoundException.class, () -> myUserDetailsService.loadUserByUsername("test"));
 
-            when(userRepository.findById("test")).thenReturn(Optional.of(new User("test", "pwd", "lyon")));
-            when(userRepository.save(any())).thenAnswer(a -> a.getArgument(0));
+      verify(userRepository).findById("test");
+    }
+  }
 
-            UserDto actual = (UserDto) myUserDetailsService.updatePassword(dto, "password");
+  @Nested
+  class UpdatePassword {
 
-            assertAll(() -> assertEquals("test", actual.getUsername()), () -> assertEquals("password", actual.getPassword()),
-                    () -> assertEquals("lyon", actual.getFavouriteLocation()));
+    @Test
+    void ok() {
+      UserDto dto = new UserDto("test", "pwd", "lyon");
 
-            verify(userRepository).findById("test");
-            verify(userRepository).save(any());
-        }
+      when(userRepository.findById("test"))
+          .thenReturn(Optional.of(new User("test", "pwd", "lyon")));
+      when(userRepository.save(any())).thenAnswer(a -> a.getArgument(0));
 
-        @Test
-        void not_found() {
-            UserDto dto = new UserDto("test", "pwd", "lyon");
+      UserDto actual = (UserDto) myUserDetailsService.updatePassword(dto, "password");
 
-            when(userRepository.findById("test")).thenReturn(Optional.empty());
+      assertAll(
+          () -> assertEquals("test", actual.getUsername()),
+          () -> assertEquals("password", actual.getPassword()),
+          () -> assertEquals("lyon", actual.getFavouriteLocation()));
 
-            assertThrows(UsernameNotFoundException.class, () -> myUserDetailsService.updatePassword(dto, "password"));
-
-            verify(userRepository).findById("test");
-            verify(userRepository, never()).save(any());
-        }
-
+      verify(userRepository).findById("test");
+      verify(userRepository).save(any());
     }
 
+    @Test
+    void not_found() {
+      UserDto dto = new UserDto("test", "pwd", "lyon");
+
+      when(userRepository.findById("test")).thenReturn(Optional.empty());
+
+      assertThrows(
+          UsernameNotFoundException.class,
+          () -> myUserDetailsService.updatePassword(dto, "password"));
+
+      verify(userRepository).findById("test");
+      verify(userRepository, never()).save(any());
+    }
+  }
 }

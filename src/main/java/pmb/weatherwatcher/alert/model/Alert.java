@@ -4,7 +4,6 @@ import java.time.DayOfWeek;
 import java.time.OffsetTime;
 import java.util.List;
 import java.util.Set;
-
 import javax.persistence.CascadeType;
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
@@ -21,131 +20,123 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-
 import org.hibernate.annotations.BatchSize;
-
 import pmb.weatherwatcher.user.model.User;
 
-/**
- * Alert database entity, monitor settings.
- */
+/** Alert database entity, monitor settings. */
 @Entity
 @Table(name = "alert")
 public class Alert {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    /**
-     * Tells which days of week alerts are triggered.
-     */
-    @Column(name = "day")
-    @Enumerated(EnumType.STRING)
-    @CollectionTable(name = "trigger_day", joinColumns = @JoinColumn(name = "alert", referencedColumnName = "id"))
-    @ElementCollection(targetClass = DayOfWeek.class)
-    private Set<DayOfWeek> triggerDays;
+  /** Tells which days of week alerts are triggered. */
+  @Column(name = "day")
+  @Enumerated(EnumType.STRING)
+  @CollectionTable(
+      name = "trigger_day",
+      joinColumns = @JoinColumn(name = "alert", referencedColumnName = "id"))
+  @ElementCollection(targetClass = DayOfWeek.class)
+  private Set<DayOfWeek> triggerDays;
 
-    @Embedded
-    private MonitoredDays monitoredDays;
+  @Embedded private MonitoredDays monitoredDays;
 
-    /**
-     * Tells the time alerts are triggered.
-     */
-    @Column(name = "trigger_hour")
-    private OffsetTime triggerHour;
+  /** Tells the time alerts are triggered. */
+  @Column(name = "trigger_hour")
+  private OffsetTime triggerHour;
 
-    /**
-     * Tells which hours are monitored.
-     */
-    @Column(name = "hour")
-    @CollectionTable(name = "alert_monitored_hour", joinColumns = @JoinColumn(name = "alert", referencedColumnName = "id"))
-    @ElementCollection(targetClass = OffsetTime.class)
-    private Set<OffsetTime> monitoredHours;
+  /** Tells which hours are monitored. */
+  @Column(name = "hour")
+  @CollectionTable(
+      name = "alert_monitored_hour",
+      joinColumns = @JoinColumn(name = "alert", referencedColumnName = "id"))
+  @ElementCollection(targetClass = OffsetTime.class)
+  private Set<OffsetTime> monitoredHours;
 
-    @BatchSize(size = 10)
-    @OneToMany(mappedBy = "alert", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<MonitoredField> monitoredFields;
+  @BatchSize(size = 10)
+  @OneToMany(mappedBy = "alert", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<MonitoredField> monitoredFields;
 
-    private String location;
+  private String location;
 
-    @Column(name = "force_notification")
-    private Boolean forceNotification;
+  @Column(name = "force_notification")
+  private Boolean forceNotification;
 
-    @JoinColumn(name = "user", referencedColumnName = "login")
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    private User user;
+  @JoinColumn(name = "user", referencedColumnName = "login")
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  private User user;
 
-    public Long getId() {
-        return id;
-    }
+  public Long getId() {
+    return id;
+  }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+  public void setId(Long id) {
+    this.id = id;
+  }
 
-    public Set<DayOfWeek> getTriggerDays() {
-        return triggerDays;
-    }
+  public Set<DayOfWeek> getTriggerDays() {
+    return triggerDays;
+  }
 
-    public void setTriggerDays(Set<DayOfWeek> triggerDays) {
-        this.triggerDays = triggerDays;
-    }
+  public void setTriggerDays(Set<DayOfWeek> triggerDays) {
+    this.triggerDays = triggerDays;
+  }
 
-    public MonitoredDays getMonitoredDays() {
-        return monitoredDays;
-    }
+  public MonitoredDays getMonitoredDays() {
+    return monitoredDays;
+  }
 
-    public void setMonitoredDays(MonitoredDays monitoredDays) {
-        this.monitoredDays = monitoredDays;
-    }
+  public void setMonitoredDays(MonitoredDays monitoredDays) {
+    this.monitoredDays = monitoredDays;
+  }
 
-    public OffsetTime getTriggerHour() {
-        return triggerHour;
-    }
+  public OffsetTime getTriggerHour() {
+    return triggerHour;
+  }
 
-    public void setTriggerHour(OffsetTime triggerHour) {
-        this.triggerHour = triggerHour;
-    }
+  public void setTriggerHour(OffsetTime triggerHour) {
+    this.triggerHour = triggerHour;
+  }
 
-    public Set<OffsetTime> getMonitoredHours() {
-        return monitoredHours;
-    }
+  public Set<OffsetTime> getMonitoredHours() {
+    return monitoredHours;
+  }
 
-    public void setMonitoredHours(Set<OffsetTime> monitoredHours) {
-        this.monitoredHours = monitoredHours;
-    }
+  public void setMonitoredHours(Set<OffsetTime> monitoredHours) {
+    this.monitoredHours = monitoredHours;
+  }
 
-    public List<MonitoredField> getMonitoredFields() {
-        return monitoredFields;
-    }
+  public List<MonitoredField> getMonitoredFields() {
+    return monitoredFields;
+  }
 
-    public void setMonitoredFields(List<MonitoredField> monitoredFields) {
-        this.monitoredFields = monitoredFields;
-    }
+  public void setMonitoredFields(List<MonitoredField> monitoredFields) {
+    this.monitoredFields = monitoredFields;
+  }
 
-    public String getLocation() {
-        return location;
-    }
+  public String getLocation() {
+    return location;
+  }
 
-    public void setLocation(String location) {
-        this.location = location;
-    }
+  public void setLocation(String location) {
+    this.location = location;
+  }
 
-    public Boolean getForceNotification() {
-        return forceNotification;
-    }
+  public Boolean getForceNotification() {
+    return forceNotification;
+  }
 
-    public void setForceNotification(Boolean forceNotification) {
-        this.forceNotification = forceNotification;
-    }
+  public void setForceNotification(Boolean forceNotification) {
+    this.forceNotification = forceNotification;
+  }
 
-    public User getUser() {
-        return user;
-    }
+  public User getUser() {
+    return user;
+  }
 
-    public void setUser(User user) {
-        this.user = user;
-    }
-
+  public void setUser(User user) {
+    this.user = user;
+  }
 }

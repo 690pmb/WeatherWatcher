@@ -6,19 +6,17 @@ import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
-
-import pmb.weatherwatcher.weather.dto.HourDto;
 import pmb.weatherwatcher.weather.api.model.Hour;
+import pmb.weatherwatcher.weather.dto.HourDto;
 
 @Mapper(imports = BooleanUtils.class)
 public interface HourMapper {
 
-    @Mapping(target = "isDay", expression = "java(BooleanUtils.toBooleanObject(hour.getIsDay()))")
-    HourDto toDto(Hour hour);
+  @Mapping(target = "isDay", expression = "java(BooleanUtils.toBooleanObject(hour.getIsDay()))")
+  HourDto toDto(Hour hour);
 
-    @AfterMapping
-    default void mapCondition(@MappingTarget HourDto dto) {
-        dto.getCondition().setIcon(StringUtils.substringAfterLast(dto.getCondition().getIcon(), '/'));
-    }
-
+  @AfterMapping
+  default void mapCondition(@MappingTarget HourDto dto) {
+    dto.getCondition().setIcon(StringUtils.substringAfterLast(dto.getCondition().getIcon(), '/'));
+  }
 }
