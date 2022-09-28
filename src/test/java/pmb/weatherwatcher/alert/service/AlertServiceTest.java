@@ -46,6 +46,7 @@ import pmb.weatherwatcher.alert.model.Alert;
 import pmb.weatherwatcher.alert.model.WeatherField;
 import pmb.weatherwatcher.alert.repository.AlertRepository;
 import pmb.weatherwatcher.common.exception.BadRequestException;
+import pmb.weatherwatcher.common.exception.NotFoundException;
 import pmb.weatherwatcher.user.model.User;
 import pmb.weatherwatcher.user.service.UserService;
 
@@ -201,6 +202,40 @@ class AlertServiceTest {
       verify(userService).getCurrentUser();
       verify(alertRepository).findByIdAndUserLogin(5L, "test");
       verify(alertRepository, never()).save(any());
+    }
+  }
+
+  @Nested
+  class FindById {
+
+    @Test
+    void when_alert_not_exist_then_not_found_exception() {
+      when(userService.getCurrentUser()).thenReturn(new User("test", "sfdg", "Lyon"));
+      when(alertRepository.findByIdAndUserLogin(5L, "test")).thenReturn(Optional.empty());
+
+      assertThrows(
+          NotFoundException.class,
+          () -> alertService.findById(5L),
+          "Alert with id: '5' was not found");
+
+      verify(userService).getCurrentUser();
+      verify(alertRepository).findByIdAndUserLogin(5L, "test");
+    }
+
+    @Test
+    void ok() {
+      Alert alert = new Alert();
+      alert.setId(56L);
+
+      when(userService.getCurrentUser()).thenReturn(new User("test", "sfdg", "Lyon"));
+      when(alertRepository.findByIdAndUserLogin(5L, "test")).thenReturn(Optional.of(alert));
+
+      AlertDto actual = alertService.findById(5L);
+
+      assertThat(actual.getId()).isEqualTo(alert.getId());
+
+      verify(userService).getCurrentUser();
+      verify(alertRepository).findByIdAndUserLogin(5L, "test");
     }
   }
 

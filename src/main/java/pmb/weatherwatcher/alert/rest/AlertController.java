@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -50,5 +51,11 @@ public class AlertController {
   public List<AlertDto> getAllByUser() {
     LOGGER.debug("gets alert");
     return alertService.findAllForCurrentUser();
+  }
+
+  @GetMapping("/{id}")
+  public AlertDto getById(@PathVariable Long id) {
+    LOGGER.debug("get alert with id: {}", id);
+    return alertService.findById(id);
   }
 }
