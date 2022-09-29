@@ -24,6 +24,7 @@
         <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
         <guava.version>31.0.1-jre</guava.version>
         <git-code-format-maven-plugin.version>3.4</git-code-format-maven-plugin.version>
+        <springdoc.version>1.5.10</springdoc.version>
     </properties>
 
     <dependencies>
@@ -50,6 +51,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-actuator-autoconfigure</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-webmvc-core</artifactId>
+            <version>${springdoc.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mariadb.jdbc</groupId>

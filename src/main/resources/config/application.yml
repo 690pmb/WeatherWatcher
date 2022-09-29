@@ -23,6 +23,12 @@ spring:
   jackson.time-zone: Europe/Paris
 management:
   endpoints.web.exposure.include: "*"
+  endpoints.jmx.exposure.exclude: "*"
+
+springdoc:
+  version: 1.5.10
+  api-docs.path: /api-docs
+  model-converters.pageable-converter.enabled: true
 
 weather-api:
   base-url: https://api.weatherapi.com/v1
