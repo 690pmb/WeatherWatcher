@@ -13,6 +13,7 @@ import pmb.weatherwatcher.alert.mapper.AlertMapper;
 import pmb.weatherwatcher.alert.model.Alert;
 import pmb.weatherwatcher.alert.repository.AlertRepository;
 import pmb.weatherwatcher.common.exception.BadRequestException;
+import pmb.weatherwatcher.common.exception.NotFoundException;
 import pmb.weatherwatcher.user.model.User;
 import pmb.weatherwatcher.user.service.UserService;
 
@@ -93,6 +94,19 @@ public class AlertService {
   public List<AlertDto> findAllForCurrentUser() {
     return alertMapper.toDtoList(
         alertRepository.findDistinctByUserLogin(userService.getCurrentUser().getLogin()));
+  }
+
+  /**
+   * Finds an alerts by its id.
+   *
+   * @param id identifier of the sought alert
+   * @return the found alert
+   */
+  public AlertDto findById(Long id) {
+    return alertMapper.toDto(
+        alertRepository
+            .findByIdAndUserLogin(id, userService.getCurrentUser().getLogin())
+            .orElseThrow(() -> new NotFoundException("Alert with id: '" + id + "' was not found")));
   }
 
   /**

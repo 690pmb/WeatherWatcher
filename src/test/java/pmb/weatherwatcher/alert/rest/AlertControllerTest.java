@@ -210,6 +210,52 @@ class AlertControllerTest {
   }
 
   @Nested
+  class GetById {
+
+    @Test
+    void when_not_logged_then_unauthorized() throws Exception {
+      mockMvc
+          .perform(get("/alerts/{id}", "5").contentType(MediaType.APPLICATION_JSON_VALUE))
+          .andExpect(status().isUnauthorized())
+          .andExpect(jsonPath("$").doesNotExist());
+
+      verify(alertService, never()).findById(any());
+    }
+
+    @Test
+    @WithMockUser
+    void when_invalid_id_then_bad_request() throws Exception {
+      mockMvc
+          .perform(get("/alerts/{id}", "azert").contentType(MediaType.APPLICATION_JSON_VALUE))
+          .andExpect(status().isBadRequest());
+
+      verify(alertService, never()).findById(any());
+    }
+
+    @Test
+    @WithMockUser
+    void ok() throws Exception {
+      Long id = 6L;
+
+      when(alertService.findById(id)).thenReturn(DUMMY_ALERT);
+
+      assertThat(DUMMY_ALERT)
+          .usingRecursiveComparison()
+          .isEqualTo(
+              objectMapper.readValue(
+                  TestUtils.readResponse.apply(
+                      mockMvc
+                          .perform(
+                              get("/alerts/{id}", String.valueOf(id))
+                                  .contentType(MediaType.APPLICATION_JSON_VALUE))
+                          .andExpect(status().isOk())),
+                  AlertDto.class));
+
+      verify(alertService).findById(id);
+    }
+  }
+
+  @Nested
   class Put {
 
     @Test
