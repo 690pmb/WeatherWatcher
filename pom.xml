@@ -7,7 +7,7 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>2.5.6</version>
-        <relativePath />
+        <relativePath/>
     </parent>
 
     <groupId>pmb</groupId>
@@ -24,7 +24,7 @@
         <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
         <guava.version>31.0.1-jre</guava.version>
         <git-code-format-maven-plugin.version>3.4</git-code-format-maven-plugin.version>
-        <springdoc.version>1.5.10</springdoc.version>
+        <springdoc.version>1.6.11</springdoc.version>
     </properties>
 
     <dependencies>
