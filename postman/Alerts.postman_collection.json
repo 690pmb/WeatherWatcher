@@ -39,6 +39,38 @@
 			"response": []
 		},
 		{
+			"name": "Update alert",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"id\": 2,\r\n    \"triggerDays\": [\r\n        \"SATURDAY\",\r\n        \"SUNDAY\"\r\n    ],\r\n    \"monitoredDays\": {\r\n        \"sameDay\": false,\r\n        \"nextDay\": true,\r\n        \"twoDayLater\": true\r\n    },\r\n    \"triggerHour\": \"08:15Z\",\r\n    \"monitoredHours\": [\r\n        \"10:30Z\",\r\n        \"18:00Z\",\r\n        \"09:00Z\",\r\n        \"14:15Z\"\r\n    ],\r\n    \"monitoredFields\": [\r\n        {\r\n            \"id\": 4,\r\n            \"field\": \"PRECIP\",\r\n            \"min\": 10,\r\n            \"max\": 30\r\n        },\r\n        {\r\n            \"id\": 5,\r\n            \"field\": \"TEMP\",\r\n            \"min\": 15,\r\n            \"max\": 35\r\n        }\r\n    ],\r\n    \"location\": \"Milan8\",\r\n    \"forceNotification\": null\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{url}}/alerts",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"alerts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Get all by user",
 			"request": {
 				"method": "GET",
@@ -62,9 +94,39 @@
 			"response": []
 		},
 		{
-			"name": "Get by id",
+			"name": "Get alert by id",
 			"request": {
 				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url}}/alerts/:id",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"alerts",
+						":id"
+					],
+					"variable": [
+						{
+							"key": "id",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete",
+			"request": {
+				"method": "DELETE",
 				"header": [
 					{
 						"key": "Authorization",
