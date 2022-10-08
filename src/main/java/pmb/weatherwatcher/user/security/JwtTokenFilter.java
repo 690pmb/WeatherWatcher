@@ -30,7 +30,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain chain)
       throws ServletException, IOException {
-    LOGGER.info("Requesting: {}", getFullURL(request));
+    LOGGER.info("Requesting: {} {}", request.getMethod(), getFullURL(request));
     Optional.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION))
         .filter(t -> t.startsWith(AUTHORIZATION_PREFIX))
         .map(t -> StringUtils.substringAfter(t, AUTHORIZATION_PREFIX))
@@ -38,7 +38,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         .ifPresent(
             token -> {
               Authentication authentication = jwtTokenProvider.getAuthentication(token);
-              LOGGER.info("User '{}' logged", authentication.getName());
+              LOGGER.debug("User '{}' logged", authentication.getName());
               SecurityContextHolder.getContext().setAuthentication(authentication);
             });
     chain.doFilter(request, response);

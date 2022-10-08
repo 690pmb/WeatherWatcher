@@ -13,6 +13,7 @@ public interface UserMapper extends EntityDtoMapper<User, UserDto> {
 
   @Override
   @Mapping(target = "username", source = "login")
+  @Mapping(target = "authorities", ignore = true)
   UserDto toDto(User user);
 
   @Override
