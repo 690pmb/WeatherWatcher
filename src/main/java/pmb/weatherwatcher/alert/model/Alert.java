@@ -1,7 +1,7 @@
 package pmb.weatherwatcher.alert.model;
 
 import java.time.DayOfWeek;
-import java.time.OffsetTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Set;
 import javax.persistence.CascadeType;
@@ -45,15 +45,15 @@ public class Alert {
 
   /** Tells the time alerts are triggered. */
   @Column(name = "trigger_hour")
-  private OffsetTime triggerHour;
+  private LocalTime triggerHour;
 
   /** Tells which hours are monitored. */
   @Column(name = "hour")
   @CollectionTable(
       name = "alert_monitored_hour",
       joinColumns = @JoinColumn(name = "alert", referencedColumnName = "id"))
-  @ElementCollection(targetClass = OffsetTime.class)
-  private Set<OffsetTime> monitoredHours;
+  @ElementCollection(targetClass = LocalTime.class)
+  private Set<LocalTime> monitoredHours;
 
   @BatchSize(size = 10)
   @OneToMany(mappedBy = "alert", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -92,19 +92,19 @@ public class Alert {
     this.monitoredDays = monitoredDays;
   }
 
-  public OffsetTime getTriggerHour() {
+  public LocalTime getTriggerHour() {
     return triggerHour;
   }
 
-  public void setTriggerHour(OffsetTime triggerHour) {
+  public void setTriggerHour(LocalTime triggerHour) {
     this.triggerHour = triggerHour;
   }
 
-  public Set<OffsetTime> getMonitoredHours() {
+  public Set<LocalTime> getMonitoredHours() {
     return monitoredHours;
   }
 
-  public void setMonitoredHours(Set<OffsetTime> monitoredHours) {
+  public void setMonitoredHours(Set<LocalTime> monitoredHours) {
     this.monitoredHours = monitoredHours;
   }
 

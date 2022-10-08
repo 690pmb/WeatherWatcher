@@ -18,10 +18,12 @@ import static org.mockito.Mockito.when;
 
 import java.time.DayOfWeek;
 import java.time.OffsetTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
+import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -60,6 +62,7 @@ class AlertServiceTest {
   @MockBean private UserService userService;
   @Autowired private AlertService alertService;
   private static AlertDto DUMMY_ALERT;
+  private static OffsetTime time = OffsetTime.of(11, 25, 0, 0, ZoneOffset.ofHours(4));
 
   @BeforeEach
   void tearUp() {
@@ -67,9 +70,9 @@ class AlertServiceTest {
         AlertUtils.buildAlertDto(
             null,
             Set.of(DayOfWeek.MONDAY),
-            OffsetTime.now(),
+            time,
             AlertUtils.buildMonitoredDaysDto(true, false, true),
-            Set.of(OffsetTime.now()),
+            Set.of(time),
             List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 10, 35)),
             "lyon",
             null);
@@ -97,7 +100,14 @@ class AlertServiceTest {
 
       Alert saved = captureSaved.getValue();
       assertAll(
-          () -> assertThat(DUMMY_ALERT).usingRecursiveComparison().as("result").isEqualTo(result),
+          () ->
+              assertThat(DUMMY_ALERT)
+                  .usingRecursiveComparison(
+                      RecursiveComparisonConfiguration.builder()
+                          .withIgnoredFields("triggerHour", "monitoredHours")
+                          .build())
+                  .as("result")
+                  .isEqualTo(result),
           () -> assertNull(saved.getId(), "id"),
           () ->
               assertEquals(
@@ -105,11 +115,15 @@ class AlertServiceTest {
           () -> assertTrue(saved.getMonitoredDays().getSameDay(), "sameDay"),
           () -> assertFalse(saved.getMonitoredDays().getNextDay(), "nextDay"),
           () -> assertTrue(saved.getMonitoredDays().getTwoDayLater(), "twoDay"),
-          () -> assertEquals(DUMMY_ALERT.getTriggerHour(), saved.getTriggerHour(), "triggerHour"),
           () ->
               assertEquals(
-                  DUMMY_ALERT.getMonitoredHours().iterator().next(),
-                  saved.getMonitoredHours().iterator().next(),
+                  DUMMY_ALERT.getTriggerHour().toLocalTime(),
+                  saved.getTriggerHour().plusHours(4),
+                  "triggerHour"),
+          () ->
+              assertEquals(
+                  DUMMY_ALERT.getMonitoredHours().iterator().next().toLocalTime(),
+                  saved.getMonitoredHours().iterator().next().plusHours(4),
                   "monitoredHour"),
           () -> assertEquals("lyon", saved.getLocation(), "location"),
           () -> assertNull(saved.getForceNotification(), "force"),
@@ -169,7 +183,13 @@ class AlertServiceTest {
 
       AlertDto result = alertService.update(DUMMY_ALERT);
 
-      assertThat(DUMMY_ALERT).usingRecursiveComparison().as("result").isEqualTo(result);
+      assertThat(DUMMY_ALERT)
+          .usingRecursiveComparison(
+              RecursiveComparisonConfiguration.builder()
+                  .withIgnoredFields("triggerHour", "monitoredHours")
+                  .build())
+          .as("result")
+          .isEqualTo(result);
 
       verify(userService).getCurrentUser();
       verify(alertRepository).findByIdAndUserLogin(5L, "test");
