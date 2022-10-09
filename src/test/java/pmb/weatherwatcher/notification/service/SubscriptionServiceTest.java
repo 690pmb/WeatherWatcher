@@ -1,0 +1,116 @@
+package pmb.weatherwatcher.notification.service;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
+import java.util.Optional;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator.ReplaceUnderscores;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import pmb.weatherwatcher.notification.dto.SubscriptionDto;
+import pmb.weatherwatcher.notification.mapper.SubscriptionMapperImpl;
+import pmb.weatherwatcher.notification.model.Subscription;
+import pmb.weatherwatcher.notification.repository.SubscriptionRepository;
+import pmb.weatherwatcher.user.model.User;
+import pmb.weatherwatcher.user.service.UserService;
+
+@ActiveProfiles("test")
+@Import({SubscriptionService.class, SubscriptionMapperImpl.class})
+@ExtendWith(SpringExtension.class)
+@DisplayNameGeneration(value = ReplaceUnderscores.class)
+class SubscriptionServiceTest {
+
+  @MockBean private SubscriptionRepository subscriptionRepository;
+  @MockBean private UserService userService;
+  @Autowired private SubscriptionService subscriptionService;
+
+  @AfterEach
+  void tearDown() {
+    verifyNoMoreInteractions(subscriptionRepository, userService);
+  }
+
+  @Nested
+  class save {
+
+    @Test
+    void update_existing() {
+      ArgumentCaptor<Subscription> captureSaved = ArgumentCaptor.forClass(Subscription.class);
+      String userAgent = "userAgent";
+      SubscriptionDto toSave = new SubscriptionDto();
+      toSave.setEndpoint("end");
+      toSave.setExpirationTime(56L);
+      toSave.setUserAgent(userAgent);
+      Subscription existing = new Subscription();
+      existing.setEndpoint("point");
+      existing.setExpirationTime(98L);
+      existing.setUserAgent("userAgent2");
+      existing.setUser(new User("login2", "mdp", "Paris"));
+
+      when(userService.getCurrentUser()).thenReturn(new User("login", "pwd", "Lyon"));
+      when(subscriptionRepository.findByUserAgentAndUserLogin(userAgent, "login"))
+          .thenReturn(Optional.of(existing));
+      when(subscriptionRepository.save(any(Subscription.class))).thenAnswer(a -> a.getArgument(0));
+
+      SubscriptionDto result = subscriptionService.save(toSave);
+
+      verify(subscriptionRepository).save(captureSaved.capture());
+      verify(userService).getCurrentUser();
+      verify(subscriptionRepository).findByUserAgentAndUserLogin(userAgent, "login");
+
+      Subscription saved = captureSaved.getValue();
+      assertAll(
+          () -> assertThat(toSave).usingRecursiveComparison().as("result").isEqualTo(result),
+          () -> assertEquals("end", saved.getEndpoint(), "Endpoint"),
+          () -> assertEquals(56L, saved.getExpirationTime(), "ExpirationTime"),
+          () -> assertEquals("userAgent", saved.getUserAgent(), "UserAgent"),
+          () -> assertEquals("login2", saved.getUser().getLogin(), "login"),
+          () -> assertEquals("mdp", saved.getUser().getPassword(), "password"),
+          () -> assertEquals("Paris", saved.getUser().getFavouriteLocation(), "location"));
+    }
+
+    @Test
+    void create() {
+      ArgumentCaptor<Subscription> captureSaved = ArgumentCaptor.forClass(Subscription.class);
+      String userAgent = "userAgent";
+      SubscriptionDto toSave = new SubscriptionDto();
+      toSave.setEndpoint("end");
+      toSave.setExpirationTime(56L);
+      toSave.setUserAgent(userAgent);
+
+      when(userService.getCurrentUser()).thenReturn(new User("login", "pwd", "Lyon"));
+      when(subscriptionRepository.findByUserAgentAndUserLogin(userAgent, "login"))
+          .thenReturn(Optional.empty());
+      when(subscriptionRepository.save(any(Subscription.class))).thenAnswer(a -> a.getArgument(0));
+
+      SubscriptionDto result = subscriptionService.save(toSave);
+
+      verify(subscriptionRepository).save(captureSaved.capture());
+      verify(userService).getCurrentUser();
+      verify(subscriptionRepository).findByUserAgentAndUserLogin(userAgent, "login");
+
+      Subscription saved = captureSaved.getValue();
+      assertAll(
+          () -> assertThat(toSave).usingRecursiveComparison().as("result").isEqualTo(result),
+          () -> assertEquals("end", saved.getEndpoint(), "Endpoint"),
+          () -> assertEquals(56L, saved.getExpirationTime(), "ExpirationTime"),
+          () -> assertEquals("userAgent", saved.getUserAgent(), "UserAgent"),
+          () -> assertEquals("login", saved.getUser().getLogin(), "login"),
+          () -> assertEquals("pwd", saved.getUser().getPassword(), "password"),
+          () -> assertEquals("Lyon", saved.getUser().getFavouriteLocation(), "location"));
+    }
+  }
+}

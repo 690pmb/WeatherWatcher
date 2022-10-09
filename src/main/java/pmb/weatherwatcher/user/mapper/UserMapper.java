@@ -17,6 +17,7 @@ public interface UserMapper extends EntityDtoMapper<User, UserDto> {
   UserDto toDto(User user);
 
   @Override
+  @Mapping(target = "subscription", ignore = true)
   @InheritInverseConfiguration
   User toEntity(UserDto dto);
 }

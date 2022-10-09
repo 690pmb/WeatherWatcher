@@ -1,0 +1,42 @@
+{
+	"info": {
+		"_postman_id": "d629151c-fbb3-416d-a5c7-18019135d544",
+		"name": "Notification",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Create subscription",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}",
+						"equals": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userAgent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36\",\r\n    \"endpoint\":\"exemple\",\r\n    \"expirationTime\":5\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{url}}/notifications/subscriptions",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"notifications",
+						"subscriptions"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
