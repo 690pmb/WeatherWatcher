@@ -6,9 +6,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator.ReplaceUnderscores;
 import org.junit.jupiter.api.Nested;
@@ -31,6 +33,11 @@ class MyUserDetailsServiceTest {
 
   @MockBean private UserRepository userRepository;
   @Autowired private MyUserDetailsService myUserDetailsService;
+
+  @AfterEach
+  void tearDown() {
+    verifyNoMoreInteractions(userRepository);
+  }
 
   @Nested
   class LoadUserByUsername {

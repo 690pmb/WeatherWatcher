@@ -9,13 +9,19 @@
 			<column name="user_agent" type="VARCHAR(255)">
 				<constraints primaryKey="true" nullable="false"/>
 			</column>
+			<column name="user" type="VARCHAR(30)">
+				<constraints primaryKey="true" nullable="false"/>
+            </column>
 			<column name="endpoint" type="VARCHAR(255)">
 				<constraints nullable="false"/>
 			</column>
-			<column name="user" type="VARCHAR(30)">
-                <constraints nullable="false" />
-            </column>
-			<column name="expiration_time" type="int"/>
+			<column name="public_key" type="VARCHAR(255)">
+				<constraints nullable="false"/>
+			</column>
+			<column name="private_key" type="VARCHAR(255)">
+				<constraints nullable="false"/>
+			</column>
+			<column name="expiration_time" type="bigint"/>
 		</createTable>
 
         <addForeignKeyConstraint baseColumnNames="user" baseTableName="subscription"

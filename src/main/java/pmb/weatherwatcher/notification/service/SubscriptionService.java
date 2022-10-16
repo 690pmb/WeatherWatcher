@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import pmb.weatherwatcher.notification.dto.SubscriptionDto;
 import pmb.weatherwatcher.notification.mapper.SubscriptionMapper;
 import pmb.weatherwatcher.notification.model.Subscription;
+import pmb.weatherwatcher.notification.model.SubscriptionId;
 import pmb.weatherwatcher.notification.repository.SubscriptionRepository;
 import pmb.weatherwatcher.user.model.User;
 import pmb.weatherwatcher.user.service.UserService;
@@ -35,7 +36,7 @@ public class SubscriptionService {
     User currentUser = userService.getCurrentUser();
     Subscription toSave =
         subscriptionRepository
-            .findByUserAgentAndUserLogin(subscription.getUserAgent(), currentUser.getLogin())
+            .findById(new SubscriptionId(subscription.getUserAgent(), currentUser.getLogin()))
             .map(
                 existing -> {
                   subscriptionMapper.updateFromDto(subscription, existing);

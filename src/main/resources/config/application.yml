@@ -32,8 +32,11 @@ springdoc:
 
 weather-api:
   base-url: https://api.weatherapi.com/v1
-  api-key: 6fc34a7a824349a2a24180010210702
 
 jwt:
   secretkey: secretkey
   duration: 2592000 # 30j ( -> secondes)
+
+web-push:
+  privateKey:
+  publicKey:

@@ -8,6 +8,10 @@ public class SubscriptionDto {
 
   @NotNull private String endpoint;
 
+  @NotNull private String publicKey;
+
+  @NotNull private String privateKey;
+
   private Long expirationTime;
 
   public String getUserAgent() {
@@ -32,5 +36,21 @@ public class SubscriptionDto {
 
   public void setExpirationTime(Long expirationTime) {
     this.expirationTime = expirationTime;
+  }
+
+  public String getPublicKey() {
+    return publicKey;
+  }
+
+  public void setPublicKey(String publicKey) {
+    this.publicKey = publicKey;
+  }
+
+  public String getPrivateKey() {
+    return privateKey;
+  }
+
+  public void setPrivateKey(String privateKey) {
+    this.privateKey = privateKey;
   }
 }

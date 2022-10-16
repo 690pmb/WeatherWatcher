@@ -9,5 +9,6 @@
     <include file="db/changelog/003_create_alert.xml" relativeToChangelogFile="false"/>
     <include file="db/changelog/local/004_init_alert.xml" relativeToChangelogFile="false"/>
     <include file="db/changelog/005_create_subscription.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/local/006_init_subscription.xml" relativeToChangelogFile="false"/>
 
 </databaseChangeLog>

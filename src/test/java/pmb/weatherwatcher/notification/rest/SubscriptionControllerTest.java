@@ -10,12 +10,12 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static pmb.weatherwatcher.notification.NotificationUtils.buildSubscriptionDto;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.stream.Stream;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator.ReplaceUnderscores;
 import org.junit.jupiter.api.Nested;
@@ -32,6 +32,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import pmb.weatherwatcher.TestUtils;
+import pmb.weatherwatcher.notification.NotificationUtils;
 import pmb.weatherwatcher.notification.dto.SubscriptionDto;
 import pmb.weatherwatcher.notification.service.SubscriptionService;
 import pmb.weatherwatcher.user.security.JwtTokenProvider;
@@ -48,14 +49,8 @@ class SubscriptionControllerTest {
   @Autowired private ObjectMapper objectMapper;
   @MockBean private SubscriptionService subscriptionService;
 
-  private static final SubscriptionDto SUB = new SubscriptionDto();
-
-  @BeforeEach
-  void tearUp() {
-    SUB.setEndpoint("ENDPOINT");
-    SUB.setUserAgent("USERAGENT");
-    SUB.setExpirationTime(6L);
-  }
+  private static final SubscriptionDto VALID_SUBSCRIPTION =
+      NotificationUtils.buildSubscriptionDto("USERAGENT", "ENDPOINT", "PUBLIC", "PRIVATE", 6L);
 
   @AfterEach
   void tearDown() {
@@ -70,7 +65,7 @@ class SubscriptionControllerTest {
       mockMvc
           .perform(
               post("/notifications/subscriptions")
-                  .content(objectMapper.writeValueAsString(SUB))
+                  .content(objectMapper.writeValueAsString(VALID_SUBSCRIPTION))
                   .contentType(MediaType.APPLICATION_JSON_VALUE))
           .andExpect(status().isUnauthorized())
           .andExpect(jsonPath("$").doesNotExist());
@@ -99,7 +94,7 @@ class SubscriptionControllerTest {
     void ok() throws Exception {
       when(subscriptionService.save(any())).thenAnswer(a -> a.getArgument(0));
 
-      assertThat(SUB)
+      assertThat(VALID_SUBSCRIPTION)
           .usingRecursiveComparison()
           .isEqualTo(
               objectMapper.readValue(
@@ -107,7 +102,7 @@ class SubscriptionControllerTest {
                       mockMvc
                           .perform(
                               post("/notifications/subscriptions")
-                                  .content(objectMapper.writeValueAsString(SUB))
+                                  .content(objectMapper.writeValueAsString(VALID_SUBSCRIPTION))
                                   .contentType(MediaType.APPLICATION_JSON_VALUE))
                           .andExpect(status().isOk())),
                   SubscriptionDto.class));
@@ -117,12 +112,21 @@ class SubscriptionControllerTest {
   }
 
   static Stream<Arguments> invalidSubscriptionProvider() {
-    SubscriptionDto sub1 = new SubscriptionDto();
-    sub1.setExpirationTime(8L);
-    SubscriptionDto sub2 = new SubscriptionDto();
-    sub2.setEndpoint("endpoint");
-    SubscriptionDto sub3 = new SubscriptionDto();
-    sub3.setUserAgent("useragent");
-    return Stream.of(arguments(sub1), arguments(sub2), arguments(sub3));
+    return Stream.of(
+        arguments(buildSubscriptionDto(null, null, null, null, 8L)),
+        arguments(buildSubscriptionDto(null, null, null, "private", null)),
+        arguments(buildSubscriptionDto(null, null, "public", null, null)),
+        arguments(buildSubscriptionDto(null, null, "public", "private", null)),
+        arguments(buildSubscriptionDto(null, "endpoint", null, null, null)),
+        arguments(buildSubscriptionDto(null, "endpoint", null, "private", null)),
+        arguments(buildSubscriptionDto(null, "endpoint", "public", null, null)),
+        arguments(buildSubscriptionDto(null, "endpoint", "public", "private", null)),
+        arguments(buildSubscriptionDto("userAgent", null, null, null, 8L)),
+        arguments(buildSubscriptionDto("userAgent", null, null, "private", null)),
+        arguments(buildSubscriptionDto("userAgent", null, "public", null, null)),
+        arguments(buildSubscriptionDto("userAgent", null, "public", "private", null)),
+        arguments(buildSubscriptionDto("userAgent", "endpoint", null, null, null)),
+        arguments(buildSubscriptionDto("userAgent", "endpoint", null, "private", null)),
+        arguments(buildSubscriptionDto("userAgent", "endpoint", "public", null, null)));
   }
 }
