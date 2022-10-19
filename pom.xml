@@ -21,7 +21,7 @@
         <json-unit-spring.version>2.36.0</json-unit-spring.version>
         <jjwt.version>0.9.1</jjwt.version>
         <mapstruct.version>1.4.2.Final</mapstruct.version>
-        <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
         <guava.version>31.1-jre</guava.version>
         <git-code-format-maven-plugin.version>3.4</git-code-format-maven-plugin.version>
         <springdoc.version>1.5.10</springdoc.version>
