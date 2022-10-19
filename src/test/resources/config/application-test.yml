@@ -14,4 +14,7 @@ logging:
   level:
     ROOT: INFO
     pmb.weatherwatcher: DEBUG
-  
+
+web-push:
+  privateKey: wLi9QO+GwnmyEmGyusNQoA==
+  publicKey: BAXZfmlXnOtldCtRvKiZkjl4lNWWowZyzyo3Hytyeu0z3QWjXsl2y6DIECOInlzyOFg7qJWrn3gMSY7cecqZcIs=

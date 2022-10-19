@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <changeSet id="20221017-2" author="PMB" context="local">
+
+        <insert tableName="subscription">
+            <column name="user_agent" value="Mozilla/5.0 (Linux; Android 9; SM-G950U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Mobile Safari/537.36" />
+            <column name="endpoint" value="https://fcm.googleapis.com/fcm/send/d8aGToXdrDk:APA91bFNIC4Mgw2igM-9Qytl-McCb10kf-6oLvDKL7nXeEDEreRP-htcTXkHlzjKLLSAp_n2tqhJZzID4QCXLWUammznDxm1qLRaDoS40QF6XjReZWcl5SyNKwQKqsBzB_wzeL0WdqLu" />
+            <column name="public_key" value="BAXZfmlXnOtldCtRvKiZkjl4lNWWowZyzyo3Hytyeu0z3QWjXsl2y6DIECOInlzyOFg7qJWrn3gMSY7cecqZcIs=" />
+            <column name="private_key" value="wLi9QO+GwnmyEmGyusNQoA==" />
+            <column name="user" value="test" />
+        </insert>
+
+    </changeSet>
+
+</databaseChangeLog>

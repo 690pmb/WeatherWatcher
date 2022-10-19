@@ -80,4 +80,12 @@
             constraintName="fk_monitored_hour" referencedColumnNames="id" referencedTableName="alert" />
     </changeSet>
 
+    <changeSet id="20221017-1" author="PMB">
+		<createIndex
+			indexName="alert_id_user" tableName="alert" unique="true">
+			<column name="id" />
+			<column name="user" />
+		</createIndex>
+    </changeSet>
+
 </databaseChangeLog>

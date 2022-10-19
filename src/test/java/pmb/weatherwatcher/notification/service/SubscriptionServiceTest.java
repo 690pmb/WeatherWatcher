@@ -21,9 +21,11 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import pmb.weatherwatcher.notification.NotificationUtils;
 import pmb.weatherwatcher.notification.dto.SubscriptionDto;
 import pmb.weatherwatcher.notification.mapper.SubscriptionMapperImpl;
 import pmb.weatherwatcher.notification.model.Subscription;
+import pmb.weatherwatcher.notification.model.SubscriptionId;
 import pmb.weatherwatcher.notification.repository.SubscriptionRepository;
 import pmb.weatherwatcher.user.model.User;
 import pmb.weatherwatcher.user.service.UserService;
@@ -50,18 +52,18 @@ class SubscriptionServiceTest {
     void update_existing() {
       ArgumentCaptor<Subscription> captureSaved = ArgumentCaptor.forClass(Subscription.class);
       String userAgent = "userAgent";
-      SubscriptionDto toSave = new SubscriptionDto();
-      toSave.setEndpoint("end");
-      toSave.setExpirationTime(56L);
-      toSave.setUserAgent(userAgent);
+      SubscriptionDto toSave =
+          NotificationUtils.buildSubscriptionDto(userAgent, "end", "public2", "private2", 56L);
       Subscription existing = new Subscription();
       existing.setEndpoint("point");
       existing.setExpirationTime(98L);
-      existing.setUserAgent("userAgent2");
+      existing.setId(new SubscriptionId("userAgent2", "login2"));
       existing.setUser(new User("login2", "mdp", "Paris"));
+      existing.setPublicKey("public");
+      existing.setPrivateKey("private");
 
       when(userService.getCurrentUser()).thenReturn(new User("login", "pwd", "Lyon"));
-      when(subscriptionRepository.findByUserAgentAndUserLogin(userAgent, "login"))
+      when(subscriptionRepository.findById(new SubscriptionId(userAgent, "login")))
           .thenReturn(Optional.of(existing));
       when(subscriptionRepository.save(any(Subscription.class))).thenAnswer(a -> a.getArgument(0));
 
@@ -69,14 +71,16 @@ class SubscriptionServiceTest {
 
       verify(subscriptionRepository).save(captureSaved.capture());
       verify(userService).getCurrentUser();
-      verify(subscriptionRepository).findByUserAgentAndUserLogin(userAgent, "login");
+      verify(subscriptionRepository).findById(new SubscriptionId(userAgent, "login"));
 
       Subscription saved = captureSaved.getValue();
       assertAll(
           () -> assertThat(toSave).usingRecursiveComparison().as("result").isEqualTo(result),
           () -> assertEquals("end", saved.getEndpoint(), "Endpoint"),
+          () -> assertEquals("public2", saved.getPublicKey(), "PublicKey"),
+          () -> assertEquals("private2", saved.getPrivateKey(), "PrivateKey"),
           () -> assertEquals(56L, saved.getExpirationTime(), "ExpirationTime"),
-          () -> assertEquals("userAgent", saved.getUserAgent(), "UserAgent"),
+          () -> assertEquals("userAgent", saved.getId().getUserAgent(), "UserAgent"),
           () -> assertEquals("login2", saved.getUser().getLogin(), "login"),
           () -> assertEquals("mdp", saved.getUser().getPassword(), "password"),
           () -> assertEquals("Paris", saved.getUser().getFavouriteLocation(), "location"));
@@ -86,13 +90,11 @@ class SubscriptionServiceTest {
     void create() {
       ArgumentCaptor<Subscription> captureSaved = ArgumentCaptor.forClass(Subscription.class);
       String userAgent = "userAgent";
-      SubscriptionDto toSave = new SubscriptionDto();
-      toSave.setEndpoint("end");
-      toSave.setExpirationTime(56L);
-      toSave.setUserAgent(userAgent);
+      SubscriptionDto toSave =
+          NotificationUtils.buildSubscriptionDto(userAgent, "end", "public2", "private2", 56L);
 
       when(userService.getCurrentUser()).thenReturn(new User("login", "pwd", "Lyon"));
-      when(subscriptionRepository.findByUserAgentAndUserLogin(userAgent, "login"))
+      when(subscriptionRepository.findById(new SubscriptionId(userAgent, "login")))
           .thenReturn(Optional.empty());
       when(subscriptionRepository.save(any(Subscription.class))).thenAnswer(a -> a.getArgument(0));
 
@@ -100,14 +102,16 @@ class SubscriptionServiceTest {
 
       verify(subscriptionRepository).save(captureSaved.capture());
       verify(userService).getCurrentUser();
-      verify(subscriptionRepository).findByUserAgentAndUserLogin(userAgent, "login");
+      verify(subscriptionRepository).findById(new SubscriptionId(userAgent, "login"));
 
       Subscription saved = captureSaved.getValue();
       assertAll(
           () -> assertThat(toSave).usingRecursiveComparison().as("result").isEqualTo(result),
           () -> assertEquals("end", saved.getEndpoint(), "Endpoint"),
+          () -> assertEquals("public2", saved.getPublicKey(), "PublicKey"),
+          () -> assertEquals("private2", saved.getPrivateKey(), "PrivateKey"),
           () -> assertEquals(56L, saved.getExpirationTime(), "ExpirationTime"),
-          () -> assertEquals("userAgent", saved.getUserAgent(), "UserAgent"),
+          () -> assertEquals("userAgent", saved.getId().getUserAgent(), "UserAgent"),
           () -> assertEquals("login", saved.getUser().getLogin(), "login"),
           () -> assertEquals("pwd", saved.getUser().getPassword(), "password"),
           () -> assertEquals("Lyon", saved.getUser().getFavouriteLocation(), "location"));
