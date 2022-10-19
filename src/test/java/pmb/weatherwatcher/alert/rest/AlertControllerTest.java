@@ -73,7 +73,8 @@ class AlertControllerTest {
           Set.of(OffsetTime.now()),
           List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, null, null)),
           "lyon",
-          null);
+          false,
+          "user");
 
   @AfterEach
   void tearDown() {
@@ -129,7 +130,8 @@ class AlertControllerTest {
               Set.of(OffsetTime.now()),
               List.of(AlertUtils.buildMonitoredFieldDto(5L, WeatherField.FEELS_LIKE, 62, 12)),
               "lyon",
-              false);
+              false,
+              "user");
 
       when(alertService.create(any())).thenAnswer(a -> a.getArgument(0));
 
@@ -161,7 +163,8 @@ class AlertControllerTest {
               Set.of(OffsetTime.now()),
               List.of(AlertUtils.buildMonitoredFieldDto(5L, WeatherField.FEELS_LIKE, 62, 12)),
               "lyon",
-              true);
+              true,
+              "user");
 
       when(alertService.create(any())).thenThrow(BadRequestException.class);
 
@@ -361,7 +364,8 @@ class AlertControllerTest {
                 Set.of(OffsetTime.now()),
                 List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 10, 35)),
                 "lyon",
-                true),
+                true,
+                "user"),
             "triggerDays"),
         arguments(
             AlertUtils.buildAlertDto(
@@ -372,7 +376,8 @@ class AlertControllerTest {
                 Set.of(OffsetTime.now()),
                 List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 10, 35)),
                 "lyon",
-                true),
+                true,
+                "user"),
             "triggerDays"),
         arguments(
             AlertUtils.buildAlertDto(
@@ -383,7 +388,8 @@ class AlertControllerTest {
                 Set.of(OffsetTime.now()),
                 List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 10, 35)),
                 "lyon",
-                true),
+                true,
+                "user"),
             "triggerHour"),
         arguments(
             AlertUtils.buildAlertDto(
@@ -394,7 +400,8 @@ class AlertControllerTest {
                 Set.of(OffsetTime.now()),
                 List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 10, 35)),
                 "lyon",
-                true),
+                true,
+                "user"),
             "monitoredDays"),
         arguments(
             AlertUtils.buildAlertDto(
@@ -405,7 +412,8 @@ class AlertControllerTest {
                 null,
                 List.of(AlertUtils.buildMonitoredFieldDto(9L, WeatherField.FEELS_LIKE, 10, 35)),
                 "lyon",
-                true),
+                true,
+                "user"),
             "monitoredHours"),
         arguments(
             AlertUtils.buildAlertDto(
@@ -416,7 +424,8 @@ class AlertControllerTest {
                 Collections.emptySet(),
                 List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 10, 35)),
                 "lyon",
-                true),
+                true,
+                "user"),
             "monitoredHours"),
         arguments(
             AlertUtils.buildAlertDto(
@@ -427,7 +436,8 @@ class AlertControllerTest {
                 Set.of(OffsetTime.now()),
                 null,
                 "lyon",
-                true),
+                true,
+                "user"),
             "monitoredFields"),
         arguments(
             AlertUtils.buildAlertDto(
@@ -438,7 +448,8 @@ class AlertControllerTest {
                 Set.of(OffsetTime.now()),
                 Collections.emptyList(),
                 "lyon",
-                true),
+                true,
+                "user"),
             "monitoredFields"),
         arguments(
             AlertUtils.buildAlertDto(
@@ -449,7 +460,8 @@ class AlertControllerTest {
                 Set.of(OffsetTime.now()),
                 List.of(AlertUtils.buildMonitoredFieldDto(null, null, 10, 35)),
                 "lyon",
-                true),
+                true,
+                "user"),
             "monitoredFields"),
         arguments(
             AlertUtils.buildAlertDto(
@@ -460,7 +472,8 @@ class AlertControllerTest {
                 Set.of(OffsetTime.now()),
                 List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.HUMIDITY, 10, 35)),
                 null,
-                true),
+                true,
+                "user"),
             "location"),
         arguments(
             AlertUtils.buildAlertDto(
@@ -471,7 +484,8 @@ class AlertControllerTest {
                 Set.of(OffsetTime.now()),
                 List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.HUMIDITY, 10, 35)),
                 "  ",
-                true),
+                true,
+                "user"),
             "location"));
   }
 }

@@ -72,13 +72,15 @@ class NotificationServiceTest {
                 "end1",
                 notificationProperties.getPublicKey(),
                 notificationProperties.getPrivateKey(),
-                null),
+                null,
+                "user"),
             NotificationUtils.buildSubscriptionDto(
                 "ua2",
                 "end2",
                 notificationProperties.getPublicKey(),
                 notificationProperties.getPrivateKey(),
-                8L));
+                8L,
+                "user"));
     ReflectionTestUtils.setField(notificationService, "pushService", pushService);
   }
 

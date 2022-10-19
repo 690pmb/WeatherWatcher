@@ -1,8 +1,11 @@
 package pmb.weatherwatcher.alert.service;
 
+import java.time.DayOfWeek;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.stereotype.Service;
@@ -107,6 +110,19 @@ public class AlertService {
         alertRepository
             .findByIdAndUserLogin(id, userService.getCurrentUser().getLogin())
             .orElseThrow(() -> new NotFoundException("Alert with id: '" + id + "' was not found")));
+  }
+
+  /**
+   * Finds alerts to trigger.
+   *
+   * @param triggerDay day
+   * @param triggerHour hour
+   * @return a list of alerts
+   */
+  public List<AlertDto> findAllToTrigger(DayOfWeek triggerDay, LocalTime triggerHour) {
+    return alertRepository.findAllByTriggerDaysAndTriggerHour(triggerDay, triggerHour).stream()
+        .map(alertMapper::toDtoWithUser)
+        .collect(Collectors.toList());
   }
 
   /**

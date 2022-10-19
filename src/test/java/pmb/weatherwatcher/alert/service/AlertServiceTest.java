@@ -69,6 +69,7 @@ class AlertServiceTest {
             Set.of(time),
             List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 10, 35)),
             "lyon",
+            null,
             null);
   }
 
@@ -305,7 +306,8 @@ class AlertServiceTest {
                 List.of(
                     AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, null, null)),
                 "lyon",
-                null),
+                null,
+                "user"),
             "Monitored field 'FEELS_LIKE' has its min and max values undefined"),
         Arguments.of(
             AlertUtils.buildAlertDto(
@@ -316,7 +318,8 @@ class AlertServiceTest {
                 Set.of(OffsetTime.now()),
                 List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 35, 10)),
                 "lyon",
-                null),
+                true,
+                "user"),
             "Monitored field 'FEELS_LIKE' has its min value greater than its max value: '[35, 10]'"),
         Arguments.of(
             AlertUtils.buildAlertDto(
@@ -327,7 +330,8 @@ class AlertServiceTest {
                 Set.of(OffsetTime.now()),
                 List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 2, 10)),
                 "lyon",
-                null),
+                null,
+                "user"),
             "Given alert has no monitored days"),
         Arguments.of(
             AlertUtils.buildAlertDto(
@@ -338,7 +342,8 @@ class AlertServiceTest {
                 Set.of(OffsetTime.now()),
                 List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 2, 10)),
                 "lyon",
-                null),
+                false,
+                "user"),
             "Ids must be null when creating an alert"),
         Arguments.of(
             AlertUtils.buildAlertDto(
@@ -349,7 +354,8 @@ class AlertServiceTest {
                 Set.of(OffsetTime.now()),
                 List.of(AlertUtils.buildMonitoredFieldDto(3L, WeatherField.FEELS_LIKE, 2, 10)),
                 "lyon",
-                null),
+                null,
+                "user"),
             "Ids must be null when creating an alert"));
   }
 }

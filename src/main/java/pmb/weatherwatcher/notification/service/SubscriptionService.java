@@ -1,5 +1,8 @@
 package pmb.weatherwatcher.notification.service;
 
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import pmb.weatherwatcher.notification.dto.SubscriptionDto;
 import pmb.weatherwatcher.notification.mapper.SubscriptionMapper;
@@ -49,5 +52,17 @@ public class SubscriptionService {
                   return sub;
                 });
     return subscriptionMapper.toDto(subscriptionRepository.save(toSave));
+  }
+
+  /**
+   * Finds all subscription of given users login.
+   *
+   * @param users subscriptions owner
+   * @return a list of {@link SubscriptionDto}
+   */
+  public List<SubscriptionDto> findAllByUsers(Set<String> users) {
+    return subscriptionRepository.findByUserLoginIn(users).stream()
+        .map(subscriptionMapper::toDtoWithUser)
+        .collect(Collectors.toList());
   }
 }
