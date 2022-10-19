@@ -13,18 +13,14 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import java.util.Date;
 import java.util.Optional;
 import org.apache.commons.lang3.time.DateUtils;
-import org.junit.jupiter.api.DisplayNameGeneration;
-import org.junit.jupiter.api.DisplayNameGenerator.ReplaceUnderscores;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import pmb.weatherwatcher.ServiceTestRunner;
 import pmb.weatherwatcher.user.dto.UserDto;
 
-@DisplayNameGeneration(value = ReplaceUnderscores.class)
-@ExtendWith(SpringExtension.class)
+@ServiceTestRunner
 class JwtTokenProviderTest {
 
   private static final String SIGNING_KEY = "secretkey";

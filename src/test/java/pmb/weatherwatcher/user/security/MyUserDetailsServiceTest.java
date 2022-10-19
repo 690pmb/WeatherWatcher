@@ -11,24 +11,20 @@ import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.DisplayNameGeneration;
-import org.junit.jupiter.api.DisplayNameGenerator.ReplaceUnderscores;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import pmb.weatherwatcher.ServiceTestRunner;
 import pmb.weatherwatcher.user.dto.UserDto;
 import pmb.weatherwatcher.user.mapper.UserMapperImpl;
 import pmb.weatherwatcher.user.model.User;
 import pmb.weatherwatcher.user.repository.UserRepository;
 
-@DisplayNameGeneration(value = ReplaceUnderscores.class)
+@ServiceTestRunner
 @Import({MyUserDetailsService.class, UserMapperImpl.class})
-@ExtendWith(SpringExtension.class)
 class MyUserDetailsServiceTest {
 
   @MockBean private UserRepository userRepository;

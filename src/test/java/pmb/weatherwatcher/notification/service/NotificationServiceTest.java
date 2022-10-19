@@ -24,11 +24,8 @@ import org.apache.http.message.BasicStatusLine;
 import org.jose4j.lang.JoseException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayNameGeneration;
-import org.junit.jupiter.api.DisplayNameGenerator.ReplaceUnderscores;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
@@ -38,10 +35,9 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
+import pmb.weatherwatcher.ServiceTestRunner;
 import pmb.weatherwatcher.notification.NotificationUtils;
 import pmb.weatherwatcher.notification.config.NotificationProperties;
 import pmb.weatherwatcher.notification.dto.Operation;
@@ -49,12 +45,10 @@ import pmb.weatherwatcher.notification.dto.PayloadDataDto;
 import pmb.weatherwatcher.notification.dto.PayloadDto;
 import pmb.weatherwatcher.notification.dto.SubscriptionDto;
 
-@ActiveProfiles("test")
+@ServiceTestRunner
 @Import({NotificationService.class, ObjectMapper.class})
-@ExtendWith(SpringExtension.class)
 @ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class)
 @EnableConfigurationProperties(value = NotificationProperties.class)
-@DisplayNameGeneration(value = ReplaceUnderscores.class)
 class NotificationServiceTest {
 
   @Mock private PushService pushService;

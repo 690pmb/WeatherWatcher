@@ -26,11 +26,8 @@ import java.util.stream.Stream;
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayNameGeneration;
-import org.junit.jupiter.api.DisplayNameGenerator.ReplaceUnderscores;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -38,8 +35,7 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import pmb.weatherwatcher.ServiceTestRunner;
 import pmb.weatherwatcher.alert.AlertUtils;
 import pmb.weatherwatcher.alert.dto.AlertDto;
 import pmb.weatherwatcher.alert.mapper.AlertMapperImpl;
@@ -52,10 +48,8 @@ import pmb.weatherwatcher.common.exception.NotFoundException;
 import pmb.weatherwatcher.user.model.User;
 import pmb.weatherwatcher.user.service.UserService;
 
-@ActiveProfiles("test")
+@ServiceTestRunner
 @Import({AlertService.class, AlertMapperImpl.class, MonitoredFieldMapperImpl.class})
-@ExtendWith(SpringExtension.class)
-@DisplayNameGeneration(value = ReplaceUnderscores.class)
 class AlertServiceTest {
 
   @MockBean private AlertRepository alertRepository;

@@ -10,17 +10,13 @@ import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.DisplayNameGeneration;
-import org.junit.jupiter.api.DisplayNameGenerator.ReplaceUnderscores;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import pmb.weatherwatcher.ServiceTestRunner;
 import pmb.weatherwatcher.notification.NotificationUtils;
 import pmb.weatherwatcher.notification.dto.SubscriptionDto;
 import pmb.weatherwatcher.notification.mapper.SubscriptionMapperImpl;
@@ -30,10 +26,8 @@ import pmb.weatherwatcher.notification.repository.SubscriptionRepository;
 import pmb.weatherwatcher.user.model.User;
 import pmb.weatherwatcher.user.service.UserService;
 
-@ActiveProfiles("test")
+@ServiceTestRunner
 @Import({SubscriptionService.class, SubscriptionMapperImpl.class})
-@ExtendWith(SpringExtension.class)
-@DisplayNameGeneration(value = ReplaceUnderscores.class)
 class SubscriptionServiceTest {
 
   @MockBean private SubscriptionRepository subscriptionRepository;

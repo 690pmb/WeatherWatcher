@@ -17,7 +17,6 @@ import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -29,7 +28,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import pmb.weatherwatcher.ServiceTestRunner;
 import pmb.weatherwatcher.common.exception.AlreadyExistException;
 import pmb.weatherwatcher.user.dto.JwtTokenDto;
 import pmb.weatherwatcher.user.dto.PasswordDto;
@@ -39,7 +38,7 @@ import pmb.weatherwatcher.user.repository.UserRepository;
 import pmb.weatherwatcher.user.security.JwtTokenProvider;
 
 @Import(UserService.class)
-@ExtendWith(SpringExtension.class)
+@ServiceTestRunner
 class UserServiceTest {
 
   @MockBean private UserRepository userRepository;
@@ -61,7 +60,7 @@ class UserServiceTest {
   class Save {
 
     @Test
-    void alreadyExist() {
+    void already_exist() {
       when(userRepository.findById("test")).thenReturn(Optional.of(new User()));
 
       assertThrows(AlreadyExistException.class, () -> userService.save(DUMMY_USER));
@@ -101,7 +100,7 @@ class UserServiceTest {
   class Login {
 
     @Test
-    void badCredentials() {
+    void bad_credentials() {
       ArgumentCaptor<UsernamePasswordAuthenticationToken> token =
           ArgumentCaptor.forClass(UsernamePasswordAuthenticationToken.class);
 

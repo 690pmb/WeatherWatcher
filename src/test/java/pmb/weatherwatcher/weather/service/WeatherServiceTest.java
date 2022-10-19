@@ -15,16 +15,12 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.DisplayNameGeneration;
-import org.junit.jupiter.api.DisplayNameGenerator.ReplaceUnderscores;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import pmb.weatherwatcher.ServiceTestRunner;
 import pmb.weatherwatcher.common.exception.NoContentException;
 import pmb.weatherwatcher.common.exception.NotFoundException;
 import pmb.weatherwatcher.user.model.User;
@@ -49,7 +45,7 @@ import pmb.weatherwatcher.weather.mapper.ForecastMapperImpl;
 import pmb.weatherwatcher.weather.mapper.HourMapperImpl;
 import pmb.weatherwatcher.weather.mapper.LocationMapperImpl;
 
-@ActiveProfiles("test")
+@ServiceTestRunner
 @Import({
   WeatherService.class,
   ForecastMapperImpl.class,
@@ -58,8 +54,6 @@ import pmb.weatherwatcher.weather.mapper.LocationMapperImpl;
   DayMapperImpl.class,
   LocationMapperImpl.class
 })
-@ExtendWith(SpringExtension.class)
-@DisplayNameGeneration(value = ReplaceUnderscores.class)
 class WeatherServiceTest {
 
   @MockBean private WeatherApiClient weatherApiClient;
