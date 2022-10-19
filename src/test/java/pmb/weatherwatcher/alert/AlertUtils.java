@@ -2,7 +2,9 @@ package pmb.weatherwatcher.alert;
 
 import java.time.DayOfWeek;
 import java.time.OffsetTime;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import pmb.weatherwatcher.alert.dto.AlertDto;
 import pmb.weatherwatcher.alert.dto.MonitoredDaysDto;
@@ -24,7 +26,7 @@ public final class AlertUtils {
       Boolean force) {
     AlertDto alert = new AlertDto();
     alert.setId(id);
-    alert.setTriggerDays(triggerDays);
+    alert.setTriggerDays(Optional.ofNullable(triggerDays).map(LinkedHashSet::new).orElse(null));
     alert.setTriggerHour(triggerHour);
     alert.setMonitoredDays(monitoredDays);
     alert.setMonitoredHours(monitoredHours);
