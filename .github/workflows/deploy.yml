@@ -1,0 +1,28 @@
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [Quality]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to deploy"
+        required: true
+        default: "main"
+        type: string
+
+env:
+  GITHUB_PROJECT: ${{github.repository}}
+  BRANCH: ${{ inputs.branch }}
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Build and deploy
+        run: >
+          curl -sG ${{ secrets.DEPLOY_URL }} -d project=$GITHUB_PROJECT -d branch=$BRANCH
+          -d args="WEATHERAPI_APIKEY,${{ secrets.WEATHERAPI_APIKEY }}@WEBPUSH_PUBLICKEY,${{ secrets.WEBPUSH_PUBLICKEY }}@WEBPUSH_PRIVATEKEY,${{ secrets.WEBPUSH_PRIVATEKEY }}"
