@@ -1,7 +1,7 @@
 version: "3.7"
 services:
   weather:
-    image: weather.main
+    image: weatherwatcher.main
     restart: always
     ports:
       - "7878:8080"
@@ -11,9 +11,9 @@ services:
       - "SPRING_PROFILES_ACTIVE=dev"
       - "LOGGING_LEVEL_PMB_WEATHERWATCHER=INFO"
       - "SPRING_DATASOURCE_URL=jdbc:mariadb://maria_db:3306/weather"
-      - "WEATHER-API_API-KEY="
-      - "WEB-PUSH_PUBLICKEY="
-      - "WEB-PUSH_PRIVATEKEY="
+      - "WEATHER-API_API-KEY={{WEATHERAPI_APIKEY}}"
+      - "WEB-PUSH_PUBLICKEY={{WEBPUSH_PUBLICKEY}}"
+      - "WEB-PUSH_PRIVATEKEY={{WEBPUSH_PRIVATEKEY}}"
   maria_db:
     image: "tobi312/rpi-mariadb:10.3"
     restart: always
