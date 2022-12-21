@@ -4,15 +4,11 @@ on:
   workflow_call:
   workflow_dispatch:
 
-env:
-  GITHUB_PROJECT: ${{github.repository}}
-  BRANCH: ${{ github.ref_name }}
-
 jobs:
   deploy:
     runs-on: self-hosted
     steps:
-      - name: Build and deploy
-        run: >
-          curl -sG ${{ secrets.DEPLOY_URL }} -d project=$GITHUB_PROJECT -d branch=$BRANCH
-          -d args="WEATHERAPI_APIKEY,${{ secrets.WEATHERAPI_APIKEY }}@WEBPUSH_PUBLICKEY,${{ secrets.WEBPUSH_PUBLICKEY }}@WEBPUSH_PRIVATEKEY,${{ secrets.WEBPUSH_PRIVATEKEY }}"
+      - uses: 69pmb/deploy/workflow/deploy@main
+        with:
+          url: ${{ secrets.DEPLOY_URL }}
+          args: "WEATHERAPI_APIKEY,${{ secrets.WEATHERAPI_APIKEY }}@WEBPUSH_PUBLICKEY,${{ secrets.WEBPUSH_PUBLICKEY }}@WEBPUSH_PRIVATEKEY,${{ secrets.WEBPUSH_PRIVATEKEY }}"
