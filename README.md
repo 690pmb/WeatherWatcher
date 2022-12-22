@@ -1,4 +1,5 @@
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=pmb:weather-watcher&metric=alert_status)](https://sonarcloud.io/dashboard?id=pmb:weather-watcher)
+[![Sonar Status](https://sonarcloud.io/api/project_badges/measure?project=pmb:weather-watcher&metric=alert_status)](https://sonarcloud.io/dashboard?id=pmb:weather-watcher)
+[![Quality](https://github.com/69pmb/WeatherWatcher/actions/workflows/quality.yml/badge.svg)](https://github.com/69pmb/WeatherWatcher/actions/workflows/quality.yml)
 [![Deploy](https://github.com/69pmb/WeatherWatcher/actions/workflows/deploy.yml/badge.svg)](https://github.com/69pmb/WeatherWatcher/actions/workflows/deploy.yml)
 
 # WeatherWatcher
