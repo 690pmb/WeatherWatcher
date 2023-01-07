@@ -25,13 +25,19 @@ public interface AlertMapper extends EntityDtoMapper<Alert, AlertDto> {
   @Override
   @Mapping(target = "triggerHour", qualifiedByName = "localTimeToOffsetTime")
   @Mapping(target = "monitoredHours", qualifiedByName = "localTimeToOffsetTime")
+  @Mapping(target = "user", ignore = true)
   AlertDto toDto(Alert entity);
+
+  @Mapping(target = "triggerHour", qualifiedByName = "localTimeToOffsetTime")
+  @Mapping(target = "monitoredHours", qualifiedByName = "localTimeToOffsetTime")
+  @Mapping(target = "user", source = "user.login")
+  AlertDto toDtoWithUser(Alert entity);
 
   @Override
   @Mapping(target = "user", ignore = true)
   @Mapping(target = "triggerHour", qualifiedByName = "offsetTimeToLocalTime")
   @Mapping(target = "monitoredHours", qualifiedByName = "offsetTimeToLocalTime")
-  @InheritInverseConfiguration
+  @InheritInverseConfiguration(name = "toDto")
   Alert toEntity(AlertDto dto);
 
   @AfterMapping

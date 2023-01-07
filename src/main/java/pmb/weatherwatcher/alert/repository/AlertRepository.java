@@ -1,5 +1,7 @@
 package pmb.weatherwatcher.alert.repository;
 
+import java.time.DayOfWeek;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -21,4 +23,7 @@ public interface AlertRepository extends JpaRepository<Alert, Long> {
   List<Alert> findDistinctByUserLogin(String login);
 
   Optional<Alert> findByIdAndUserLogin(Long id, String login);
+
+  @EntityGraph(attributePaths = {"triggerDays", "monitoredHours", "monitoredFields", "user"})
+  List<Alert> findAllByTriggerDaysAndTriggerHour(DayOfWeek triggerDay, LocalTime triggerHour);
 }

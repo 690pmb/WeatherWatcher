@@ -1,6 +1,7 @@
 package pmb.weatherwatcher.notification.dto;
 
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Null;
 
 public class SubscriptionDto {
 
@@ -11,6 +12,8 @@ public class SubscriptionDto {
   @NotNull private String publicKey;
 
   @NotNull private String privateKey;
+
+  @Null private String user;
 
   private Long expirationTime;
 
@@ -30,14 +33,6 @@ public class SubscriptionDto {
     this.endpoint = endpoint;
   }
 
-  public Long getExpirationTime() {
-    return expirationTime;
-  }
-
-  public void setExpirationTime(Long expirationTime) {
-    this.expirationTime = expirationTime;
-  }
-
   public String getPublicKey() {
     return publicKey;
   }
@@ -52,5 +47,21 @@ public class SubscriptionDto {
 
   public void setPrivateKey(String privateKey) {
     this.privateKey = privateKey;
+  }
+
+  public String getUser() {
+    return user;
+  }
+
+  public void setUser(String user) {
+    this.user = user;
+  }
+
+  public Long getExpirationTime() {
+    return expirationTime;
+  }
+
+  public void setExpirationTime(Long expirationTime) {
+    this.expirationTime = expirationTime;
   }
 }

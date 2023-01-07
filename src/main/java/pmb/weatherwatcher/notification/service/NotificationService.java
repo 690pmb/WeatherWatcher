@@ -53,6 +53,7 @@ public class NotificationService {
   }
 
   public List<HttpStatus> send(List<SubscriptionDto> subscriptions, byte[] payload) {
+    LOGGER.debug("Send notification");
     return subscriptions.stream()
         .map(
             sub -> {

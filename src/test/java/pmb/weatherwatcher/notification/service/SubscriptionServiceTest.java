@@ -47,7 +47,8 @@ class SubscriptionServiceTest {
       ArgumentCaptor<Subscription> captureSaved = ArgumentCaptor.forClass(Subscription.class);
       String userAgent = "userAgent";
       SubscriptionDto toSave =
-          NotificationUtils.buildSubscriptionDto(userAgent, "end", "public2", "private2", 56L);
+          NotificationUtils.buildSubscriptionDto(
+              userAgent, "end", "public2", "private2", 56L, null);
       Subscription existing = new Subscription();
       existing.setEndpoint("point");
       existing.setExpirationTime(98L);
@@ -85,7 +86,8 @@ class SubscriptionServiceTest {
       ArgumentCaptor<Subscription> captureSaved = ArgumentCaptor.forClass(Subscription.class);
       String userAgent = "userAgent";
       SubscriptionDto toSave =
-          NotificationUtils.buildSubscriptionDto(userAgent, "end", "public2", "private2", 56L);
+          NotificationUtils.buildSubscriptionDto(
+              userAgent, "end", "public2", "private2", 56L, null);
 
       when(userService.getCurrentUser()).thenReturn(new User("login", "pwd", "Lyon"));
       when(subscriptionRepository.findById(new SubscriptionId(userAgent, "login")))

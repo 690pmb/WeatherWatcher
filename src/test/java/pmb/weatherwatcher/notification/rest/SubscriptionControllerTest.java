@@ -50,7 +50,8 @@ class SubscriptionControllerTest {
   @MockBean private SubscriptionService subscriptionService;
 
   private static final SubscriptionDto VALID_SUBSCRIPTION =
-      NotificationUtils.buildSubscriptionDto("USERAGENT", "ENDPOINT", "PUBLIC", "PRIVATE", 6L);
+      NotificationUtils.buildSubscriptionDto(
+          "USERAGENT", "ENDPOINT", "PUBLIC", "PRIVATE", 6L, null);
 
   @AfterEach
   void tearDown() {
@@ -113,20 +114,21 @@ class SubscriptionControllerTest {
 
   static Stream<Arguments> invalidSubscriptionProvider() {
     return Stream.of(
-        arguments(buildSubscriptionDto(null, null, null, null, 8L)),
-        arguments(buildSubscriptionDto(null, null, null, "private", null)),
-        arguments(buildSubscriptionDto(null, null, "public", null, null)),
-        arguments(buildSubscriptionDto(null, null, "public", "private", null)),
-        arguments(buildSubscriptionDto(null, "endpoint", null, null, null)),
-        arguments(buildSubscriptionDto(null, "endpoint", null, "private", null)),
-        arguments(buildSubscriptionDto(null, "endpoint", "public", null, null)),
-        arguments(buildSubscriptionDto(null, "endpoint", "public", "private", null)),
-        arguments(buildSubscriptionDto("userAgent", null, null, null, 8L)),
-        arguments(buildSubscriptionDto("userAgent", null, null, "private", null)),
-        arguments(buildSubscriptionDto("userAgent", null, "public", null, null)),
-        arguments(buildSubscriptionDto("userAgent", null, "public", "private", null)),
-        arguments(buildSubscriptionDto("userAgent", "endpoint", null, null, null)),
-        arguments(buildSubscriptionDto("userAgent", "endpoint", null, "private", null)),
-        arguments(buildSubscriptionDto("userAgent", "endpoint", "public", null, null)));
+        arguments(buildSubscriptionDto(null, null, null, null, 8L, null)),
+        arguments(buildSubscriptionDto(null, null, null, "private", null, null)),
+        arguments(buildSubscriptionDto(null, null, "public", null, null, null)),
+        arguments(buildSubscriptionDto(null, null, "public", "private", null, null)),
+        arguments(buildSubscriptionDto(null, "endpoint", null, null, null, null)),
+        arguments(buildSubscriptionDto(null, "endpoint", null, "private", null, null)),
+        arguments(buildSubscriptionDto(null, "endpoint", "public", null, null, null)),
+        arguments(buildSubscriptionDto(null, "endpoint", "public", "private", null, null)),
+        arguments(buildSubscriptionDto("userAgent", null, null, null, 8L, null)),
+        arguments(buildSubscriptionDto("userAgent", null, null, "private", null, null)),
+        arguments(buildSubscriptionDto("userAgent", null, "public", null, null, null)),
+        arguments(buildSubscriptionDto("userAgent", null, "public", "private", null, null)),
+        arguments(buildSubscriptionDto("userAgent", "endpoint", null, null, null, null)),
+        arguments(buildSubscriptionDto("userAgent", "endpoint", null, "private", null, null)),
+        arguments(buildSubscriptionDto("userAgent", "endpoint", "public", "private", 8L, "user")),
+        arguments(buildSubscriptionDto("userAgent", "endpoint", "public", null, null, null)));
   }
 }

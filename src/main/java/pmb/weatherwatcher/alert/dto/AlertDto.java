@@ -31,6 +31,8 @@ public class AlertDto {
 
   private Boolean forceNotification;
 
+  private String user;
+
   public Long getId() {
     return id;
   }
@@ -93,5 +95,13 @@ public class AlertDto {
 
   public void setForceNotification(Boolean forceNotification) {
     this.forceNotification = forceNotification;
+  }
+
+  public String getUser() {
+    return user;
+  }
+
+  public void setUser(String user) {
+    this.user = user;
   }
 }
