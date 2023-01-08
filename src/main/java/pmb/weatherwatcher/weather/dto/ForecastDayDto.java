@@ -9,6 +9,7 @@ public class ForecastDayDto {
   private DayDto day;
   private Astro astro;
   private List<HourDto> hour;
+  private String location;
 
   public String getDate() {
     return date;
@@ -40,5 +41,13 @@ public class ForecastDayDto {
 
   public void setHour(List<HourDto> hour) {
     this.hour = hour;
+  }
+
+  public String getLocation() {
+    return location;
+  }
+
+  public void setLocation(String location) {
+    this.location = location;
   }
 }

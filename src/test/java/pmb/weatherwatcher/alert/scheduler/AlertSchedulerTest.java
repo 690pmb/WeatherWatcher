@@ -1,12 +1,17 @@
 package pmb.weatherwatcher.alert.scheduler;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.DayOfWeek;
 import java.time.Instant;
@@ -15,9 +20,12 @@ import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -30,6 +38,7 @@ import pmb.weatherwatcher.alert.dto.AlertDto;
 import pmb.weatherwatcher.alert.model.WeatherField;
 import pmb.weatherwatcher.alert.service.AlertService;
 import pmb.weatherwatcher.notification.NotificationUtils;
+import pmb.weatherwatcher.notification.dto.SubscriptionDto;
 import pmb.weatherwatcher.notification.service.NotificationService;
 import pmb.weatherwatcher.notification.service.SubscriptionService;
 import pmb.weatherwatcher.weather.WeatherUtils;
@@ -44,6 +53,9 @@ class AlertSchedulerTest {
   @MockBean SubscriptionService subscriptionService;
   @MockBean NotificationService notificationService;
   @Autowired AlertScheduler alertScheduler;
+  @Captor ArgumentCaptor<List<SubscriptionDto>> sentSubscriptions;
+  private static String PAYLOAD =
+      "{\"notification\":{\"title\":\"Alerte Météo !\",\"body\":\"Voir la météo en alerte\",\"data\":{\"onActionClick\":{\"default\":{\"operation\":\"navigateLastFocusedOrOpen\",\"url\":\"dashboard/details/%s?location=%s\"}}},\"requireInteraction\":true}}";
 
   private static final Clock CLOCK =
       Clock.fixed(Instant.parse("2022-10-22T10:00:00Z"), ZoneOffset.UTC);
@@ -105,7 +117,7 @@ class AlertSchedulerTest {
             3L,
             null,
             null,
-            AlertUtils.buildMonitoredDaysDto(false, false, false),
+            AlertUtils.buildMonitoredDaysDto(true, false, false),
             Set.of(TestUtils.buildOffsetTime(10, 0)),
             List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 10, 30)),
             "Lyon",
@@ -122,6 +134,13 @@ class AlertSchedulerTest {
             "Paris",
             false,
             "user3");
+    SubscriptionDto sub1 =
+        NotificationUtils.buildSubscriptionDto("ua1", "end1", "pk1", "pk11", null, "user1");
+    SubscriptionDto sub2 =
+        NotificationUtils.buildSubscriptionDto("ua2", "end2", "pk2", "pk22", null, "user2");
+    SubscriptionDto sub3 =
+        NotificationUtils.buildSubscriptionDto("ua3", "end3", "pk3", "pk33", null, "user3");
+    ArgumentCaptor<byte[]> sentPayload = ArgumentCaptor.forClass(byte[].class);
 
     when(alertService.findAllToTrigger(DayOfWeek.SATURDAY, DUMMY_LOCAL_TIME))
         .thenReturn(List.of(alert1, alert2, alert3, alert4));
@@ -132,6 +151,7 @@ class AlertSchedulerTest {
                 List.of(
                     WeatherUtils.buildForecastDayDto(
                         "2022-10-22",
+                        "Lyon",
                         List.of(
                             WeatherUtils.builHourDto(
                                 "2022-10-22 10:00",
@@ -150,6 +170,7 @@ class AlertSchedulerTest {
                                 null))),
                     WeatherUtils.buildForecastDayDto(
                         "2022-10-23",
+                        "Lyon",
                         List.of(
                             WeatherUtils.builHourDto(
                                 "2022-10-23 10:00",
@@ -173,6 +194,7 @@ class AlertSchedulerTest {
                 List.of(
                     WeatherUtils.buildForecastDayDto(
                         "2022-10-22",
+                        "Paris",
                         List.of(
                             WeatherUtils.builHourDto(
                                 "2022-10-22 14:00",
@@ -190,12 +212,7 @@ class AlertSchedulerTest {
                                 null,
                                 null))))));
     when(subscriptionService.findAllByUsers(Set.of("user1", "user2", "user3")))
-        .thenReturn(
-            List.of(
-                NotificationUtils.buildSubscriptionDto("ua1", "end1", "pk1", "pk11", null, "user1"),
-                NotificationUtils.buildSubscriptionDto("ua2", "end2", "pk2", "pk22", null, "user3"),
-                NotificationUtils.buildSubscriptionDto(
-                    "ua3", "end3", "pk3", "pk33", null, "user3")));
+        .thenReturn(List.of(sub1, sub2, sub3));
     when(notificationService.send(any(), any())).thenReturn(List.of(HttpStatus.OK));
 
     alertScheduler.schedule();
@@ -204,6 +221,25 @@ class AlertSchedulerTest {
     verify(weatherService).findForecastbyLocation("Lyon", 3, "fr");
     verify(weatherService).findForecastbyLocation("Paris", 3, "fr");
     verify(subscriptionService).findAllByUsers(Set.of("user1", "user2", "user3"));
-    verify(notificationService).send(any(), any());
+    verify(notificationService, times(3)).send(sentSubscriptions.capture(), sentPayload.capture());
+
+    List<String> payloads =
+        sentPayload.getAllValues().stream()
+            .map(p -> new String(p, StandardCharsets.UTF_8))
+            .sorted()
+            .collect(Collectors.toList());
+    assertAll(
+        () -> assertEquals(3, payloads.size()),
+        () -> assertEquals(String.format(PAYLOAD, "2022-10-22", "Lyon"), payloads.get(0)),
+        () -> assertEquals(String.format(PAYLOAD, "2022-10-22", "Lyon"), payloads.get(1)),
+        () -> assertEquals(String.format(PAYLOAD, "2022-10-22", "Paris"), payloads.get(2)));
+
+    List<List<SubscriptionDto>> subs = sentSubscriptions.getAllValues();
+    subs.sort((s1, s2) -> s1.get(0).getUserAgent().compareTo(s2.get(0).getUserAgent()));
+    assertAll(
+        () -> assertEquals(3, subs.size()),
+        () -> assertThat(sub1).isEqualTo(subs.get(0).get(0)),
+        () -> assertThat(sub2).isEqualTo(subs.get(1).get(0)),
+        () -> assertThat(sub3).isEqualTo(subs.get(2).get(0)));
   }
 }
