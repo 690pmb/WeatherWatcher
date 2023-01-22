@@ -18,8 +18,10 @@ public final class WeatherUtils {
     return forecast;
   }
 
-  public static ForecastDayDto buildForecastDayDto(String date, List<HourDto> hours) {
+  public static ForecastDayDto buildForecastDayDto(
+      String date, String location, List<HourDto> hours) {
     ForecastDayDto day = new ForecastDayDto();
+    day.setLocation(location);
     day.setDate(date);
     day.setHour(hours);
     return day;

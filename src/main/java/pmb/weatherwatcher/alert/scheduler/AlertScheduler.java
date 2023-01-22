@@ -13,6 +13,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -22,13 +23,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 import pmb.weatherwatcher.alert.dto.AlertDto;
 import pmb.weatherwatcher.alert.dto.MonitoredFieldDto;
 import pmb.weatherwatcher.alert.service.AlertService;
 import pmb.weatherwatcher.notification.dto.Operation;
 import pmb.weatherwatcher.notification.dto.PayloadDataDto;
 import pmb.weatherwatcher.notification.dto.PayloadDto;
+import pmb.weatherwatcher.notification.dto.SubscriptionDto;
 import pmb.weatherwatcher.notification.service.NotificationService;
 import pmb.weatherwatcher.notification.service.SubscriptionService;
 import pmb.weatherwatcher.weather.dto.ForecastDayDto;
@@ -44,11 +45,12 @@ public class AlertScheduler {
   private final WeatherService weatherService;
   private final SubscriptionService subscriptionService;
   private final NotificationService notificationService;
+  private final ObjectMapper objectMapper;
   private static final Clock CLOCK = Clock.systemUTC();
   private static final Function<Integer, String> NOW_PLUS_DAYS =
       amountToAdd ->
           LocalDate.now(CLOCK).plusDays(amountToAdd).format(DateTimeFormatter.ISO_LOCAL_DATE);
-  private byte[] payload;
+  private static final String DETAIL_URL = "dashboard/details/%s?location=%s";
 
   public AlertScheduler(
       AlertService alertService,
@@ -61,64 +63,95 @@ public class AlertScheduler {
     this.weatherService = weatherService;
     this.subscriptionService = subscriptionService;
     this.notificationService = notificationService;
-    payload =
-        objectMapper.writeValueAsBytes(
-            new PayloadDto(
-                "Alerte Météo !",
-                "Voir la météo en alerte",
-                new PayloadDataDto(Operation.NAVIGATE_LAST_FOCUSED_OR_OPEN, "/dashboard")));
+    this.objectMapper = objectMapper;
   }
 
   @Scheduled(cron = "0 */15 * * * *")
   public void schedule() {
     LOGGER.debug("schedule");
-    Map<String, List<AlertDto>> alertTriggeredByLocation =
-        this.alertService
-            .findAllToTrigger(LocalDate.now(CLOCK).getDayOfWeek(), LocalTime.now(CLOCK))
-            .stream()
-            .collect(Collectors.groupingBy(AlertDto::getLocation));
+    List<AlertDto> alertTriggered =
+        this.alertService.findAllToTrigger(
+            LocalDate.now(CLOCK).getDayOfWeek(), LocalTime.now(CLOCK));
 
-    Map<ForecastDto, List<AlertDto>> alertTriggeredByForecast =
-        alertTriggeredByLocation.entrySet().stream()
+    Map<String, ForecastDto> forecastByLocation =
+        alertTriggered.stream()
+            .collect(Collectors.groupingBy(AlertDto::getLocation))
+            .entrySet()
+            .stream()
             .collect(
                 Collectors.toMap(
-                    e -> weatherService.findForecastbyLocation(e.getKey(), 3, "fr"),
-                    Entry::getValue));
+                    Entry::getKey,
+                    e -> weatherService.findForecastbyLocation(e.getKey(), 3, "fr")));
 
-    Set<String> usersToNotify =
-        alertTriggeredByForecast.entrySet().stream()
+    Map<String, List<ForecastDayDto>> forecastDaysByUserToNotify =
+        alertTriggered.stream()
+            .collect(Collectors.groupingBy(AlertDto::getUser))
+            .entrySet()
+            .stream()
             .map(
                 e -> {
                   Map<Long, Map<String, Boolean>> monitoredDays = buildMonitoredDays(e.getValue());
                   return e.getValue().stream()
-                      .filter(a -> isAlertToNotify(a, e.getKey(), monitoredDays))
-                      .map(AlertDto::getUser)
-                      .distinct()
+                      .map(
+                          a ->
+                              Pair.of(
+                                  forecastDayToNotify(
+                                      a, forecastByLocation.get(a.getLocation()), monitoredDays),
+                                  a.getUser()))
                       .collect(Collectors.toSet());
                 })
-            .distinct()
-            .filter(Predicate.not(CollectionUtils::isEmpty))
+            .filter(Predicate.not(Set::isEmpty))
             .flatMap(Set::stream)
-            .collect(Collectors.toSet());
-    if (!usersToNotify.isEmpty()) {
-      notificationService.send(subscriptionService.findAllByUsers(usersToNotify), payload);
+            .collect(Collectors.toMap(pair -> pair.getRight(), pair -> pair.getLeft()));
+
+    if (!forecastDaysByUserToNotify.isEmpty()) {
+      Map<String, List<SubscriptionDto>> subsByUser =
+          subscriptionService.findAllByUsers(forecastDaysByUserToNotify.keySet()).stream()
+              .collect(Collectors.groupingBy(SubscriptionDto::getUser));
+      forecastDaysByUserToNotify.entrySet().stream()
+          .forEach(
+              e ->
+                  e.getValue()
+                      .forEach(
+                          day -> {
+                            try {
+                              notificationService.send(
+                                  subsByUser.get(e.getKey()),
+                                  buildPayload(day.getDate(), day.getLocation()));
+                            } catch (JsonProcessingException e1) {
+                              LOGGER.error("Error when building payload", e);
+                            }
+                          }));
     }
   }
 
-  private static boolean isAlertToNotify(
+  private static List<ForecastDayDto> forecastDayToNotify(
       AlertDto alert, ForecastDto forecastDto, Map<Long, Map<String, Boolean>> monitoredDaysMap) {
-    if (!alert.getForceNotification()) {
-      return forecastDto.getForecastDay().stream()
-          .filter(forecastDay -> monitoredDaysMap.get(alert.getId()).get(forecastDay.getDate()))
-          .map(ForecastDayDto::getHour)
-          .flatMap(List::stream)
-          .filter(h -> isHourMonitored(h, alert))
-          .anyMatch(
-              h ->
-                  alert.getMonitoredFields().stream()
-                      .anyMatch(monitoredField -> isForecastHourToNotify(h, monitoredField)));
-    }
-    return true;
+    return forecastDto.getForecastDay().stream()
+        .map(
+            forecastDay ->
+                monitoredDaysMap.get(alert.getId()).get(forecastDay.getDate()) ? forecastDay : null)
+        .filter(Objects::nonNull)
+        .map(
+            day -> {
+              day.setHour(
+                  day.getHour().stream()
+                      .filter(h -> alert.getForceNotification() || isHourMonitored(h, alert))
+                      .collect(Collectors.toList()));
+              return day;
+            })
+        .filter(day -> !day.getHour().isEmpty())
+        .filter(
+            day ->
+                day.getHour().stream()
+                    .anyMatch(
+                        h ->
+                            alert.getMonitoredFields().stream()
+                                .anyMatch(
+                                    monitoredField ->
+                                        alert.getForceNotification()
+                                            || isForecastHourToNotify(h, monitoredField))))
+        .collect(Collectors.toList());
   }
 
   private static boolean isHourMonitored(HourDto hour, AlertDto alert) {
@@ -168,5 +201,15 @@ public class AlertScheduler {
                         NOW_PLUS_DAYS.apply(2),
                         alert.getMonitoredDays().getTwoDayLater())))
         .collect(Collectors.toMap(pair -> pair.getKey(), pair -> pair.getValue()));
+  }
+
+  private byte[] buildPayload(String date, String location) throws JsonProcessingException {
+    return objectMapper.writeValueAsBytes(
+        new PayloadDto(
+            "Alerte Météo !",
+            "Voir la météo en alerte",
+            new PayloadDataDto(
+                Operation.NAVIGATE_LAST_FOCUSED_OR_OPEN,
+                String.format(DETAIL_URL, date, location))));
   }
 }
