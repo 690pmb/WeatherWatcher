@@ -17,11 +17,11 @@ public class UserDto implements UserDetails {
   private static final long serialVersionUID = 1L;
 
   @NotNull
-  @Size(min = 4, max = 30)
+  @Size(min = 4, max = 30, groups = OnSignup.class)
   private String username;
 
   @NotNull
-  @Size(min = 6, max = 30)
+  @Size(min = 6, max = 30, groups = OnSignup.class)
   private String password;
 
   private String favouriteLocation;

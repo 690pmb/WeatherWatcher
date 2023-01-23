@@ -61,10 +61,18 @@ class UserControllerTest {
   @Nested
   class Signin {
 
-    @Test
-    void ok() throws Exception {
+    @ParameterizedTest(
+        name = "Given user with login ''{0}'' and password ''{1}'' when login then ok")
+    @CsvSource({
+      "test, password",
+      "o, password",
+      "test, p",
+      "01234567891011121314151617181920, password",
+      "test, 01234567891011121314151617181920"
+    })
+    void ok(String login, String password) throws Exception {
       JwtTokenDto expected = new JwtTokenDto("jwtToken");
-      ArgumentCaptor<UserDto> login = ArgumentCaptor.forClass(UserDto.class);
+      ArgumentCaptor<UserDto> user = ArgumentCaptor.forClass(UserDto.class);
 
       when(userService.login(any())).thenReturn(expected);
 
@@ -76,18 +84,20 @@ class UserControllerTest {
                       mockMvc
                           .perform(
                               post("/users/signin")
-                                  .content(objectMapper.writeValueAsString(DUMMY_USER))
+                                  .content(
+                                      objectMapper.writeValueAsString(
+                                          new UserDto(login, password, "lyon")))
                                   .contentType(MediaType.APPLICATION_JSON_VALUE))
                           .andExpect(status().isOk())),
                   JwtTokenDto.class)
               .getToken());
 
-      verify(userService).login(login.capture());
+      verify(userService).login(user.capture());
 
-      UserDto signin = login.getValue();
+      UserDto signin = user.getValue();
       assertAll(
-          () -> assertEquals("test", signin.getUsername()),
-          () -> assertEquals("password", signin.getPassword()),
+          () -> assertEquals(login, signin.getUsername()),
+          () -> assertEquals(password, signin.getPassword()),
           () -> assertEquals("lyon", signin.getFavouriteLocation()));
     }
 
@@ -95,17 +105,13 @@ class UserControllerTest {
         name = "Given user with login ''{0}'' and password ''{1}'' when login then bad request")
     @CsvSource({
       ", password",
-      "o, password",
       "test,",
-      "test, p",
-      "01234567891011121314151617181920, password",
-      "test, 01234567891011121314151617181920"
     })
     void when_failed_validation_then_bad_request(String login, String password) throws Exception {
       mockMvc
           .perform(
               post("/users/signin")
-                  .content(objectMapper.writeValueAsString(new UserDto(login, password, null)))
+                  .content(objectMapper.writeValueAsString(new UserDto(login, password, "lyon")))
                   .contentType(MediaType.APPLICATION_JSON_VALUE))
           .andExpect(status().isBadRequest());
 
@@ -166,12 +172,22 @@ class UserControllerTest {
       verify(userService).save(any());
     }
 
-    @Test
-    void when_invalid_then_bad_request() throws Exception {
+    @ParameterizedTest(
+        name = "Given user with login ''{0}'' and password ''{1}'' when signup then bad request")
+    @CsvSource({
+      ", password",
+      "o, password",
+      "test,",
+      "test, p",
+      ",",
+      "01234567891011121314151617181920, password",
+      "test, 01234567891011121314151617181920"
+    })
+    void when_invalid_then_bad_request(String login, String password) throws Exception {
       mockMvc
           .perform(
               post("/users/signup")
-                  .content(objectMapper.writeValueAsString(new UserDto("", "", null)))
+                  .content(objectMapper.writeValueAsString(new UserDto(login, password, null)))
                   .contentType(MediaType.APPLICATION_JSON_VALUE))
           .andExpect(status().isBadRequest());
 

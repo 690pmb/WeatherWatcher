@@ -1,5 +1,7 @@
 package pmb.weatherwatcher.common.rest;
 
+import java.util.stream.Collectors;
+import javax.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -65,6 +67,16 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
       MethodArgumentTypeMismatchException ex, WebRequest request) {
     return new ResponseEntity<>(
         "Type of parameter '" + ex.getName() + "' doesn't match with definition.",
+        HttpStatus.BAD_REQUEST);
+  }
+
+  @ExceptionHandler
+  protected ResponseEntity<Object> handleConstraintViolationException(
+      ConstraintViolationException ex, WebRequest request) {
+    return new ResponseEntity<>(
+        ex.getConstraintViolations().stream()
+            .map(c -> "Field: '" + c.getPropertyPath() + "', Message: '" + c.getMessage() + "'")
+            .collect(Collectors.joining()),
         HttpStatus.BAD_REQUEST);
   }
 

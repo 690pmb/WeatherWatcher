@@ -71,7 +71,7 @@ public class UserService {
    * @param user credentials
    * @return a jwt token
    */
-  public JwtTokenDto login(@Valid UserDto user) {
+  public JwtTokenDto login(UserDto user) {
     UsernamePasswordAuthenticationToken token =
         new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword());
     Authentication authentication = authenticationManager.authenticate(token);
@@ -85,7 +85,7 @@ public class UserService {
    *
    * @param password holding new & old passwords
    */
-  public void updatePassword(@Valid PasswordDto password) {
+  public void updatePassword(PasswordDto password) {
     User user = getCurrentUser();
     if (!bCryptPasswordEncoder.matches(password.getOldPassword(), user.getPassword())) {
       throw new BadCredentialsException("Invalid credentials");
