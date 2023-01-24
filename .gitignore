@@ -1,6 +1,7 @@
 *.class
 /output/
 error*log
+/mariadb-data
 
 # Eclipse Files
 .project
