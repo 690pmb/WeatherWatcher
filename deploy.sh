@@ -10,7 +10,7 @@ rm -f *.jar
 echo "Copy jar"
 cp ../target/*.jar .
 echo "Build Docker image"
-docker build -t weather .
+docker build -t weatherwatcher.main .
 cd ..
 echo "Docker compose"
 docker-compose up -d
