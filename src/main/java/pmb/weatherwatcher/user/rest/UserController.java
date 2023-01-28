@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import pmb.weatherwatcher.user.dto.EditUserDto;
 import pmb.weatherwatcher.user.dto.JwtTokenDto;
 import pmb.weatherwatcher.user.dto.OnSignup;
 import pmb.weatherwatcher.user.dto.PasswordDto;
@@ -54,5 +55,11 @@ public class UserController {
   public void updatePassword(@RequestBody @Valid PasswordDto password) {
     LOGGER.debug("Update password");
     userService.updatePassword(password);
+  }
+
+  @PutMapping
+  public JwtTokenDto edit(@RequestBody @Valid EditUserDto editUser) {
+    LOGGER.debug("Edit user");
+    return userService.edit(editUser);
   }
 }

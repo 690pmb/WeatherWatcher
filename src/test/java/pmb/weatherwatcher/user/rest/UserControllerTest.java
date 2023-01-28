@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -33,6 +34,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import pmb.weatherwatcher.TestUtils;
 import pmb.weatherwatcher.common.exception.AlreadyExistException;
+import pmb.weatherwatcher.user.dto.EditUserDto;
 import pmb.weatherwatcher.user.dto.JwtTokenDto;
 import pmb.weatherwatcher.user.dto.PasswordDto;
 import pmb.weatherwatcher.user.dto.UserDto;
@@ -52,6 +54,8 @@ class UserControllerTest {
   @MockBean private UserService userService;
   private static final UserDto DUMMY_USER = new UserDto("test", "password", "lyon");
   private static final PasswordDto DUMMY_PASSWORD = new PasswordDto("password", "password2");
+  private static final EditUserDto DUMMY_EDIT_USER = new EditUserDto("lyon");
+  private static final JwtTokenDto DUMMY_TOKEN = new JwtTokenDto("jwtToken");
 
   @AfterEach
   void tearDown() {
@@ -71,13 +75,12 @@ class UserControllerTest {
       "test, 01234567891011121314151617181920"
     })
     void ok(String login, String password) throws Exception {
-      JwtTokenDto expected = new JwtTokenDto("jwtToken");
       ArgumentCaptor<UserDto> user = ArgumentCaptor.forClass(UserDto.class);
 
-      when(userService.login(any())).thenReturn(expected);
+      when(userService.login(any())).thenReturn(DUMMY_TOKEN);
 
       assertEquals(
-          expected.getToken(),
+          DUMMY_TOKEN.getToken(),
           objectMapper
               .readValue(
                   TestUtils.readResponse.apply(
@@ -264,6 +267,64 @@ class UserControllerTest {
           .andExpect(status().isUnauthorized());
 
       verify(userService, never()).updatePassword(any());
+    }
+  }
+
+  @Nested
+  class Edit {
+
+    @Test
+    void not_authenticated_then_unauthorized() throws Exception {
+      mockMvc
+          .perform(
+              put("/users")
+                  .content(objectMapper.writeValueAsString(DUMMY_EDIT_USER))
+                  .contentType(MediaType.APPLICATION_JSON_VALUE))
+          .andExpect(status().isUnauthorized());
+
+      verify(userService, never()).edit(any());
+    }
+
+    @WithMockUser
+    @ParameterizedTest(name = "Given user ''{0}'' when editing user then bad request")
+    @ValueSource(
+        strings = {
+          "{\"favouriteLocation\":null}",
+          "{\"favouriteLocation\":\"\"}",
+          "{\"favouriteLocation\":\"  \"}",
+          "{\"location\":\"\"}"
+        })
+    void when_failed_validation_then_bad_request(String user) throws Exception {
+      mockMvc
+          .perform(put("/users").content(user).contentType(MediaType.APPLICATION_JSON_VALUE))
+          .andExpect(status().isBadRequest());
+
+      verify(userService, never()).edit(any());
+    }
+
+    @Test
+    @WithMockUser
+    void ok() throws Exception {
+      JwtTokenDto expected = new JwtTokenDto("jwtToken");
+      ArgumentCaptor<EditUserDto> capture = ArgumentCaptor.forClass(EditUserDto.class);
+      when(userService.edit(any())).thenReturn(expected);
+
+      assertEquals(
+          DUMMY_TOKEN.getToken(),
+          objectMapper
+              .readValue(
+                  TestUtils.readResponse.apply(
+                      mockMvc
+                          .perform(
+                              put("/users")
+                                  .content(objectMapper.writeValueAsString(DUMMY_EDIT_USER))
+                                  .contentType(MediaType.APPLICATION_JSON_VALUE))
+                          .andExpect(status().isOk())),
+                  JwtTokenDto.class)
+              .getToken());
+
+      verify(userService).edit(capture.capture());
+      assertThat(capture.getValue()).usingRecursiveComparison().isEqualTo(DUMMY_EDIT_USER);
     }
   }
 }

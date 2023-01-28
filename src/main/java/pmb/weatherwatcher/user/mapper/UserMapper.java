@@ -1,5 +1,6 @@
 package pmb.weatherwatcher.user.mapper;
 
+import org.mapstruct.InheritConfiguration;
 import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -16,8 +17,12 @@ public interface UserMapper extends EntityDtoMapper<User, UserDto> {
   @Mapping(target = "authorities", ignore = true)
   UserDto toDto(User user);
 
+  @InheritConfiguration(name = "toDto")
+  @Mapping(target = "password", ignore = true)
+  UserDto toDtoWithoutPassword(User user);
+
   @Override
   @Mapping(target = "subscription", ignore = true)
-  @InheritInverseConfiguration
+  @InheritInverseConfiguration(name = "toDto")
   User toEntity(UserDto dto);
 }

@@ -30,14 +30,16 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import pmb.weatherwatcher.ServiceTestRunner;
 import pmb.weatherwatcher.common.exception.AlreadyExistException;
+import pmb.weatherwatcher.user.dto.EditUserDto;
 import pmb.weatherwatcher.user.dto.JwtTokenDto;
 import pmb.weatherwatcher.user.dto.PasswordDto;
 import pmb.weatherwatcher.user.dto.UserDto;
+import pmb.weatherwatcher.user.mapper.UserMapperImpl;
 import pmb.weatherwatcher.user.model.User;
 import pmb.weatherwatcher.user.repository.UserRepository;
 import pmb.weatherwatcher.user.security.JwtTokenProvider;
 
-@Import(UserService.class)
+@Import({UserService.class, UserMapperImpl.class})
 @ServiceTestRunner
 class UserServiceTest {
 
@@ -218,5 +220,34 @@ class UserServiceTest {
       verify(bCryptPasswordEncoder, never()).encode("newPassword");
       verify(userRepository, never()).save(any());
     }
+  }
+
+  @Test
+  @WithMockUser(username = "test")
+  void edit() {
+    EditUserDto editUser = new EditUserDto("Paris");
+    User currentUser = new User("test", "pwd2", "Lyon");
+    ArgumentCaptor<UsernamePasswordAuthenticationToken> token =
+        ArgumentCaptor.forClass(UsernamePasswordAuthenticationToken.class);
+    ArgumentCaptor<User> save = ArgumentCaptor.forClass(User.class);
+
+    when(userRepository.findById("test")).thenReturn(Optional.of(currentUser));
+    when(jwtTokenProvider.create(any())).thenReturn("jwt");
+    when(userRepository.save(any())).thenAnswer(a -> a.getArgument(0));
+
+    JwtTokenDto newToken = userService.edit(editUser);
+
+    verify(jwtTokenProvider).create(token.capture());
+    verify(userRepository).findById("test");
+    verify(userRepository).save(save.capture());
+
+    assertAll(
+        () -> assertEquals("jwt", newToken.getToken()),
+        () -> assertEquals("Paris", save.getValue().getFavouriteLocation()),
+        () -> assertEquals("test", save.getValue().getLogin()),
+        () -> assertEquals("test", ((UserDto) token.getValue().getPrincipal()).getUsername()),
+        () -> assertFalse(token.getValue().isAuthenticated()),
+        () ->
+            assertEquals("test", SecurityContextHolder.getContext().getAuthentication().getName()));
   }
 }
