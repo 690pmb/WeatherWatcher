@@ -26,6 +26,10 @@ public class UserDto implements UserDetails {
 
   private String favouriteLocation;
 
+  public UserDto() {
+    super();
+  }
+
   public UserDto(String username, String password, String favouriteLocation) {
     this.username = username;
     this.password = password;

@@ -1,7 +1,6 @@
 package pmb.weatherwatcher.user.service;
 
 import java.util.Optional;
-import javax.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -12,9 +11,11 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import pmb.weatherwatcher.common.exception.AlreadyExistException;
+import pmb.weatherwatcher.user.dto.EditUserDto;
 import pmb.weatherwatcher.user.dto.JwtTokenDto;
 import pmb.weatherwatcher.user.dto.PasswordDto;
 import pmb.weatherwatcher.user.dto.UserDto;
+import pmb.weatherwatcher.user.mapper.UserMapper;
 import pmb.weatherwatcher.user.model.User;
 import pmb.weatherwatcher.user.repository.UserRepository;
 import pmb.weatherwatcher.user.security.JwtTokenProvider;
@@ -27,16 +28,19 @@ public class UserService {
   private AuthenticationManager authenticationManager;
   private JwtTokenProvider jwtTokenProvider;
   private BCryptPasswordEncoder bCryptPasswordEncoder;
+  private UserMapper userMapper;
 
   public UserService(
       UserRepository userRepository,
       AuthenticationManager authenticationManager,
       JwtTokenProvider jwtTokenProvider,
-      BCryptPasswordEncoder bCryptPasswordEncoder) {
+      BCryptPasswordEncoder bCryptPasswordEncoder,
+      UserMapper userMapper) {
     this.userRepository = userRepository;
     this.authenticationManager = authenticationManager;
     this.jwtTokenProvider = jwtTokenProvider;
     this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+    this.userMapper = userMapper;
   }
 
   /**
@@ -45,7 +49,7 @@ public class UserService {
    * @param user to save
    * @return saved user
    */
-  public UserDto save(@Valid UserDto user) {
+  public UserDto save(UserDto user) {
     userRepository
         .findById(user.getUsername())
         .ifPresent(
@@ -62,7 +66,7 @@ public class UserService {
                     .map(StringUtils::trim)
                     .filter(StringUtils::isNotBlank)
                     .orElse(null)));
-    return new UserDto(saved.getLogin(), null, saved.getFavouriteLocation());
+    return userMapper.toDtoWithoutPassword(saved);
   }
 
   /**
@@ -103,5 +107,20 @@ public class UserService {
     return JwtTokenProvider.getCurrentUserLogin()
         .flatMap(userRepository::findById)
         .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+  }
+
+  /**
+   * Edits current user's properties with given informations.
+   *
+   * @param editUser new informations
+   * @return user updated
+   */
+  public JwtTokenDto edit(EditUserDto editUser) {
+    User user = getCurrentUser();
+    user.setFavouriteLocation(editUser.getFavouriteLocation());
+    return new JwtTokenDto(
+        jwtTokenProvider.create(
+            new UsernamePasswordAuthenticationToken(
+                userMapper.toDtoWithoutPassword(userRepository.save(user)), null)));
   }
 }
