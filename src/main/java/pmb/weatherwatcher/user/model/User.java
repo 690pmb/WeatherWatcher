@@ -6,10 +6,13 @@ import java.util.Optional;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import pmb.weatherwatcher.common.model.Language;
 import pmb.weatherwatcher.notification.model.Subscription;
 
 /** User database entity. */
@@ -31,6 +34,9 @@ public class User {
       fetch = FetchType.LAZY)
   private List<Subscription> subscription;
 
+  @Enumerated(EnumType.STRING)
+  private Language lang;
+
   public User() {}
 
   /**
@@ -39,11 +45,13 @@ public class User {
    * @param login user's name
    * @param password his password
    * @param favouriteLocation suggested location when needed location
+   * @param lang user's language
    */
-  public User(String login, String password, String favouriteLocation) {
+  public User(String login, String password, String favouriteLocation, Language lang) {
     this.login = login;
     this.password = password;
     this.favouriteLocation = favouriteLocation;
+    this.lang = lang;
   }
 
   public String getLogin() {
@@ -76,5 +84,13 @@ public class User {
 
   public void setSubscription(List<Subscription> subscription) {
     this.subscription = subscription;
+  }
+
+  public Language getLang() {
+    return lang;
+  }
+
+  public void setLang(Language lang) {
+    this.lang = lang;
   }
 }

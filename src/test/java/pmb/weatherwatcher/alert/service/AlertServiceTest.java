@@ -45,6 +45,7 @@ import pmb.weatherwatcher.alert.model.WeatherField;
 import pmb.weatherwatcher.alert.repository.AlertRepository;
 import pmb.weatherwatcher.common.exception.BadRequestException;
 import pmb.weatherwatcher.common.exception.NotFoundException;
+import pmb.weatherwatcher.common.model.Language;
 import pmb.weatherwatcher.user.model.User;
 import pmb.weatherwatcher.user.service.UserService;
 
@@ -86,7 +87,8 @@ class AlertServiceTest {
       ArgumentCaptor<Alert> captureSaved = ArgumentCaptor.forClass(Alert.class);
 
       when(alertRepository.save(any())).thenAnswer(a -> a.getArgument(0));
-      when(userService.getCurrentUser()).thenReturn(new User("test", "sfdg", "Lyon"));
+      when(userService.getCurrentUser())
+          .thenReturn(new User("test", "sfdg", "Lyon", Language.FRENCH));
 
       AlertDto result = alertService.create(DUMMY_ALERT);
 
@@ -150,7 +152,8 @@ class AlertServiceTest {
     Alert a2 = new Alert();
     a2.setId(2L);
 
-    when(userService.getCurrentUser()).thenReturn(new User("test", "sfdg", "Lyon"));
+    when(userService.getCurrentUser())
+        .thenReturn(new User("test", "sfdg", "Lyon", Language.FRENCH));
     when(alertRepository.findDistinctByUserLogin("test")).thenReturn(List.of(a1, a2));
 
     List<AlertDto> result = alertService.findAllForCurrentUser();
@@ -172,7 +175,8 @@ class AlertServiceTest {
       DUMMY_ALERT.setId(5L);
       DUMMY_ALERT.getMonitoredFields().get(0).setMax(null);
 
-      when(userService.getCurrentUser()).thenReturn(new User("test", "sfdg", "Lyon"));
+      when(userService.getCurrentUser())
+          .thenReturn(new User("test", "sfdg", "Lyon", Language.FRENCH));
       when(alertRepository.findByIdAndUserLogin(5L, "test")).thenReturn(Optional.of(new Alert()));
       when(alertRepository.save(any())).thenAnswer(a -> a.getArgument(0));
 
@@ -206,7 +210,8 @@ class AlertServiceTest {
     @Test
     void alert_not_found_then_bad_request() {
       DUMMY_ALERT.setId(5L);
-      when(userService.getCurrentUser()).thenReturn(new User("test", "sfdg", "Lyon"));
+      when(userService.getCurrentUser())
+          .thenReturn(new User("test", "sfdg", "Lyon", Language.FRENCH));
       when(alertRepository.findByIdAndUserLogin(5L, "test")).thenReturn(Optional.empty());
 
       assertThrows(
@@ -225,7 +230,8 @@ class AlertServiceTest {
 
     @Test
     void when_alert_not_exist_then_not_found_exception() {
-      when(userService.getCurrentUser()).thenReturn(new User("test", "sfdg", "Lyon"));
+      when(userService.getCurrentUser())
+          .thenReturn(new User("test", "sfdg", "Lyon", Language.FRENCH));
       when(alertRepository.findByIdAndUserLogin(5L, "test")).thenReturn(Optional.empty());
 
       assertThrows(
@@ -242,7 +248,8 @@ class AlertServiceTest {
       Alert alert = new Alert();
       alert.setId(56L);
 
-      when(userService.getCurrentUser()).thenReturn(new User("test", "sfdg", "Lyon"));
+      when(userService.getCurrentUser())
+          .thenReturn(new User("test", "sfdg", "Lyon", Language.FRENCH));
       when(alertRepository.findByIdAndUserLogin(5L, "test")).thenReturn(Optional.of(alert));
 
       AlertDto actual = alertService.findById(5L);
@@ -259,7 +266,8 @@ class AlertServiceTest {
 
     @Test
     void alert_not_found_then_bad_request() {
-      when(userService.getCurrentUser()).thenReturn(new User("test", "sfdg", "Lyon"));
+      when(userService.getCurrentUser())
+          .thenReturn(new User("test", "sfdg", "Lyon", Language.FRENCH));
       when(alertRepository.findByIdAndUserLogin(5L, "test")).thenReturn(Optional.empty());
 
       assertThrows(
@@ -278,7 +286,8 @@ class AlertServiceTest {
       alert.setId(56L);
       ArgumentCaptor<Alert> deletedCaptor = ArgumentCaptor.forClass(Alert.class);
 
-      when(userService.getCurrentUser()).thenReturn(new User("test", "sfdg", "Lyon"));
+      when(userService.getCurrentUser())
+          .thenReturn(new User("test", "sfdg", "Lyon", Language.FRENCH));
       when(alertRepository.findByIdAndUserLogin(5L, "test")).thenReturn(Optional.of(alert));
       when(alertRepository.findByIdAndUserLogin(8L, "test")).thenReturn(Optional.of(alert));
       doNothing().when(alertRepository).delete(any());

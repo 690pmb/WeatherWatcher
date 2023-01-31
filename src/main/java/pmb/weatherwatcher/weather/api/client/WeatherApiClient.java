@@ -2,8 +2,8 @@ package pmb.weatherwatcher.weather.api.client;
 
 import java.util.List;
 import java.util.Optional;
+import pmb.weatherwatcher.common.model.Language;
 import pmb.weatherwatcher.weather.api.model.ForecastJsonResponse;
-import pmb.weatherwatcher.weather.api.model.Language;
 import pmb.weatherwatcher.weather.api.model.SearchJsonResponse;
 
 public interface WeatherApiClient {

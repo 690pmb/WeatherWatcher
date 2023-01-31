@@ -30,6 +30,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import pmb.weatherwatcher.ServiceTestRunner;
 import pmb.weatherwatcher.common.exception.AlreadyExistException;
+import pmb.weatherwatcher.common.model.Language;
 import pmb.weatherwatcher.user.dto.EditUserDto;
 import pmb.weatherwatcher.user.dto.JwtTokenDto;
 import pmb.weatherwatcher.user.dto.PasswordDto;
@@ -49,7 +50,7 @@ class UserServiceTest {
   @MockBean private BCryptPasswordEncoder bCryptPasswordEncoder;
   @Autowired private UserService userService;
 
-  private UserDto DUMMY_USER = new UserDto("test", "pwd", "lyon");
+  private UserDto DUMMY_USER = new UserDto("test", "pwd", "lyon", Language.FRENCH);
   private PasswordDto DUMMY_PASSWORD = new PasswordDto("password", "newPassword");
 
   @AfterEach
@@ -85,6 +86,7 @@ class UserServiceTest {
           () -> assertNotNull(saved),
           () -> assertEquals("test", saved.getUsername()),
           () -> assertEquals("lyon", saved.getFavouriteLocation()),
+          () -> assertEquals("fr", saved.getLang().getCode()),
           () -> assertNull(saved.getPassword()),
           () -> assertTrue(saved.isEnabled()),
           () -> assertTrue(saved.isAccountNonLocked()),
@@ -158,7 +160,7 @@ class UserServiceTest {
     @Test
     @WithMockUser(username = "test")
     void ok() {
-      User user = new User("test", "encryptedPassword", "lyon");
+      User user = new User("test", "encryptedPassword", "lyon", Language.FRENCH);
       ArgumentCaptor<User> captured = ArgumentCaptor.forClass(User.class);
 
       when(userRepository.findById("test")).thenReturn(Optional.of(user));
@@ -208,7 +210,7 @@ class UserServiceTest {
     @Test
     @WithMockUser(username = "test")
     void incorrect_password() {
-      User user = new User("test", "encryptedPassword", "lyon");
+      User user = new User("test", "encryptedPassword", "lyon", Language.FRENCH);
 
       when(userRepository.findById("test")).thenReturn(Optional.of(user));
       when(bCryptPasswordEncoder.matches("password", "encryptedPassword")).thenReturn(false);
@@ -226,7 +228,7 @@ class UserServiceTest {
   @WithMockUser(username = "test")
   void edit() {
     EditUserDto editUser = new EditUserDto("Paris");
-    User currentUser = new User("test", "pwd2", "Lyon");
+    User currentUser = new User("test", "pwd2", "Lyon", Language.FRENCH);
     ArgumentCaptor<UsernamePasswordAuthenticationToken> token =
         ArgumentCaptor.forClass(UsernamePasswordAuthenticationToken.class);
     ArgumentCaptor<User> save = ArgumentCaptor.forClass(User.class);

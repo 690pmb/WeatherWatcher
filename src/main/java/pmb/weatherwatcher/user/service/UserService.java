@@ -65,7 +65,8 @@ public class UserService {
                 Optional.ofNullable(user.getFavouriteLocation())
                     .map(StringUtils::trim)
                     .filter(StringUtils::isNotBlank)
-                    .orElse(null)));
+                    .orElse(null),
+                user.getLang()));
     return userMapper.toDtoWithoutPassword(saved);
   }
 
