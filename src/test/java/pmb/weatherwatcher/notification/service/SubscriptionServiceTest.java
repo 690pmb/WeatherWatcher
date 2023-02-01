@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import pmb.weatherwatcher.ServiceTestRunner;
+import pmb.weatherwatcher.common.model.Language;
 import pmb.weatherwatcher.notification.NotificationUtils;
 import pmb.weatherwatcher.notification.dto.SubscriptionDto;
 import pmb.weatherwatcher.notification.mapper.SubscriptionMapperImpl;
@@ -53,11 +54,12 @@ class SubscriptionServiceTest {
       existing.setEndpoint("point");
       existing.setExpirationTime(98L);
       existing.setId(new SubscriptionId("userAgent2", "login2"));
-      existing.setUser(new User("login2", "mdp", "Paris"));
+      existing.setUser(new User("login2", "mdp", "Paris", Language.FRENCH));
       existing.setPublicKey("public");
       existing.setPrivateKey("private");
 
-      when(userService.getCurrentUser()).thenReturn(new User("login", "pwd", "Lyon"));
+      when(userService.getCurrentUser())
+          .thenReturn(new User("login", "pwd", "Lyon", Language.FRENCH));
       when(subscriptionRepository.findById(new SubscriptionId(userAgent, "login")))
           .thenReturn(Optional.of(existing));
       when(subscriptionRepository.save(any(Subscription.class))).thenAnswer(a -> a.getArgument(0));
@@ -89,7 +91,8 @@ class SubscriptionServiceTest {
           NotificationUtils.buildSubscriptionDto(
               userAgent, "end", "public2", "private2", 56L, null);
 
-      when(userService.getCurrentUser()).thenReturn(new User("login", "pwd", "Lyon"));
+      when(userService.getCurrentUser())
+          .thenReturn(new User("login", "pwd", "Lyon", Language.FRENCH));
       when(subscriptionRepository.findById(new SubscriptionId(userAgent, "login")))
           .thenReturn(Optional.empty());
       when(subscriptionRepository.save(any(Subscription.class))).thenAnswer(a -> a.getArgument(0));

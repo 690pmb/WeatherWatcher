@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import pmb.weatherwatcher.ServiceTestRunner;
+import pmb.weatherwatcher.common.model.Language;
 import pmb.weatherwatcher.user.dto.UserDto;
 
 @ServiceTestRunner
@@ -28,6 +29,7 @@ class JwtTokenProviderTest {
       Jwts.builder()
           .setSubject("test")
           .claim("location", "lyon")
+          .claim("lang", "en")
           .signWith(SignatureAlgorithm.HS512, SIGNING_KEY)
           .compact();
 
@@ -35,7 +37,7 @@ class JwtTokenProviderTest {
 
   @Test
   void create() {
-    UserDto user = new UserDto("test", "pwd", "lyon");
+    UserDto user = new UserDto("test", "pwd", "lyon", Language.FRENCH);
     UsernamePasswordAuthenticationToken token =
         new UsernamePasswordAuthenticationToken(user, "pwd");
     Date now = new Date();
@@ -47,6 +49,7 @@ class JwtTokenProviderTest {
     assertAll(
         () -> assertEquals("test", body.getSubject()),
         () -> assertEquals("lyon", body.get("location")),
+        () -> assertEquals("fr", body.get("lang")),
         () -> assertTrue(DateUtils.isSameDay(now, body.getIssuedAt())),
         () -> assertNotNull(body.getExpiration()),
         () -> assertNotNull(body.get(Claims.ID)));
@@ -66,6 +69,7 @@ class JwtTokenProviderTest {
     assertAll(
         () -> assertEquals("test", user.getUsername()),
         () -> assertEquals("lyon", user.getFavouriteLocation()),
+        () -> assertEquals("en", user.getLang().getCode()),
         () -> assertNull(user.getPassword()),
         () -> assertEquals(DUMMY_TOKEN, authentication.getCredentials()));
   }
@@ -104,7 +108,8 @@ class JwtTokenProviderTest {
     void when_user() {
       SecurityContextHolder.getContext()
           .setAuthentication(
-              new UsernamePasswordAuthenticationToken(new UserDto("test", "pwd", "lyon"), "pwd"));
+              new UsernamePasswordAuthenticationToken(
+                  new UserDto("test", "pwd", "lyon", Language.FRENCH), "pwd"));
 
       Optional<String> result = JwtTokenProvider.getCurrentUserLogin();
 

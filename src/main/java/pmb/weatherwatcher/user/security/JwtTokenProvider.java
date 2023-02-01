@@ -18,6 +18,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import pmb.weatherwatcher.common.model.Language;
 import pmb.weatherwatcher.user.dto.UserDto;
 
 /** Jwt token utils class. */
@@ -27,6 +28,7 @@ public class JwtTokenProvider {
   private static final Logger LOGGER = LoggerFactory.getLogger(JwtTokenProvider.class);
 
   private static final String FAVOURITE_LOCATION = "location";
+  private static final String LANGUAGE = "lang";
 
   private final String secretKey;
   private final Integer tokenDuration;
@@ -50,6 +52,7 @@ public class JwtTokenProvider {
     return Jwts.builder()
         .setSubject(user.getUsername())
         .claim(FAVOURITE_LOCATION, user.getFavouriteLocation())
+        .claim(LANGUAGE, user.getLang().getCode())
         .signWith(SignatureAlgorithm.HS512, secretKey)
         .setId(UUID.randomUUID().toString())
         .setIssuedAt(issuedAt)
@@ -93,7 +96,11 @@ public class JwtTokenProvider {
   public Authentication getAuthentication(String token) {
     Claims claims = parseToken(token).getBody();
     return new UsernamePasswordAuthenticationToken(
-        new UserDto(claims.getSubject(), null, claims.get(FAVOURITE_LOCATION, String.class)),
+        new UserDto(
+            claims.getSubject(),
+            null,
+            claims.get(FAVOURITE_LOCATION, String.class),
+            Language.fromCode(claims.get(LANGUAGE, String.class)).get()),
         token,
         null);
   }

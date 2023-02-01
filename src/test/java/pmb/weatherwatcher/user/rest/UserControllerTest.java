@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator.ReplaceUnderscores;
@@ -34,6 +35,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import pmb.weatherwatcher.TestUtils;
 import pmb.weatherwatcher.common.exception.AlreadyExistException;
+import pmb.weatherwatcher.common.model.Language;
 import pmb.weatherwatcher.user.dto.EditUserDto;
 import pmb.weatherwatcher.user.dto.JwtTokenDto;
 import pmb.weatherwatcher.user.dto.PasswordDto;
@@ -52,7 +54,8 @@ class UserControllerTest {
   @Autowired private MockMvc mockMvc;
   @Autowired private ObjectMapper objectMapper;
   @MockBean private UserService userService;
-  private static final UserDto DUMMY_USER = new UserDto("test", "password", "lyon");
+  private static final UserDto DUMMY_USER =
+      new UserDto("test", "password", "lyon", Language.FRENCH);
   private static final PasswordDto DUMMY_PASSWORD = new PasswordDto("password", "password2");
   private static final EditUserDto DUMMY_EDIT_USER = new EditUserDto("lyon");
   private static final JwtTokenDto DUMMY_TOKEN = new JwtTokenDto("jwtToken");
@@ -66,15 +69,16 @@ class UserControllerTest {
   class Signin {
 
     @ParameterizedTest(
-        name = "Given user with login ''{0}'' and password ''{1}'' when login then ok")
+        name =
+            "Given user with login ''{0}'', password ''{1}'' and lang ''{2}'' when login then ok")
     @CsvSource({
-      "test, password",
-      "o, password",
-      "test, p",
-      "01234567891011121314151617181920, password",
-      "test, 01234567891011121314151617181920"
+      "test, password, fr",
+      "o, password, pt",
+      "test, p, nl",
+      "01234567891011121314151617181920, password, en",
+      "test, 01234567891011121314151617181920,"
     })
-    void ok(String login, String password) throws Exception {
+    void ok(String login, String password, String lang) throws Exception {
       ArgumentCaptor<UserDto> user = ArgumentCaptor.forClass(UserDto.class);
 
       when(userService.login(any())).thenReturn(DUMMY_TOKEN);
@@ -89,7 +93,13 @@ class UserControllerTest {
                               post("/users/signin")
                                   .content(
                                       objectMapper.writeValueAsString(
-                                          new UserDto(login, password, "lyon")))
+                                          new UserDto(
+                                              login,
+                                              password,
+                                              "lyon",
+                                              Optional.ofNullable(lang)
+                                                  .flatMap(Language::fromCode)
+                                                  .orElse(null))))
                                   .contentType(MediaType.APPLICATION_JSON_VALUE))
                           .andExpect(status().isOk())),
                   JwtTokenDto.class)
@@ -105,16 +115,21 @@ class UserControllerTest {
     }
 
     @ParameterizedTest(
-        name = "Given user with login ''{0}'' and password ''{1}'' when login then bad request")
+        name =
+            "Given user with login ''{0}'', password ''{1}'' and lang ''{2}'' when login then bad request")
     @CsvSource({
-      ", password",
-      "test,",
+      ", password,fr",
+      "test,,fr",
     })
-    void when_failed_validation_then_bad_request(String login, String password) throws Exception {
+    void when_failed_validation_then_bad_request(String login, String password, String lang)
+        throws Exception {
       mockMvc
           .perform(
               post("/users/signin")
-                  .content(objectMapper.writeValueAsString(new UserDto(login, password, "lyon")))
+                  .content(
+                      objectMapper.writeValueAsString(
+                          new UserDto(
+                              login, password, "lyon", Language.fromCode(lang).orElse(null))))
                   .contentType(MediaType.APPLICATION_JSON_VALUE))
           .andExpect(status().isBadRequest());
 
@@ -176,21 +191,32 @@ class UserControllerTest {
     }
 
     @ParameterizedTest(
-        name = "Given user with login ''{0}'' and password ''{1}'' when signup then bad request")
+        name =
+            "Given user with login ''{0}'', password ''{1}'' and lang ''{2}'' when signup then bad request")
     @CsvSource({
-      ", password",
-      "o, password",
-      "test,",
-      "test, p",
-      ",",
-      "01234567891011121314151617181920, password",
-      "test, 01234567891011121314151617181920"
+      ", password,fr",
+      "o, password,fr",
+      "test,,fr",
+      "test, p,fr",
+      ",,fr",
+      "01234567891011121314151617181920, password,fr",
+      "test, 01234567891011121314151617181920,fr",
+      "test, password,",
+      "test, password,fra",
     })
-    void when_invalid_then_bad_request(String login, String password) throws Exception {
+    void when_invalid_then_bad_request(String login, String password, String lang)
+        throws Exception {
       mockMvc
           .perform(
               post("/users/signup")
-                  .content(objectMapper.writeValueAsString(new UserDto(login, password, null)))
+                  .content(
+                      "{\"username\": \""
+                          + login
+                          + "\",\"password\": \""
+                          + password
+                          + "\",\"favouriteLocation\": \"lyon\",\"lang\": \""
+                          + lang
+                          + "\"}")
                   .contentType(MediaType.APPLICATION_JSON_VALUE))
           .andExpect(status().isBadRequest());
 

@@ -23,6 +23,7 @@ import org.springframework.context.annotation.Import;
 import pmb.weatherwatcher.ServiceTestRunner;
 import pmb.weatherwatcher.common.exception.NoContentException;
 import pmb.weatherwatcher.common.exception.NotFoundException;
+import pmb.weatherwatcher.common.model.Language;
 import pmb.weatherwatcher.user.model.User;
 import pmb.weatherwatcher.user.service.UserService;
 import pmb.weatherwatcher.weather.api.client.WeatherApiClient;
@@ -33,7 +34,6 @@ import pmb.weatherwatcher.weather.api.model.Forecast;
 import pmb.weatherwatcher.weather.api.model.ForecastJsonResponse;
 import pmb.weatherwatcher.weather.api.model.Forecastday;
 import pmb.weatherwatcher.weather.api.model.Hour;
-import pmb.weatherwatcher.weather.api.model.Language;
 import pmb.weatherwatcher.weather.api.model.Location;
 import pmb.weatherwatcher.weather.api.model.SearchJsonResponse;
 import pmb.weatherwatcher.weather.dto.ForecastDayDto;
@@ -117,7 +117,8 @@ class WeatherServiceTest {
     void not_found_with_favourite_location() {
       when(weatherApiClient.getForecastWeather("london", null, Language.FRENCH))
           .thenReturn(Optional.empty());
-      when(userService.getCurrentUser()).thenReturn(new User("test", "test", "london"));
+      when(userService.getCurrentUser())
+          .thenReturn(new User("test", "test", "london", Language.FRENCH));
 
       assertThrows(
           NotFoundException.class, () -> weatherService.findForecastbyLocation(null, null, null));
@@ -128,7 +129,8 @@ class WeatherServiceTest {
 
     @Test
     void no_location_nor_user_favorite_then_no_content() {
-      when(userService.getCurrentUser()).thenReturn(new User("test", "test", null));
+      when(userService.getCurrentUser())
+          .thenReturn(new User("test", "test", null, Language.FRENCH));
 
       assertThrows(
           NoContentException.class, () -> weatherService.findForecastbyLocation(null, null, null));
