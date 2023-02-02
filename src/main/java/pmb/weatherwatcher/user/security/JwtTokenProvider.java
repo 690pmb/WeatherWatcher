@@ -18,6 +18,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import pmb.weatherwatcher.common.exception.InternalServerErrorException;
 import pmb.weatherwatcher.common.model.Language;
 import pmb.weatherwatcher.user.dto.UserDto;
 
@@ -100,7 +101,12 @@ public class JwtTokenProvider {
             claims.getSubject(),
             null,
             claims.get(FAVOURITE_LOCATION, String.class),
-            Language.fromCode(claims.get(LANGUAGE, String.class)).get()),
+            Language.fromCode(claims.get(LANGUAGE, String.class))
+                .orElseThrow(
+                    () ->
+                        new InternalServerErrorException(
+                            "Cant' find language from token with code: "
+                                + claims.get(LANGUAGE, String.class)))),
         token,
         null);
   }
