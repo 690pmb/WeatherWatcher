@@ -17,6 +17,8 @@ import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -30,6 +32,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import pmb.weatherwatcher.ServiceTestRunner;
 import pmb.weatherwatcher.common.exception.AlreadyExistException;
+import pmb.weatherwatcher.common.exception.BadRequestException;
 import pmb.weatherwatcher.common.model.Language;
 import pmb.weatherwatcher.user.dto.EditUserDto;
 import pmb.weatherwatcher.user.dto.JwtTokenDto;
@@ -224,32 +227,57 @@ class UserServiceTest {
     }
   }
 
-  @Test
-  @WithMockUser(username = "test")
-  void edit() {
-    EditUserDto editUser = new EditUserDto("Paris");
-    User currentUser = new User("test", "pwd2", "Lyon", Language.FRENCH);
-    ArgumentCaptor<UsernamePasswordAuthenticationToken> token =
-        ArgumentCaptor.forClass(UsernamePasswordAuthenticationToken.class);
-    ArgumentCaptor<User> save = ArgumentCaptor.forClass(User.class);
+  @Nested
+  class Edit {
 
-    when(userRepository.findById("test")).thenReturn(Optional.of(currentUser));
-    when(jwtTokenProvider.create(any())).thenReturn("jwt");
-    when(userRepository.save(any())).thenAnswer(a -> a.getArgument(0));
+    @ParameterizedTest(
+        name = "Given location ''{0}'' and lang ''{1}'' when editing a user then all good")
+    @WithMockUser(username = "test")
+    @CsvSource(value = {"lyon,", ",fr", "lyon,fr", "'',"})
+    void ok(String location, String lang) {
+      EditUserDto editUser =
+          new EditUserDto(
+              location, Optional.ofNullable(lang).flatMap(Language::fromCode).orElse(null));
+      User currentUser = new User("test", "pwd2", "Paris", Language.GREEK);
+      ArgumentCaptor<UsernamePasswordAuthenticationToken> token =
+          ArgumentCaptor.forClass(UsernamePasswordAuthenticationToken.class);
+      ArgumentCaptor<User> save = ArgumentCaptor.forClass(User.class);
 
-    JwtTokenDto newToken = userService.edit(editUser);
+      when(userRepository.findById("test")).thenReturn(Optional.of(currentUser));
+      when(jwtTokenProvider.create(any())).thenReturn("jwt");
+      when(userRepository.save(any())).thenAnswer(a -> a.getArgument(0));
 
-    verify(jwtTokenProvider).create(token.capture());
-    verify(userRepository).findById("test");
-    verify(userRepository).save(save.capture());
+      JwtTokenDto newToken = userService.edit(editUser);
 
-    assertAll(
-        () -> assertEquals("jwt", newToken.getToken()),
-        () -> assertEquals("Paris", save.getValue().getFavouriteLocation()),
-        () -> assertEquals("test", save.getValue().getLogin()),
-        () -> assertEquals("test", ((UserDto) token.getValue().getPrincipal()).getUsername()),
-        () -> assertFalse(token.getValue().isAuthenticated()),
-        () ->
-            assertEquals("test", SecurityContextHolder.getContext().getAuthentication().getName()));
+      verify(jwtTokenProvider).create(token.capture());
+      verify(userRepository).findById("test");
+      verify(userRepository).save(save.capture());
+
+      assertAll(
+          () -> assertEquals("jwt", newToken.getToken()),
+          () ->
+              assertEquals(
+                  Optional.ofNullable(location).orElse("Paris"),
+                  save.getValue().getFavouriteLocation()),
+          () ->
+              assertEquals(
+                  Optional.ofNullable(lang).orElse("el"), save.getValue().getLang().getCode()),
+          () -> assertEquals("test", save.getValue().getLogin()),
+          () -> assertEquals("test", ((UserDto) token.getValue().getPrincipal()).getUsername()),
+          () -> assertFalse(token.getValue().isAuthenticated()),
+          () ->
+              assertEquals(
+                  "test", SecurityContextHolder.getContext().getAuthentication().getName()));
+    }
+
+    @Test
+    @WithMockUser(username = "test")
+    void given_all_fields_null_when_edting_user_then_bad_request_exception() {
+      assertThrows(BadRequestException.class, () -> userService.edit(new EditUserDto()));
+
+      verify(jwtTokenProvider, never()).create(any());
+      verify(userRepository, never()).findById(any());
+      verify(userRepository, never()).save(any());
+    }
   }
 }

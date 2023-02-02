@@ -58,7 +58,7 @@ public class UserController {
   }
 
   @PutMapping
-  public JwtTokenDto edit(@RequestBody @Valid EditUserDto editUser) {
+  public JwtTokenDto edit(@RequestBody EditUserDto editUser) {
     LOGGER.debug("Edit user");
     return userService.edit(editUser);
   }

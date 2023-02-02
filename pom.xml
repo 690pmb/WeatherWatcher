@@ -172,6 +172,7 @@
                     <showWarnings>true</showWarnings>
                     <compilerArgs>
                         <arg> -Amapstruct.defaultComponentModel=spring</arg>
+                        <arg> -Amapstruct.unmappedTargetPolicy=error</arg>
                     </compilerArgs>
                 </configuration>
             </plugin>

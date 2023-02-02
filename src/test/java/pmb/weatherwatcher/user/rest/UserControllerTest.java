@@ -22,7 +22,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -35,6 +34,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import pmb.weatherwatcher.TestUtils;
 import pmb.weatherwatcher.common.exception.AlreadyExistException;
+import pmb.weatherwatcher.common.exception.BadRequestException;
 import pmb.weatherwatcher.common.model.Language;
 import pmb.weatherwatcher.user.dto.EditUserDto;
 import pmb.weatherwatcher.user.dto.JwtTokenDto;
@@ -57,7 +57,7 @@ class UserControllerTest {
   private static final UserDto DUMMY_USER =
       new UserDto("test", "password", "lyon", Language.FRENCH);
   private static final PasswordDto DUMMY_PASSWORD = new PasswordDto("password", "password2");
-  private static final EditUserDto DUMMY_EDIT_USER = new EditUserDto("lyon");
+  private static final EditUserDto DUMMY_EDIT_USER = new EditUserDto("lyon", Language.ARABIC);
   private static final JwtTokenDto DUMMY_TOKEN = new JwtTokenDto("jwtToken");
 
   @AfterEach
@@ -312,11 +312,14 @@ class UserControllerTest {
     }
 
     @WithMockUser
-    @ParameterizedTest(name = "Given user ''{0}'' when editing user then bad request")
-    @ValueSource(strings = {"{\"favouriteLocation\":null}", "{\"location\":\"\"}"})
-    void when_failed_validation_then_bad_request(String user) throws Exception {
+    void when_failed_validation_then_bad_request() throws Exception {
+      when(userService.edit(any())).thenThrow(BadRequestException.class);
+
       mockMvc
-          .perform(put("/users").content(user).contentType(MediaType.APPLICATION_JSON_VALUE))
+          .perform(
+              put("/users")
+                  .content(objectMapper.writeValueAsString(DUMMY_EDIT_USER))
+                  .contentType(MediaType.APPLICATION_JSON_VALUE))
           .andExpect(status().isBadRequest());
 
       verify(userService, never()).edit(any());

@@ -1,6 +1,7 @@
 package pmb.weatherwatcher.user.service;
 
 import java.util.Optional;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -11,6 +12,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import pmb.weatherwatcher.common.exception.AlreadyExistException;
+import pmb.weatherwatcher.common.exception.BadRequestException;
 import pmb.weatherwatcher.user.dto.EditUserDto;
 import pmb.weatherwatcher.user.dto.JwtTokenDto;
 import pmb.weatherwatcher.user.dto.PasswordDto;
@@ -117,11 +119,14 @@ public class UserService {
    * @return user updated
    */
   public JwtTokenDto edit(EditUserDto editUser) {
-    User user = getCurrentUser();
-    user.setFavouriteLocation(editUser.getFavouriteLocation());
+    if (ObjectUtils.allNull(editUser.getFavouriteLocation(), editUser.getLang())) {
+      throw new BadRequestException("At least one field must be filled when editing a user");
+    }
     return new JwtTokenDto(
         jwtTokenProvider.create(
             new UsernamePasswordAuthenticationToken(
-                userMapper.toDtoWithoutPassword(userRepository.save(user)), null)));
+                userMapper.toDtoWithoutPassword(
+                    userRepository.save(userMapper.edit(getCurrentUser(), editUser))),
+                null)));
   }
 }
