@@ -91,15 +91,7 @@ class UserControllerTest {
                       mockMvc
                           .perform(
                               post("/users/signin")
-                                  .content(
-                                      objectMapper.writeValueAsString(
-                                          new UserDto(
-                                              login,
-                                              password,
-                                              "lyon",
-                                              Optional.ofNullable(lang)
-                                                  .flatMap(Language::fromCode)
-                                                  .orElse(null))))
+                                  .content(buildUserJson(login, password, lang))
                                   .contentType(MediaType.APPLICATION_JSON_VALUE))
                           .andExpect(status().isOk())),
                   JwtTokenDto.class)
@@ -126,10 +118,7 @@ class UserControllerTest {
       mockMvc
           .perform(
               post("/users/signin")
-                  .content(
-                      objectMapper.writeValueAsString(
-                          new UserDto(
-                              login, password, "lyon", Language.fromCode(lang).orElse(null))))
+                  .content(buildUserJson(login, password, lang))
                   .contentType(MediaType.APPLICATION_JSON_VALUE))
           .andExpect(status().isBadRequest());
 
@@ -143,7 +132,7 @@ class UserControllerTest {
       mockMvc
           .perform(
               post("/users/signin")
-                  .content(objectMapper.writeValueAsString(DUMMY_USER))
+                  .content(buildUserJson(DUMMY_USER))
                   .contentType(MediaType.APPLICATION_JSON_VALUE))
           .andExpect(status().isUnauthorized());
 
@@ -167,7 +156,7 @@ class UserControllerTest {
                       mockMvc
                           .perform(
                               post("/users/signup")
-                                  .content(objectMapper.writeValueAsString(DUMMY_USER))
+                                  .content(buildUserJson(DUMMY_USER))
                                   .contentType(MediaType.APPLICATION_JSON_VALUE))
                           .andExpect(status().isCreated())),
                   UserDto.class));
@@ -183,7 +172,7 @@ class UserControllerTest {
       mockMvc
           .perform(
               post("/users/signup")
-                  .content(objectMapper.writeValueAsString(DUMMY_USER))
+                  .content(buildUserJson(DUMMY_USER))
                   .contentType(MediaType.APPLICATION_JSON_VALUE))
           .andExpect(status().isConflict());
 
@@ -192,7 +181,7 @@ class UserControllerTest {
 
     @ParameterizedTest(
         name =
-            "Given user with login ''{0}'', password ''{1}'' and lang ''{2}'' when signup then bad request")
+            "Given user with signup ''{0}'', password ''{1}'' and lang ''{2}'' when signup then bad request")
     @CsvSource({
       ", password,fr",
       "o, password,fr",
@@ -209,14 +198,7 @@ class UserControllerTest {
       mockMvc
           .perform(
               post("/users/signup")
-                  .content(
-                      "{\"username\": \""
-                          + login
-                          + "\",\"password\": \""
-                          + password
-                          + "\",\"favouriteLocation\": \"lyon\",\"lang\": \""
-                          + lang
-                          + "\"}")
+                  .content(buildUserJson(login, password, lang))
                   .contentType(MediaType.APPLICATION_JSON_VALUE))
           .andExpect(status().isBadRequest());
 
@@ -230,7 +212,7 @@ class UserControllerTest {
       mockMvc
           .perform(
               post("/users/signup")
-                  .content(objectMapper.writeValueAsString(DUMMY_USER))
+                  .content(buildUserJson(DUMMY_USER))
                   .contentType(MediaType.APPLICATION_JSON_VALUE))
           .andExpect(status().isInternalServerError());
 
@@ -349,5 +331,23 @@ class UserControllerTest {
       verify(userService).edit(capture.capture());
       assertThat(capture.getValue()).usingRecursiveComparison().isEqualTo(DUMMY_EDIT_USER);
     }
+  }
+
+  public static String buildUserJson(UserDto user) {
+    return buildUserJson(user.getUsername(), user.getPassword(), user.getLang().getCode());
+  }
+
+  public static String buildUserJson(String login, String password, String lang) {
+    return "{\"username\": "
+        + buildField(login)
+        + ",\"password\": "
+        + buildField(password)
+        + ",\"favouriteLocation\": \"lyon\",\"lang\": "
+        + buildField(lang)
+        + "}";
+  }
+
+  private static String buildField(String field) {
+    return Optional.ofNullable(field).map(f -> "\"" + f + "\"").orElse(null);
   }
 }

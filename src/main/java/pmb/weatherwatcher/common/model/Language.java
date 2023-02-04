@@ -1,5 +1,6 @@
 package pmb.weatherwatcher.common.model;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import java.util.Arrays;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
@@ -52,6 +53,7 @@ public enum Language {
     this.code = code;
   }
 
+  @JsonValue
   public String getCode() {
     return code;
   }
