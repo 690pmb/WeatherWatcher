@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.time.DayOfWeek;
 import java.time.OffsetTime;
 import java.util.Collections;
@@ -25,6 +26,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -32,6 +34,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
@@ -317,26 +323,41 @@ class AlertControllerTest {
           .andExpect(status().isUnauthorized())
           .andExpect(jsonPath("$").doesNotExist());
 
-      verify(alertService, never()).findAllForCurrentUser();
+      verify(alertService, never()).findAllForCurrentUser(any());
     }
 
-    @Test
     @WithMockUser
-    void ok() throws Exception {
-      when(alertService.findAllForCurrentUser()).thenReturn(List.of(DUMMY_ALERT));
+    @ParameterizedTest(
+        name = "Given pageable ''{0}'' when getting alerts for current user then list")
+    @CsvSource({
+      "'', 0, 10, 'location', 'ASC'",
+      "'?sort=forceNotification,desc', 0 ,10 , 'forceNotification', 'DESC'",
+      "'?page=2&size=100&sort=triggerHour,desc', 2 ,100 , 'triggerHour', 'DESC'"
+    })
+    void ok(String url, Integer page, Integer size, String field, String dir) throws Exception {
+      Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.valueOf(dir), field));
+
+      when(alertService.findAllForCurrentUser(pageable))
+          .thenReturn(new PageImpl<>(List.of(DUMMY_ALERT)));
 
       assertThat(DUMMY_ALERT)
           .usingRecursiveComparison()
           .isEqualTo(
               objectMapper
-                  .readValue(
-                      TestUtils.readResponse.apply(
-                          mockMvc
-                              .perform(get("/alerts").contentType(MediaType.APPLICATION_JSON_VALUE))
-                              .andExpect(status().isOk())),
+                  .convertValue(
+                      objectMapper
+                          .readValue(
+                              TestUtils.readResponse.apply(
+                                  mockMvc
+                                      .perform(
+                                          get("/alerts" + url)
+                                              .contentType(MediaType.APPLICATION_JSON_VALUE))
+                                      .andExpect(status().isOk())),
+                              ObjectNode.class)
+                          .get("content"),
                       AlertDto[].class)[0]);
 
-      verify(alertService).findAllForCurrentUser();
+      verify(alertService).findAllForCurrentUser(pageable);
     }
   }
 
