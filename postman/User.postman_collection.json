@@ -1,13 +1,24 @@
 {
 	"info": {
-		"_postman_id": "499f90ea-5c11-4520-b08a-15de44fda6a3",
+		"_postman_id": "e15cf7fa-a3a5-4596-afd3-7b7215e714e9",
 		"name": "User",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "15226756"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
 			"name": "SignIn",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.globals.set(\"token\", pm.response.json().token);\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
 			"request": {
 				"method": "POST",
 				"header": [],
@@ -40,7 +51,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"username\": \"test\",\r\n    \"password\": \"password\"\r\n}",
+					"raw": "{\r\n    \"username\": \"test\",\r\n    \"password\": \"password\",\r\n    \"lang\": \"fr\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
