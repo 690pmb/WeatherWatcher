@@ -32,8 +32,8 @@ public class WeatherApiClientImpl implements WeatherApiClient {
   private static final String URL_FORECAST = "/forecast.json";
   private static final String URL_SEARCH = "/search.json";
 
-  private RestTemplate restTemplate;
-  private WeatherApiProperties weatherApiProperties;
+  private final RestTemplate restTemplate;
+  private final WeatherApiProperties weatherApiProperties;
 
   public WeatherApiClientImpl(
       RestTemplate restTemplate, WeatherApiProperties weatherApiProperties) {

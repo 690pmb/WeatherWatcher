@@ -16,9 +16,9 @@ import pmb.weatherwatcher.user.service.UserService;
 @Service
 public class SubscriptionService {
 
-  private SubscriptionRepository subscriptionRepository;
-  private SubscriptionMapper subscriptionMapper;
-  private UserService userService;
+  private final SubscriptionRepository subscriptionRepository;
+  private final SubscriptionMapper subscriptionMapper;
+  private final UserService userService;
 
   public SubscriptionService(
       SubscriptionRepository subscriptionRepository,

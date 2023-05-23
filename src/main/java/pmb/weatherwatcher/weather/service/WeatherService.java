@@ -19,9 +19,9 @@ import pmb.weatherwatcher.weather.mapper.ForecastMapper;
 public class WeatherService {
   private static final Logger LOGGER = LoggerFactory.getLogger(WeatherService.class);
 
-  private WeatherApiClient weatherApiClient;
-  private UserService userService;
-  private ForecastMapper forecastMapper;
+  private final WeatherApiClient weatherApiClient;
+  private final UserService userService;
+  private final ForecastMapper forecastMapper;
 
   public WeatherService(
       WeatherApiClient weatherApiClient, UserService userService, ForecastMapper forecastMapper) {

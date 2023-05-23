@@ -5,15 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -60,10 +53,6 @@ import pmb.weatherwatcher.user.security.MyUserDetailsService;
 @DisplayNameGeneration(value = ReplaceUnderscores.class)
 class AlertControllerTest {
 
-  @Autowired private MockMvc mockMvc;
-  @Autowired private ObjectMapper objectMapper;
-  @MockBean private AlertService alertService;
-
   private static final AlertDto DUMMY_ALERT =
       AlertUtils.buildAlertDto(
           null,
@@ -75,6 +64,145 @@ class AlertControllerTest {
           "lyon",
           false,
           "user");
+  @Autowired private MockMvc mockMvc;
+  @Autowired private ObjectMapper objectMapper;
+  @MockBean private AlertService alertService;
+
+  static Stream<Arguments> invalidAlertProvider() {
+    return Stream.of(
+        arguments(
+            AlertUtils.buildAlertDto(
+                5L,
+                null,
+                OffsetTime.now(),
+                new MonitoredDaysDto(),
+                Set.of(OffsetTime.now()),
+                List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 10, 35)),
+                "lyon",
+                true,
+                "user"),
+            "triggerDays"),
+        arguments(
+            AlertUtils.buildAlertDto(
+                5L,
+                Collections.emptySet(),
+                OffsetTime.now(),
+                new MonitoredDaysDto(),
+                Set.of(OffsetTime.now()),
+                List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 10, 35)),
+                "lyon",
+                true,
+                "user"),
+            "triggerDays"),
+        arguments(
+            AlertUtils.buildAlertDto(
+                5L,
+                Set.of(DayOfWeek.MONDAY),
+                null,
+                new MonitoredDaysDto(),
+                Set.of(OffsetTime.now()),
+                List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 10, 35)),
+                "lyon",
+                true,
+                "user"),
+            "triggerHour"),
+        arguments(
+            AlertUtils.buildAlertDto(
+                5L,
+                Set.of(DayOfWeek.MONDAY),
+                OffsetTime.now(),
+                null,
+                Set.of(OffsetTime.now()),
+                List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 10, 35)),
+                "lyon",
+                true,
+                "user"),
+            "monitoredDays"),
+        arguments(
+            AlertUtils.buildAlertDto(
+                5L,
+                Set.of(DayOfWeek.MONDAY),
+                OffsetTime.now(),
+                new MonitoredDaysDto(),
+                null,
+                List.of(AlertUtils.buildMonitoredFieldDto(9L, WeatherField.FEELS_LIKE, 10, 35)),
+                "lyon",
+                true,
+                "user"),
+            "monitoredHours"),
+        arguments(
+            AlertUtils.buildAlertDto(
+                5L,
+                Set.of(DayOfWeek.MONDAY),
+                OffsetTime.now(),
+                new MonitoredDaysDto(),
+                Collections.emptySet(),
+                List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 10, 35)),
+                "lyon",
+                true,
+                "user"),
+            "monitoredHours"),
+        arguments(
+            AlertUtils.buildAlertDto(
+                5L,
+                Set.of(DayOfWeek.MONDAY),
+                OffsetTime.now(),
+                new MonitoredDaysDto(),
+                Set.of(OffsetTime.now()),
+                null,
+                "lyon",
+                true,
+                "user"),
+            "monitoredFields"),
+        arguments(
+            AlertUtils.buildAlertDto(
+                5L,
+                Set.of(DayOfWeek.MONDAY),
+                OffsetTime.now(),
+                new MonitoredDaysDto(),
+                Set.of(OffsetTime.now()),
+                Collections.emptyList(),
+                "lyon",
+                true,
+                "user"),
+            "monitoredFields"),
+        arguments(
+            AlertUtils.buildAlertDto(
+                5L,
+                Set.of(DayOfWeek.MONDAY),
+                OffsetTime.now(),
+                new MonitoredDaysDto(),
+                Set.of(OffsetTime.now()),
+                List.of(AlertUtils.buildMonitoredFieldDto(null, null, 10, 35)),
+                "lyon",
+                true,
+                "user"),
+            "monitoredFields"),
+        arguments(
+            AlertUtils.buildAlertDto(
+                5L,
+                Set.of(DayOfWeek.MONDAY),
+                OffsetTime.now(),
+                new MonitoredDaysDto(),
+                Set.of(OffsetTime.now()),
+                List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.HUMIDITY, 10, 35)),
+                null,
+                true,
+                "user"),
+            "location"),
+        arguments(
+            AlertUtils.buildAlertDto(
+                5L,
+                Set.of(DayOfWeek.MONDAY),
+                OffsetTime.now(),
+                new MonitoredDaysDto(),
+                Set.of(OffsetTime.now()),
+                List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.HUMIDITY, 10, 35)),
+                "  ",
+                true,
+                "user"),
+            "location"));
+  }
 
   @AfterEach
   void tearDown() {
@@ -351,141 +479,5 @@ class AlertControllerTest {
           () -> assertEquals(2L, captured.get(0)),
           () -> assertEquals(3L, captured.get(1)));
     }
-  }
-
-  static Stream<Arguments> invalidAlertProvider() {
-    return Stream.of(
-        arguments(
-            AlertUtils.buildAlertDto(
-                5L,
-                null,
-                OffsetTime.now(),
-                new MonitoredDaysDto(),
-                Set.of(OffsetTime.now()),
-                List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 10, 35)),
-                "lyon",
-                true,
-                "user"),
-            "triggerDays"),
-        arguments(
-            AlertUtils.buildAlertDto(
-                5L,
-                Collections.emptySet(),
-                OffsetTime.now(),
-                new MonitoredDaysDto(),
-                Set.of(OffsetTime.now()),
-                List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 10, 35)),
-                "lyon",
-                true,
-                "user"),
-            "triggerDays"),
-        arguments(
-            AlertUtils.buildAlertDto(
-                5L,
-                Set.of(DayOfWeek.MONDAY),
-                null,
-                new MonitoredDaysDto(),
-                Set.of(OffsetTime.now()),
-                List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 10, 35)),
-                "lyon",
-                true,
-                "user"),
-            "triggerHour"),
-        arguments(
-            AlertUtils.buildAlertDto(
-                5L,
-                Set.of(DayOfWeek.MONDAY),
-                OffsetTime.now(),
-                null,
-                Set.of(OffsetTime.now()),
-                List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 10, 35)),
-                "lyon",
-                true,
-                "user"),
-            "monitoredDays"),
-        arguments(
-            AlertUtils.buildAlertDto(
-                5L,
-                Set.of(DayOfWeek.MONDAY),
-                OffsetTime.now(),
-                new MonitoredDaysDto(),
-                null,
-                List.of(AlertUtils.buildMonitoredFieldDto(9L, WeatherField.FEELS_LIKE, 10, 35)),
-                "lyon",
-                true,
-                "user"),
-            "monitoredHours"),
-        arguments(
-            AlertUtils.buildAlertDto(
-                5L,
-                Set.of(DayOfWeek.MONDAY),
-                OffsetTime.now(),
-                new MonitoredDaysDto(),
-                Collections.emptySet(),
-                List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 10, 35)),
-                "lyon",
-                true,
-                "user"),
-            "monitoredHours"),
-        arguments(
-            AlertUtils.buildAlertDto(
-                5L,
-                Set.of(DayOfWeek.MONDAY),
-                OffsetTime.now(),
-                new MonitoredDaysDto(),
-                Set.of(OffsetTime.now()),
-                null,
-                "lyon",
-                true,
-                "user"),
-            "monitoredFields"),
-        arguments(
-            AlertUtils.buildAlertDto(
-                5L,
-                Set.of(DayOfWeek.MONDAY),
-                OffsetTime.now(),
-                new MonitoredDaysDto(),
-                Set.of(OffsetTime.now()),
-                Collections.emptyList(),
-                "lyon",
-                true,
-                "user"),
-            "monitoredFields"),
-        arguments(
-            AlertUtils.buildAlertDto(
-                5L,
-                Set.of(DayOfWeek.MONDAY),
-                OffsetTime.now(),
-                new MonitoredDaysDto(),
-                Set.of(OffsetTime.now()),
-                List.of(AlertUtils.buildMonitoredFieldDto(null, null, 10, 35)),
-                "lyon",
-                true,
-                "user"),
-            "monitoredFields"),
-        arguments(
-            AlertUtils.buildAlertDto(
-                5L,
-                Set.of(DayOfWeek.MONDAY),
-                OffsetTime.now(),
-                new MonitoredDaysDto(),
-                Set.of(OffsetTime.now()),
-                List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.HUMIDITY, 10, 35)),
-                null,
-                true,
-                "user"),
-            "location"),
-        arguments(
-            AlertUtils.buildAlertDto(
-                5L,
-                Set.of(DayOfWeek.MONDAY),
-                OffsetTime.now(),
-                new MonitoredDaysDto(),
-                Set.of(OffsetTime.now()),
-                List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.HUMIDITY, 10, 35)),
-                "  ",
-                true,
-                "user"),
-            "location"));
   }
 }

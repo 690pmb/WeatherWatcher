@@ -33,7 +33,7 @@ class JwtTokenProviderTest {
           .signWith(SignatureAlgorithm.HS512, SIGNING_KEY)
           .compact();
 
-  private JwtTokenProvider jwtTokenProvider = new JwtTokenProvider("secretkey", 2592_000);
+  private final JwtTokenProvider jwtTokenProvider = new JwtTokenProvider("secretkey", 2592_000);
 
   @Test
   void create() {

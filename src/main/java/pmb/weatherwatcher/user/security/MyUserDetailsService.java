@@ -16,8 +16,8 @@ import pmb.weatherwatcher.user.repository.UserRepository;
 @Service
 public class MyUserDetailsService implements UserDetailsService, UserDetailsPasswordService {
 
-  private UserRepository userRepository;
-  private UserMapper userMapper;
+  private final UserRepository userRepository;
+  private final UserMapper userMapper;
 
   public MyUserDetailsService(UserRepository userRepository, UserMapper userMapper) {
     this.userRepository = userRepository;

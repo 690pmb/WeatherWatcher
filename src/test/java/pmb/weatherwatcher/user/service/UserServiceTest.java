@@ -53,8 +53,8 @@ class UserServiceTest {
   @MockBean private BCryptPasswordEncoder bCryptPasswordEncoder;
   @Autowired private UserService userService;
 
-  private UserDto DUMMY_USER = new UserDto("test", "pwd", "lyon", Language.FRENCH);
-  private PasswordDto DUMMY_PASSWORD = new PasswordDto("password", "newPassword");
+  private final UserDto DUMMY_USER = new UserDto("test", "pwd", "lyon", Language.FRENCH);
+  private final PasswordDto DUMMY_PASSWORD = new PasswordDto("password", "newPassword");
 
   @AfterEach
   void tearDown() {

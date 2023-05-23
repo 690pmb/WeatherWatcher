@@ -4,11 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
-import java.time.Clock;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.OffsetTime;
-import java.time.ZoneOffset;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
@@ -40,25 +36,23 @@ import pmb.weatherwatcher.weather.service.WeatherService;
 @Component
 public class AlertScheduler {
   private static final Logger LOGGER = LoggerFactory.getLogger(AlertScheduler.class);
-
-  private final AlertService alertService;
-  private final WeatherService weatherService;
-  private final SubscriptionService subscriptionService;
-  private final NotificationService notificationService;
-  private final ObjectMapper objectMapper;
   private static final Clock CLOCK = Clock.systemUTC();
   private static final Function<Integer, String> NOW_PLUS_DAYS =
       amountToAdd ->
           LocalDate.now(CLOCK).plusDays(amountToAdd).format(DateTimeFormatter.ISO_LOCAL_DATE);
   private static final String DETAIL_URL = "dashboard/details/%s?location=%s";
+  private final AlertService alertService;
+  private final WeatherService weatherService;
+  private final SubscriptionService subscriptionService;
+  private final NotificationService notificationService;
+  private final ObjectMapper objectMapper;
 
   public AlertScheduler(
       AlertService alertService,
       WeatherService weatherService,
       SubscriptionService subscriptionService,
       NotificationService notificationService,
-      ObjectMapper objectMapper)
-      throws JsonProcessingException {
+      ObjectMapper objectMapper) {
     this.alertService = alertService;
     this.weatherService = weatherService;
     this.subscriptionService = subscriptionService;
@@ -84,14 +78,11 @@ public class AlertScheduler {
                     e -> weatherService.findForecastbyLocation(e.getKey(), 3, "fr")));
 
     Map<String, List<ForecastDayDto>> forecastDaysByUserToNotify =
-        alertTriggered.stream()
-            .collect(Collectors.groupingBy(AlertDto::getUser))
-            .entrySet()
-            .stream()
+        alertTriggered.stream().collect(Collectors.groupingBy(AlertDto::getUser)).values().stream()
             .map(
-                e -> {
-                  Map<Long, Map<String, Boolean>> monitoredDays = buildMonitoredDays(e.getValue());
-                  return e.getValue().stream()
+                v -> {
+                  Map<Long, Map<String, Boolean>> monitoredDays = buildMonitoredDays(v);
+                  return v.stream()
                       .map(
                           a ->
                               Pair.of(
@@ -102,13 +93,14 @@ public class AlertScheduler {
                 })
             .filter(Predicate.not(Set::isEmpty))
             .flatMap(Set::stream)
-            .collect(Collectors.toMap(pair -> pair.getRight(), pair -> pair.getLeft()));
+            .collect(Collectors.toMap(Pair::getRight, Pair::getLeft));
 
     if (!forecastDaysByUserToNotify.isEmpty()) {
       Map<String, List<SubscriptionDto>> subsByUser =
           subscriptionService.findAllByUsers(forecastDaysByUserToNotify.keySet()).stream()
               .collect(Collectors.groupingBy(SubscriptionDto::getUser));
-      forecastDaysByUserToNotify.entrySet().stream()
+      forecastDaysByUserToNotify
+          .entrySet()
           .forEach(
               e ->
                   e.getValue()
@@ -119,7 +111,7 @@ public class AlertScheduler {
                                   subsByUser.get(e.getKey()),
                                   buildPayload(day.getDate(), day.getLocation()));
                             } catch (JsonProcessingException e1) {
-                              LOGGER.error("Error when building payload", e);
+                              LOGGER.error("Error when building payload: {}", e);
                             }
                           }));
     }
@@ -132,14 +124,12 @@ public class AlertScheduler {
             forecastDay ->
                 monitoredDaysMap.get(alert.getId()).get(forecastDay.getDate()) ? forecastDay : null)
         .filter(Objects::nonNull)
-        .map(
-            day -> {
-              day.setHour(
-                  day.getHour().stream()
-                      .filter(h -> alert.getForceNotification() || isHourMonitored(h, alert))
-                      .collect(Collectors.toList()));
-              return day;
-            })
+        .peek(
+            day ->
+                day.setHour(
+                    day.getHour().stream()
+                        .filter(h -> alert.getForceNotification() || isHourMonitored(h, alert))
+                        .collect(Collectors.toList())))
         .filter(day -> !day.getHour().isEmpty())
         .filter(
             day ->
@@ -170,9 +160,9 @@ public class AlertScheduler {
       Object value = field.get(h);
       BigDecimal v = BigDecimal.ZERO;
       if (value instanceof Double) {
-        v = BigDecimal.valueOf(((Double) value).doubleValue());
+        v = BigDecimal.valueOf((Double) value);
       } else if (value instanceof Integer) {
-        v = BigDecimal.valueOf(((Integer) value).intValue());
+        v = BigDecimal.valueOf((Integer) value);
       }
       return (monitoredField.getMax() != null
               && v.compareTo(BigDecimal.valueOf(monitoredField.getMax())) >= 0)
@@ -200,7 +190,7 @@ public class AlertScheduler {
                         alert.getMonitoredDays().getNextDay(),
                         NOW_PLUS_DAYS.apply(2),
                         alert.getMonitoredDays().getTwoDayLater())))
-        .collect(Collectors.toMap(pair -> pair.getKey(), pair -> pair.getValue()));
+        .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
   }
 
   private byte[] buildPayload(String date, String location) throws JsonProcessingException {

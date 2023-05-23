@@ -57,7 +57,7 @@ class AlertServiceTest {
   @MockBean private UserService userService;
   @Autowired private AlertService alertService;
   private static AlertDto DUMMY_ALERT;
-  private static OffsetTime time = OffsetTime.of(11, 25, 0, 0, ZoneOffset.ofHours(4));
+  private static final OffsetTime time = OffsetTime.of(11, 25, 0, 0, ZoneOffset.ofHours(4));
 
   @BeforeEach
   void tearUp() {

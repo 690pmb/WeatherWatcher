@@ -36,19 +36,17 @@ import pmb.weatherwatcher.notification.dto.SubscriptionDto;
 public class NotificationService {
   private static final Logger LOGGER = LoggerFactory.getLogger(NotificationService.class);
 
-  private PushService pushService;
-  private NotificationProperties notificationProperties;
+  private final PushService pushService;
 
   NotificationService(NotificationProperties notificationProperties)
       throws GeneralSecurityException {
-    this.notificationProperties = notificationProperties;
     if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
       Security.addProvider(new BouncyCastleProvider());
     }
     this.pushService =
         new PushService(
-            this.notificationProperties.getPublicKey(),
-            this.notificationProperties.getPrivateKey(),
+            notificationProperties.getPublicKey(),
+            notificationProperties.getPrivateKey(),
             "subject");
   }
 

@@ -18,6 +18,7 @@ import java.time.Instant;
 import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -54,7 +55,7 @@ class AlertSchedulerTest {
   @MockBean NotificationService notificationService;
   @Autowired AlertScheduler alertScheduler;
   @Captor ArgumentCaptor<List<SubscriptionDto>> sentSubscriptions;
-  private static String PAYLOAD =
+  private static final String PAYLOAD =
       "{\"notification\":{\"title\":\"Alerte Météo !\",\"body\":\"Voir la météo en alerte\",\"data\":{\"onActionClick\":{\"default\":{\"operation\":\"navigateLastFocusedOrOpen\",\"url\":\"dashboard/details/%s?location=%s\"}}},\"requireInteraction\":true}}";
 
   private static final Clock CLOCK =
@@ -153,7 +154,7 @@ class AlertSchedulerTest {
                         "2022-10-22",
                         "Lyon",
                         List.of(
-                            WeatherUtils.builHourDto(
+                            WeatherUtils.buildHourDto(
                                 "2022-10-22 10:00",
                                 null,
                                 null,
@@ -172,7 +173,7 @@ class AlertSchedulerTest {
                         "2022-10-23",
                         "Lyon",
                         List.of(
-                            WeatherUtils.builHourDto(
+                            WeatherUtils.buildHourDto(
                                 "2022-10-23 10:00",
                                 null,
                                 null,
@@ -196,7 +197,7 @@ class AlertSchedulerTest {
                         "2022-10-22",
                         "Paris",
                         List.of(
-                            WeatherUtils.builHourDto(
+                            WeatherUtils.buildHourDto(
                                 "2022-10-22 14:00",
                                 null,
                                 null,
@@ -235,7 +236,7 @@ class AlertSchedulerTest {
         () -> assertEquals(String.format(PAYLOAD, "2022-10-22", "Paris"), payloads.get(2)));
 
     List<List<SubscriptionDto>> subs = sentSubscriptions.getAllValues();
-    subs.sort((s1, s2) -> s1.get(0).getUserAgent().compareTo(s2.get(0).getUserAgent()));
+    subs.sort(Comparator.comparing(s -> s.get(0).getUserAgent()));
     assertAll(
         () -> assertEquals(3, subs.size()),
         () -> assertThat(sub1).isEqualTo(subs.get(0).get(0)),

@@ -27,7 +27,7 @@ public final class WeatherUtils {
     return day;
   }
 
-  public static HourDto builHourDto(
+  public static HourDto buildHourDto(
       String time,
       Double tempC,
       Double windKph,

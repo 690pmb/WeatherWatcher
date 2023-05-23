@@ -17,7 +17,7 @@ public class SubscriptionController {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SubscriptionController.class);
 
-  private SubscriptionService subscriptionService;
+  private final SubscriptionService subscriptionService;
 
   public SubscriptionController(SubscriptionService subscriptionService) {
     this.subscriptionService = subscriptionService;

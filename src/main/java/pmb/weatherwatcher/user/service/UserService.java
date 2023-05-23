@@ -26,11 +26,11 @@ import pmb.weatherwatcher.user.security.JwtTokenProvider;
 @Service
 public class UserService {
 
-  private UserRepository userRepository;
-  private AuthenticationManager authenticationManager;
-  private JwtTokenProvider jwtTokenProvider;
-  private BCryptPasswordEncoder bCryptPasswordEncoder;
-  private UserMapper userMapper;
+  private final UserRepository userRepository;
+  private final AuthenticationManager authenticationManager;
+  private final JwtTokenProvider jwtTokenProvider;
+  private final BCryptPasswordEncoder bCryptPasswordEncoder;
+  private final UserMapper userMapper;
 
   public UserService(
       UserRepository userRepository,
@@ -46,7 +46,7 @@ public class UserService {
   }
 
   /**
-   * Checks unicity by username and save it to database (with its password encoded).
+   * Checks unity by username and save it to database (with its password encoded).
    *
    * @param user to save
    * @return saved user

@@ -24,9 +24,9 @@ import pmb.weatherwatcher.user.service.UserService;
 @Service
 public class AlertService {
 
-  private AlertRepository alertRepository;
-  private AlertMapper alertMapper;
-  private UserService userService;
+  private final AlertRepository alertRepository;
+  private final AlertMapper alertMapper;
+  private final UserService userService;
 
   public AlertService(
       AlertRepository alertRepository, AlertMapper alertMapper, UserService userService) {
@@ -38,7 +38,7 @@ public class AlertService {
   private AlertDto save(AlertDto alert, User currentUser) {
     validate(alert);
     Alert toSave = alertMapper.toEntity(alert);
-    toSave.setUser(Optional.ofNullable(currentUser).orElseGet(() -> userService.getCurrentUser()));
+    toSave.setUser(Optional.ofNullable(currentUser).orElseGet(userService::getCurrentUser));
     return alertMapper.toDto(alertRepository.save(toSave));
   }
 
