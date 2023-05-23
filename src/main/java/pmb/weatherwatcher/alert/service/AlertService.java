@@ -8,6 +8,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.BooleanUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import pmb.weatherwatcher.alert.dto.AlertDto;
 import pmb.weatherwatcher.alert.dto.MonitoredDaysDto;
@@ -92,11 +94,12 @@ public class AlertService {
   /**
    * Finds all alerts for the currently logged user.
    *
+   * @param pageable for pagination and sorting
    * @return a list of alerts
    */
-  public List<AlertDto> findAllForCurrentUser() {
-    return alertMapper.toDtoList(
-        alertRepository.findDistinctByUserLogin(userService.getCurrentUser().getLogin()));
+  public Page<AlertDto> findAllForCurrentUser(Pageable pageable) {
+    return alertMapper.toDtoPage(
+        alertRepository.findDistinctByUserLogin(userService.getCurrentUser().getLogin(), pageable));
   }
 
   /**
