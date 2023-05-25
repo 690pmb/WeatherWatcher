@@ -1,9 +1,14 @@
 package pmb.weatherwatcher.notification.service;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -27,9 +32,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
@@ -90,7 +97,60 @@ class NotificationServiceTest {
   }
 
   @Nested
+  class construct {
+
+    @ParameterizedTest(
+        name = "Construct NotificationService with public: ''{0}'' and private: ''{1}''")
+    @CsvSource({",", "'',''", ",test", "test,", "'',test", "test,''"})
+    void when_invalid_properties_then_no_push_service(String publicKey, String privateString) {
+      NotificationProperties prop = new NotificationProperties();
+      prop.setPrivateKey(privateString);
+      prop.setPublicKey(publicKey);
+      assertDoesNotThrow(
+          () -> {
+            NotificationService service = new NotificationService(prop);
+            assertNull(ReflectionTestUtils.getField(service, null, "pushService"));
+          });
+    }
+
+    @Test
+    void ok() throws GeneralSecurityException {
+      String k1 = "public";
+      String k2 = "private";
+      NotificationProperties prop = new NotificationProperties();
+      prop.setPublicKey(k1);
+      prop.setPrivateKey(k2);
+      try (MockedConstruction<PushService> mock = mockConstruction(PushService.class)) {
+        new PushService(k1, k2);
+
+        assertDoesNotThrow(
+            () -> {
+              NotificationService service = new NotificationService(prop);
+              assertNotNull(ReflectionTestUtils.getField(service, null, "pushService"));
+            });
+      }
+    }
+  }
+
+  @Nested
   class send {
+
+    @Test
+    void when_no_push_service()
+        throws GeneralSecurityException, IOException, JoseException, ExecutionException,
+            InterruptedException {
+      ReflectionTestUtils.setField(notificationService, "pushService", null);
+
+      List<HttpStatus> actual =
+          notificationService.send(subscriptions, objectMapper.writeValueAsBytes(PAYLOAD));
+
+      verify(pushService, never()).send(any());
+
+      assertAll(
+          () -> assertEquals(1, actual.size(), "size"),
+          () -> assertEquals(HttpStatus.NO_CONTENT, actual.get(0), "status"));
+    }
+
     @Test
     void ok()
         throws GeneralSecurityException, IOException, JoseException, ExecutionException,
