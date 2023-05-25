@@ -17,6 +17,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import nl.martijndwars.webpush.Notification;
 import nl.martijndwars.webpush.PushService;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.bouncycastle.jce.ECNamedCurveTable;
@@ -43,15 +44,25 @@ public class NotificationService {
     if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
       Security.addProvider(new BouncyCastleProvider());
     }
-    this.pushService =
-        new PushService(
-            notificationProperties.getPublicKey(),
-            notificationProperties.getPrivateKey(),
-            "subject");
+    if (StringUtils.isAnyBlank(
+        notificationProperties.getPublicKey(), notificationProperties.getPrivateKey())) {
+      LOGGER.warn("Notification keys are not configured, notifications will not be sent");
+      this.pushService = null;
+    } else {
+      this.pushService =
+          new PushService(
+              notificationProperties.getPublicKey(),
+              notificationProperties.getPrivateKey(),
+              "subject");
+    }
   }
 
   public List<HttpStatus> send(List<SubscriptionDto> subscriptions, byte[] payload) {
     LOGGER.debug("Send notification");
+    if (this.pushService == null) {
+      LOGGER.warn("Notification keys are not configured, notifications will not be sent");
+      return List.of(HttpStatus.NO_CONTENT);
+    }
     return subscriptions.stream()
         .map(
             sub -> {
