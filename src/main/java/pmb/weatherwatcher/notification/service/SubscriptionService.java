@@ -3,13 +3,16 @@ package pmb.weatherwatcher.notification.service;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pmb.weatherwatcher.notification.dto.SubscriptionDto;
 import pmb.weatherwatcher.notification.mapper.SubscriptionMapper;
 import pmb.weatherwatcher.notification.model.Subscription;
 import pmb.weatherwatcher.notification.model.SubscriptionId;
 import pmb.weatherwatcher.notification.repository.SubscriptionRepository;
 import pmb.weatherwatcher.user.model.User;
+import pmb.weatherwatcher.user.security.JwtTokenProvider;
 import pmb.weatherwatcher.user.service.UserService;
 
 /** {@link Subscription} service. */
@@ -64,5 +67,18 @@ public class SubscriptionService {
     return subscriptionRepository.findByUserLoginIn(users).stream()
         .map(subscriptionMapper::toDtoWithUser)
         .collect(Collectors.toList());
+  }
+
+  /**
+   * Deletes all subscriptions for logged user excepts the one given.
+   *
+   * @param userAgent user agent of the subscription to keep
+   */
+  @Transactional
+  public void deleteOtherByUserId(String userAgent) {
+    subscriptionRepository.deleteOtherByUserId(
+        JwtTokenProvider.getCurrentUserLogin()
+            .orElseThrow(() -> new UsernameNotFoundException("User not found")),
+        userAgent);
   }
 }

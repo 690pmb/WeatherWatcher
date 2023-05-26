@@ -3,10 +3,13 @@ package pmb.weatherwatcher.notification.rest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -28,6 +31,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -109,6 +113,64 @@ class SubscriptionControllerTest {
                   SubscriptionDto.class));
 
       verify(subscriptionService).save(any());
+    }
+  }
+
+  @Nested
+  class Delete {
+
+    @Test
+    void when_not_logged_then_unauthorized() throws Exception {
+      mockMvc
+          .perform(
+              delete("/notifications/subscriptions")
+                  .content(objectMapper.writeValueAsString(VALID_SUBSCRIPTION)))
+          .andExpect(status().isUnauthorized());
+
+      verify(subscriptionService, never()).deleteOtherByUserId(any());
+    }
+
+    @Test
+    @WithMockUser
+    void ok() throws Exception {
+      String ua = "userAgent";
+      doNothing().when(subscriptionService).deleteOtherByUserId(ua);
+
+      mockMvc
+          .perform(
+              delete("/notifications/subscriptions")
+                  .param("userAgent", ua)
+                  .contentType(MediaType.APPLICATION_JSON_VALUE))
+          .andExpect(status().isNoContent());
+
+      verify(subscriptionService).deleteOtherByUserId(ua);
+    }
+
+    @Test
+    @WithMockUser
+    void given_service_throws_not_found_then_unauthorized() throws Exception {
+      String ua = "userAgent";
+      doThrow(UsernameNotFoundException.class).when(subscriptionService).deleteOtherByUserId(ua);
+
+      mockMvc
+          .perform(
+              delete("/notifications/subscriptions")
+                  .param("userAgent", ua)
+                  .contentType(MediaType.APPLICATION_JSON_VALUE))
+          .andExpect(status().isUnauthorized());
+
+      verify(subscriptionService).deleteOtherByUserId(ua);
+    }
+
+    @Test
+    @WithMockUser
+    void given_no_user_when_deleting_then_bad_request() throws Exception {
+      mockMvc
+          .perform(
+              delete("/notifications/subscriptions").contentType(MediaType.APPLICATION_JSON_VALUE))
+          .andExpect(status().isBadRequest());
+
+      verify(subscriptionService, never()).deleteOtherByUserId(any());
     }
   }
 
