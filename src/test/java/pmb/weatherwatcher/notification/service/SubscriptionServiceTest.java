@@ -2,8 +2,13 @@ package pmb.weatherwatcher.notification.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -13,9 +18,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import pmb.weatherwatcher.ServiceTestRunner;
 import pmb.weatherwatcher.common.model.Language;
 import pmb.weatherwatcher.notification.NotificationUtils;
@@ -25,6 +32,7 @@ import pmb.weatherwatcher.notification.model.Subscription;
 import pmb.weatherwatcher.notification.model.SubscriptionId;
 import pmb.weatherwatcher.notification.repository.SubscriptionRepository;
 import pmb.weatherwatcher.user.model.User;
+import pmb.weatherwatcher.user.security.JwtTokenProvider;
 import pmb.weatherwatcher.user.service.UserService;
 
 @ServiceTestRunner
@@ -114,6 +122,42 @@ class SubscriptionServiceTest {
           () -> assertEquals("login", saved.getUser().getLogin(), "login"),
           () -> assertEquals("pwd", saved.getUser().getPassword(), "password"),
           () -> assertEquals("Lyon", saved.getUser().getFavouriteLocation(), "location"));
+    }
+  }
+
+  @Nested
+  class Delete {
+    @Test
+    void ok() {
+      try (MockedStatic<JwtTokenProvider> jwtTokenProvider = mockStatic(JwtTokenProvider.class)) {
+        String userAgent = "ua";
+        String login = "username";
+
+        jwtTokenProvider
+            .when(() -> JwtTokenProvider.getCurrentUserLogin())
+            .thenReturn(Optional.of(login));
+        doNothing().when(subscriptionRepository).deleteOtherByUserId(login, userAgent);
+
+        assertDoesNotThrow(() -> subscriptionService.deleteOtherByUserId(userAgent));
+
+        jwtTokenProvider.verify(() -> JwtTokenProvider.getCurrentUserLogin());
+        verify(subscriptionRepository).deleteOtherByUserId(login, userAgent);
+      }
+    }
+
+    @Test
+    void given_user_not_found_when_deleting_then_exception() {
+      try (MockedStatic<JwtTokenProvider> jwtTokenProvider = mockStatic(JwtTokenProvider.class)) {
+        jwtTokenProvider
+            .when(() -> JwtTokenProvider.getCurrentUserLogin())
+            .thenReturn(Optional.empty());
+
+        assertThrows(
+            UsernameNotFoundException.class, () -> subscriptionService.deleteOtherByUserId("ua"));
+
+        jwtTokenProvider.verify(() -> JwtTokenProvider.getCurrentUserLogin());
+        verify(subscriptionRepository, never()).deleteOtherByUserId(any(), any());
+      }
     }
   }
 }
