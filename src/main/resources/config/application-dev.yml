@@ -2,3 +2,5 @@ spring:
   liquibase.contexts: dev
 management:
   endpoint.health.show-details: WHEN_AUTHORIZED
+
+jwt.duration: 86400 # 24h ( -> secondes)

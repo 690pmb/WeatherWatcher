@@ -1,7 +1,7 @@
 package pmb.weatherwatcher.user.service;
 
 import java.util.Optional;
-import javax.validation.Valid;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -12,9 +12,12 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import pmb.weatherwatcher.common.exception.AlreadyExistException;
+import pmb.weatherwatcher.common.exception.BadRequestException;
+import pmb.weatherwatcher.user.dto.EditUserDto;
 import pmb.weatherwatcher.user.dto.JwtTokenDto;
 import pmb.weatherwatcher.user.dto.PasswordDto;
 import pmb.weatherwatcher.user.dto.UserDto;
+import pmb.weatherwatcher.user.mapper.UserMapper;
 import pmb.weatherwatcher.user.model.User;
 import pmb.weatherwatcher.user.repository.UserRepository;
 import pmb.weatherwatcher.user.security.JwtTokenProvider;
@@ -23,29 +26,32 @@ import pmb.weatherwatcher.user.security.JwtTokenProvider;
 @Service
 public class UserService {
 
-  private UserRepository userRepository;
-  private AuthenticationManager authenticationManager;
-  private JwtTokenProvider jwtTokenProvider;
-  private BCryptPasswordEncoder bCryptPasswordEncoder;
+  private final UserRepository userRepository;
+  private final AuthenticationManager authenticationManager;
+  private final JwtTokenProvider jwtTokenProvider;
+  private final BCryptPasswordEncoder bCryptPasswordEncoder;
+  private final UserMapper userMapper;
 
   public UserService(
       UserRepository userRepository,
       AuthenticationManager authenticationManager,
       JwtTokenProvider jwtTokenProvider,
-      BCryptPasswordEncoder bCryptPasswordEncoder) {
+      BCryptPasswordEncoder bCryptPasswordEncoder,
+      UserMapper userMapper) {
     this.userRepository = userRepository;
     this.authenticationManager = authenticationManager;
     this.jwtTokenProvider = jwtTokenProvider;
     this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+    this.userMapper = userMapper;
   }
 
   /**
-   * Checks unicity by username and save it to database (with its password encoded).
+   * Checks unity by username and save it to database (with its password encoded).
    *
    * @param user to save
    * @return saved user
    */
-  public UserDto save(@Valid UserDto user) {
+  public UserDto save(UserDto user) {
     userRepository
         .findById(user.getUsername())
         .ifPresent(
@@ -61,8 +67,9 @@ public class UserService {
                 Optional.ofNullable(user.getFavouriteLocation())
                     .map(StringUtils::trim)
                     .filter(StringUtils::isNotBlank)
-                    .orElse(null)));
-    return new UserDto(saved.getLogin(), null, saved.getFavouriteLocation());
+                    .orElse(null),
+                user.getLang()));
+    return userMapper.toDtoWithoutPassword(saved);
   }
 
   /**
@@ -71,7 +78,7 @@ public class UserService {
    * @param user credentials
    * @return a jwt token
    */
-  public JwtTokenDto login(@Valid UserDto user) {
+  public JwtTokenDto login(UserDto user) {
     UsernamePasswordAuthenticationToken token =
         new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword());
     Authentication authentication = authenticationManager.authenticate(token);
@@ -85,7 +92,7 @@ public class UserService {
    *
    * @param password holding new & old passwords
    */
-  public void updatePassword(@Valid PasswordDto password) {
+  public void updatePassword(PasswordDto password) {
     User user = getCurrentUser();
     if (!bCryptPasswordEncoder.matches(password.getOldPassword(), user.getPassword())) {
       throw new BadCredentialsException("Invalid credentials");
@@ -103,5 +110,23 @@ public class UserService {
     return JwtTokenProvider.getCurrentUserLogin()
         .flatMap(userRepository::findById)
         .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+  }
+
+  /**
+   * Edits current user's properties with given informations.
+   *
+   * @param editUser new informations
+   * @return user updated
+   */
+  public JwtTokenDto edit(EditUserDto editUser) {
+    if (ObjectUtils.allNull(editUser.getFavouriteLocation(), editUser.getLang())) {
+      throw new BadRequestException("At least one field must be filled when editing a user");
+    }
+    return new JwtTokenDto(
+        jwtTokenProvider.create(
+            new UsernamePasswordAuthenticationToken(
+                userMapper.toDtoWithoutPassword(
+                    userRepository.save(userMapper.edit(getCurrentUser(), editUser))),
+                null)));
   }
 }

@@ -1,5 +1,8 @@
 package pmb.weatherwatcher.common.rest;
 
+import java.util.Optional;
+import java.util.stream.Collectors;
+import javax.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -31,41 +34,56 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
   private static final Logger LOG = LoggerFactory.getLogger(ErrorHandler.class);
 
   @ExceptionHandler
-  public ResponseEntity<String> handleAlreadyExistException(
+  public ResponseEntity<Object> handleAlreadyExistException(
       AlreadyExistException exception, NativeWebRequest request) {
-    return new ResponseEntity<>(exception.getMessage(), HttpStatus.CONFLICT);
+    return handleException(exception, HttpStatus.CONFLICT, null, "handleAlreadyExistException");
   }
 
   @ExceptionHandler
-  public ResponseEntity<String> handleNotFoundException(
+  public ResponseEntity<Object> handleNotFoundException(
       NotFoundException exception, NativeWebRequest request) {
-    return new ResponseEntity<>(exception.getMessage(), HttpStatus.NOT_FOUND);
+    return handleException(exception, HttpStatus.NOT_FOUND, null, "handleNotFoundException");
   }
 
   @ExceptionHandler
-  public ResponseEntity<String> handleNoContentException(
+  public ResponseEntity<Object> handleNoContentException(
       NoContentException exception, NativeWebRequest request) {
-    return new ResponseEntity<>(exception.getMessage(), HttpStatus.NO_CONTENT);
+    return handleException(exception, HttpStatus.NO_CONTENT, null, "handleNoContentException");
   }
 
   @ExceptionHandler
-  public ResponseEntity<String> handleAuthenticationException(
+  public ResponseEntity<Object> handleAuthenticationException(
       AuthenticationException exception, NativeWebRequest request) {
-    return new ResponseEntity<>(exception.getMessage(), HttpStatus.UNAUTHORIZED);
+    return handleException(
+        exception, HttpStatus.UNAUTHORIZED, null, "handleAuthenticationException");
   }
 
   @ExceptionHandler
-  public ResponseEntity<String> handleBadRequestException(
+  public ResponseEntity<Object> handleBadRequestException(
       BadRequestException exception, NativeWebRequest request) {
-    return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
+    return handleException(exception, HttpStatus.BAD_REQUEST, null, "handleBadRequestException");
   }
 
   @ExceptionHandler
   public ResponseEntity<Object> handleMethodArgumentTypeMismatch(
       MethodArgumentTypeMismatchException ex, WebRequest request) {
-    return new ResponseEntity<>(
+    return handleException(
+        ex,
+        HttpStatus.BAD_REQUEST,
         "Type of parameter '" + ex.getName() + "' doesn't match with definition.",
-        HttpStatus.BAD_REQUEST);
+        "handleMethodArgumentTypeMismatch");
+  }
+
+  @ExceptionHandler
+  protected ResponseEntity<Object> handleConstraintViolationException(
+      ConstraintViolationException ex, WebRequest request) {
+    return handleException(
+        ex,
+        HttpStatus.BAD_REQUEST,
+        ex.getConstraintViolations().stream()
+            .map(c -> "Field: '" + c.getPropertyPath() + "', Message: '" + c.getMessage() + "'")
+            .collect(Collectors.joining()),
+        "handleConstraintViolationException");
   }
 
   @Override
@@ -74,8 +92,11 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
       HttpHeaders headers,
       HttpStatus status,
       WebRequest request) {
-    return new ResponseEntity<>(
-        "Parameter '" + ex.getParameterName() + "' is missing.", HttpStatus.BAD_REQUEST);
+    return handleException(
+        ex,
+        HttpStatus.BAD_REQUEST,
+        "Parameter '" + ex.getParameterName() + "' is missing.",
+        "handleMissingServletRequestParameter");
   }
 
   @Override
@@ -84,8 +105,7 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
       HttpHeaders headers,
       HttpStatus status,
       WebRequest request) {
-    LOG.error("MethodArgumentNotValid", ex);
-    return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    return handleException(ex, HttpStatus.BAD_REQUEST, null, "MethodArgumentNotValid");
   }
 
   @Override
@@ -94,13 +114,17 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
       HttpHeaders headers,
       HttpStatus status,
       WebRequest request) {
-    LOG.error("HttpMessageNotReadable", ex);
-    return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    return handleException(ex, HttpStatus.BAD_REQUEST, null, "HttpMessageNotReadable");
   }
 
   @ExceptionHandler(Exception.class)
-  public ResponseEntity<String> exceptionHandler(Exception e) {
-    LOG.error("Exception thrown", e);
-    return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+  public ResponseEntity<Object> exceptionHandler(Exception e) {
+    return handleException(e, HttpStatus.INTERNAL_SERVER_ERROR, null, "Exception thrown");
+  }
+
+  private static ResponseEntity<Object> handleException(
+      Exception e, HttpStatus status, String body, String message) {
+    LOG.error(message, e);
+    return new ResponseEntity<>(Optional.ofNullable(body).orElse(e.getMessage()), status);
   }
 }

@@ -1,21 +1,27 @@
 package pmb.weatherwatcher.notification.service;
 
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pmb.weatherwatcher.notification.dto.SubscriptionDto;
 import pmb.weatherwatcher.notification.mapper.SubscriptionMapper;
 import pmb.weatherwatcher.notification.model.Subscription;
 import pmb.weatherwatcher.notification.model.SubscriptionId;
 import pmb.weatherwatcher.notification.repository.SubscriptionRepository;
 import pmb.weatherwatcher.user.model.User;
+import pmb.weatherwatcher.user.security.JwtTokenProvider;
 import pmb.weatherwatcher.user.service.UserService;
 
 /** {@link Subscription} service. */
 @Service
 public class SubscriptionService {
 
-  private SubscriptionRepository subscriptionRepository;
-  private SubscriptionMapper subscriptionMapper;
-  private UserService userService;
+  private final SubscriptionRepository subscriptionRepository;
+  private final SubscriptionMapper subscriptionMapper;
+  private final UserService userService;
 
   public SubscriptionService(
       SubscriptionRepository subscriptionRepository,
@@ -49,5 +55,30 @@ public class SubscriptionService {
                   return sub;
                 });
     return subscriptionMapper.toDto(subscriptionRepository.save(toSave));
+  }
+
+  /**
+   * Finds all subscription of given users login.
+   *
+   * @param users subscriptions owner
+   * @return a list of {@link SubscriptionDto}
+   */
+  public List<SubscriptionDto> findAllByUsers(Set<String> users) {
+    return subscriptionRepository.findByUserLoginIn(users).stream()
+        .map(subscriptionMapper::toDtoWithUser)
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * Deletes all subscriptions for logged user excepts the one given.
+   *
+   * @param userAgent user agent of the subscription to keep
+   */
+  @Transactional
+  public void deleteOthersByUserId(String userAgent) {
+    subscriptionRepository.deleteOthersByUserId(
+        JwtTokenProvider.getCurrentUserLogin()
+            .orElseThrow(() -> new UsernameNotFoundException("User not found")),
+        userAgent);
   }
 }

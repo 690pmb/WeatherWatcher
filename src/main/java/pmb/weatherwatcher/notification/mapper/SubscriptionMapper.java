@@ -1,5 +1,6 @@
 package pmb.weatherwatcher.notification.mapper;
 
+import org.mapstruct.InheritConfiguration;
 import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -19,11 +20,14 @@ public interface SubscriptionMapper extends EntityDtoMapper<Subscription, Subscr
   Subscription toEntity(SubscriptionDto dto);
 
   @Override
+  @Mapping(target = "user", ignore = true)
   @InheritInverseConfiguration(name = "toEntity")
   SubscriptionDto toDto(Subscription entity);
 
-  @Mapping(target = "id.userAgent", source = "userAgent")
-  @Mapping(target = "id.user", ignore = true)
-  @Mapping(target = "user", ignore = true)
+  @Mapping(target = "user", source = "user.login")
+  @InheritInverseConfiguration(name = "toEntity")
+  SubscriptionDto toDtoWithUser(Subscription entity);
+
+  @InheritConfiguration
   void updateFromDto(SubscriptionDto dto, @MappingTarget Subscription entity);
 }

@@ -1,10 +1,15 @@
 package pmb.weatherwatcher.alert.service;
 
+import java.time.DayOfWeek;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.BooleanUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import pmb.weatherwatcher.alert.dto.AlertDto;
 import pmb.weatherwatcher.alert.dto.MonitoredDaysDto;
@@ -21,9 +26,9 @@ import pmb.weatherwatcher.user.service.UserService;
 @Service
 public class AlertService {
 
-  private AlertRepository alertRepository;
-  private AlertMapper alertMapper;
-  private UserService userService;
+  private final AlertRepository alertRepository;
+  private final AlertMapper alertMapper;
+  private final UserService userService;
 
   public AlertService(
       AlertRepository alertRepository, AlertMapper alertMapper, UserService userService) {
@@ -35,7 +40,7 @@ public class AlertService {
   private AlertDto save(AlertDto alert, User currentUser) {
     validate(alert);
     Alert toSave = alertMapper.toEntity(alert);
-    toSave.setUser(Optional.ofNullable(currentUser).orElseGet(() -> userService.getCurrentUser()));
+    toSave.setUser(Optional.ofNullable(currentUser).orElseGet(userService::getCurrentUser));
     return alertMapper.toDto(alertRepository.save(toSave));
   }
 
@@ -89,11 +94,12 @@ public class AlertService {
   /**
    * Finds all alerts for the currently logged user.
    *
+   * @param pageable for pagination and sorting
    * @return a list of alerts
    */
-  public List<AlertDto> findAllForCurrentUser() {
-    return alertMapper.toDtoList(
-        alertRepository.findDistinctByUserLogin(userService.getCurrentUser().getLogin()));
+  public Page<AlertDto> findAllForCurrentUser(Pageable pageable) {
+    return alertMapper.toDtoPage(
+        alertRepository.findDistinctByUserLogin(userService.getCurrentUser().getLogin(), pageable));
   }
 
   /**
@@ -107,6 +113,19 @@ public class AlertService {
         alertRepository
             .findByIdAndUserLogin(id, userService.getCurrentUser().getLogin())
             .orElseThrow(() -> new NotFoundException("Alert with id: '" + id + "' was not found")));
+  }
+
+  /**
+   * Finds alerts to trigger.
+   *
+   * @param triggerDay day
+   * @param triggerHour hour
+   * @return a list of alerts
+   */
+  public List<AlertDto> findAllToTrigger(DayOfWeek triggerDay, LocalTime triggerHour) {
+    return alertRepository.findAllByTriggerDaysAndTriggerHour(triggerDay, triggerHour).stream()
+        .map(alertMapper::toDtoWithUser)
+        .collect(Collectors.toList());
   }
 
   /**

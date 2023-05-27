@@ -2,8 +2,13 @@ package pmb.weatherwatcher.notification.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -13,10 +18,13 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import pmb.weatherwatcher.ServiceTestRunner;
+import pmb.weatherwatcher.common.model.Language;
 import pmb.weatherwatcher.notification.NotificationUtils;
 import pmb.weatherwatcher.notification.dto.SubscriptionDto;
 import pmb.weatherwatcher.notification.mapper.SubscriptionMapperImpl;
@@ -24,6 +32,7 @@ import pmb.weatherwatcher.notification.model.Subscription;
 import pmb.weatherwatcher.notification.model.SubscriptionId;
 import pmb.weatherwatcher.notification.repository.SubscriptionRepository;
 import pmb.weatherwatcher.user.model.User;
+import pmb.weatherwatcher.user.security.JwtTokenProvider;
 import pmb.weatherwatcher.user.service.UserService;
 
 @ServiceTestRunner
@@ -47,16 +56,18 @@ class SubscriptionServiceTest {
       ArgumentCaptor<Subscription> captureSaved = ArgumentCaptor.forClass(Subscription.class);
       String userAgent = "userAgent";
       SubscriptionDto toSave =
-          NotificationUtils.buildSubscriptionDto(userAgent, "end", "public2", "private2", 56L);
+          NotificationUtils.buildSubscriptionDto(
+              userAgent, "end", "public2", "private2", 56L, null);
       Subscription existing = new Subscription();
       existing.setEndpoint("point");
       existing.setExpirationTime(98L);
       existing.setId(new SubscriptionId("userAgent2", "login2"));
-      existing.setUser(new User("login2", "mdp", "Paris"));
+      existing.setUser(new User("login2", "mdp", "Paris", Language.FRENCH));
       existing.setPublicKey("public");
       existing.setPrivateKey("private");
 
-      when(userService.getCurrentUser()).thenReturn(new User("login", "pwd", "Lyon"));
+      when(userService.getCurrentUser())
+          .thenReturn(new User("login", "pwd", "Lyon", Language.FRENCH));
       when(subscriptionRepository.findById(new SubscriptionId(userAgent, "login")))
           .thenReturn(Optional.of(existing));
       when(subscriptionRepository.save(any(Subscription.class))).thenAnswer(a -> a.getArgument(0));
@@ -85,9 +96,11 @@ class SubscriptionServiceTest {
       ArgumentCaptor<Subscription> captureSaved = ArgumentCaptor.forClass(Subscription.class);
       String userAgent = "userAgent";
       SubscriptionDto toSave =
-          NotificationUtils.buildSubscriptionDto(userAgent, "end", "public2", "private2", 56L);
+          NotificationUtils.buildSubscriptionDto(
+              userAgent, "end", "public2", "private2", 56L, null);
 
-      when(userService.getCurrentUser()).thenReturn(new User("login", "pwd", "Lyon"));
+      when(userService.getCurrentUser())
+          .thenReturn(new User("login", "pwd", "Lyon", Language.FRENCH));
       when(subscriptionRepository.findById(new SubscriptionId(userAgent, "login")))
           .thenReturn(Optional.empty());
       when(subscriptionRepository.save(any(Subscription.class))).thenAnswer(a -> a.getArgument(0));
@@ -109,6 +122,42 @@ class SubscriptionServiceTest {
           () -> assertEquals("login", saved.getUser().getLogin(), "login"),
           () -> assertEquals("pwd", saved.getUser().getPassword(), "password"),
           () -> assertEquals("Lyon", saved.getUser().getFavouriteLocation(), "location"));
+    }
+  }
+
+  @Nested
+  class Delete {
+    @Test
+    void ok() {
+      try (MockedStatic<JwtTokenProvider> jwtTokenProvider = mockStatic(JwtTokenProvider.class)) {
+        String userAgent = "ua";
+        String login = "username";
+
+        jwtTokenProvider
+            .when(() -> JwtTokenProvider.getCurrentUserLogin())
+            .thenReturn(Optional.of(login));
+        doNothing().when(subscriptionRepository).deleteOthersByUserId(login, userAgent);
+
+        assertDoesNotThrow(() -> subscriptionService.deleteOthersByUserId(userAgent));
+
+        jwtTokenProvider.verify(() -> JwtTokenProvider.getCurrentUserLogin());
+        verify(subscriptionRepository).deleteOthersByUserId(login, userAgent);
+      }
+    }
+
+    @Test
+    void given_user_not_found_when_deleting_then_exception() {
+      try (MockedStatic<JwtTokenProvider> jwtTokenProvider = mockStatic(JwtTokenProvider.class)) {
+        jwtTokenProvider
+            .when(() -> JwtTokenProvider.getCurrentUserLogin())
+            .thenReturn(Optional.empty());
+
+        assertThrows(
+            UsernameNotFoundException.class, () -> subscriptionService.deleteOthersByUserId("ua"));
+
+        jwtTokenProvider.verify(() -> JwtTokenProvider.getCurrentUserLogin());
+        verify(subscriptionRepository, never()).deleteOthersByUserId(any(), any());
+      }
     }
   }
 }

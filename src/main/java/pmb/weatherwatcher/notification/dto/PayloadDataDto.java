@@ -9,14 +9,14 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 public class PayloadDataDto {
 
   @JsonProperty("default")
-  private PayloadDefault defaults;
+  private final PayloadDefault defaults;
 
   public PayloadDataDto(Operation operation, String url) {
     super();
     this.defaults = new PayloadDefault(operation, url);
   }
 
-  public class PayloadDefault {
+  public static class PayloadDefault {
 
     private Operation operation;
     private String url;

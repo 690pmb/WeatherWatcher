@@ -25,10 +25,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ResourceUtils;
+import pmb.weatherwatcher.common.model.Language;
 import pmb.weatherwatcher.weather.api.config.WeatherApiProperties;
 import pmb.weatherwatcher.weather.api.exception.WeatherApiClientException;
 import pmb.weatherwatcher.weather.api.model.ForecastJsonResponse;
-import pmb.weatherwatcher.weather.api.model.Language;
 import pmb.weatherwatcher.weather.api.model.SearchJsonResponse;
 
 @RestClientTest(

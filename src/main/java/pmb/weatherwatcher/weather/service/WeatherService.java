@@ -3,22 +3,25 @@ package pmb.weatherwatcher.weather.service;
 import java.util.List;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import pmb.weatherwatcher.common.exception.NoContentException;
 import pmb.weatherwatcher.common.exception.NotFoundException;
+import pmb.weatherwatcher.common.model.Language;
 import pmb.weatherwatcher.user.service.UserService;
 import pmb.weatherwatcher.weather.api.client.WeatherApiClient;
-import pmb.weatherwatcher.weather.api.model.Language;
 import pmb.weatherwatcher.weather.api.model.SearchJsonResponse;
 import pmb.weatherwatcher.weather.dto.ForecastDto;
 import pmb.weatherwatcher.weather.mapper.ForecastMapper;
 
 @Service
 public class WeatherService {
+  private static final Logger LOGGER = LoggerFactory.getLogger(WeatherService.class);
 
-  private WeatherApiClient weatherApiClient;
-  private UserService userService;
-  private ForecastMapper forecastMapper;
+  private final WeatherApiClient weatherApiClient;
+  private final UserService userService;
+  private final ForecastMapper forecastMapper;
 
   public WeatherService(
       WeatherApiClient weatherApiClient, UserService userService, ForecastMapper forecastMapper) {
@@ -36,6 +39,7 @@ public class WeatherService {
    * @return a {@link ForecastDto}
    */
   public ForecastDto findForecastbyLocation(String location, Integer days, String lang) {
+    LOGGER.debug("findForecastbyLocation: {}, {}, {}", location, days, lang);
     String foundLocation =
         Optional.ofNullable(location)
             .map(StringUtils::trim)

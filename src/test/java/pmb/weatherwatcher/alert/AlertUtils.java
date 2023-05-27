@@ -23,7 +23,8 @@ public final class AlertUtils {
       Set<OffsetTime> monitoredHours,
       List<MonitoredFieldDto> monitoredFields,
       String location,
-      Boolean force) {
+      Boolean force,
+      String user) {
     AlertDto alert = new AlertDto();
     alert.setId(id);
     alert.setTriggerDays(Optional.ofNullable(triggerDays).map(LinkedHashSet::new).orElse(null));
@@ -33,6 +34,7 @@ public final class AlertUtils {
     alert.setMonitoredFields(monitoredFields);
     alert.setLocation(location);
     alert.setForceNotification(force);
+    alert.setUser(user);
     return alert;
   }
 

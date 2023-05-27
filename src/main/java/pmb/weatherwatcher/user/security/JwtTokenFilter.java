@@ -20,7 +20,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
   private static final Logger LOGGER = LoggerFactory.getLogger(JwtTokenFilter.class);
 
   public static final String AUTHORIZATION_PREFIX = "Bearer ";
-  private JwtTokenProvider jwtTokenProvider;
+  private final JwtTokenProvider jwtTokenProvider;
 
   public JwtTokenFilter(JwtTokenProvider jwtTokenProvider) {
     this.jwtTokenProvider = jwtTokenProvider;
@@ -30,7 +30,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain chain)
       throws ServletException, IOException {
-    LOGGER.info("Requesting: {} {}", request.getMethod(), getFullURL(request));
+    LOGGER.debug("Requesting: {} {}", request.getMethod(), getFullURL(request));
     Optional.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION))
         .filter(t -> t.startsWith(AUTHORIZATION_PREFIX))
         .map(t -> StringUtils.substringAfter(t, AUTHORIZATION_PREFIX))

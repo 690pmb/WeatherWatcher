@@ -18,6 +18,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import pmb.weatherwatcher.ServiceTestRunner;
+import pmb.weatherwatcher.common.model.Language;
 import pmb.weatherwatcher.user.dto.UserDto;
 import pmb.weatherwatcher.user.mapper.UserMapperImpl;
 import pmb.weatherwatcher.user.model.User;
@@ -41,7 +42,7 @@ class MyUserDetailsServiceTest {
     @Test
     void ok() {
       when(userRepository.findById("test"))
-          .thenReturn(Optional.of(new User("test", "pwd", "lyon")));
+          .thenReturn(Optional.of(new User("test", "pwd", "lyon", Language.FRENCH)));
 
       UserDto actual = (UserDto) myUserDetailsService.loadUserByUsername("test");
 
@@ -69,10 +70,10 @@ class MyUserDetailsServiceTest {
 
     @Test
     void ok() {
-      UserDto dto = new UserDto("test", "pwd", "lyon");
+      UserDto dto = new UserDto("test", "pwd", "lyon", Language.FRENCH);
 
       when(userRepository.findById("test"))
-          .thenReturn(Optional.of(new User("test", "pwd", "lyon")));
+          .thenReturn(Optional.of(new User("test", "pwd", "lyon", Language.FRENCH)));
       when(userRepository.save(any())).thenAnswer(a -> a.getArgument(0));
 
       UserDto actual = (UserDto) myUserDetailsService.updatePassword(dto, "password");
@@ -88,7 +89,7 @@ class MyUserDetailsServiceTest {
 
     @Test
     void not_found() {
-      UserDto dto = new UserDto("test", "pwd", "lyon");
+      UserDto dto = new UserDto("test", "pwd", "lyon", Language.FRENCH);
 
       when(userRepository.findById("test")).thenReturn(Optional.empty());
 

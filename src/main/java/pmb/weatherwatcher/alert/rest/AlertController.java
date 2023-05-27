@@ -4,6 +4,12 @@ import java.util.List;
 import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springdoc.api.annotations.ParameterObject;
+import org.springdoc.core.converters.models.PageableAsQueryParam;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,7 +29,7 @@ public class AlertController {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AlertController.class);
 
-  private AlertService alertService;
+  private final AlertService alertService;
 
   public AlertController(AlertService alertService) {
     this.alertService = alertService;
@@ -48,9 +54,12 @@ public class AlertController {
   }
 
   @GetMapping
-  public List<AlertDto> getAllByUser() {
+  @PageableAsQueryParam
+  public Page<AlertDto> getAllByUser(
+      @ParameterObject @PageableDefault(sort = "location", direction = Direction.ASC)
+          Pageable pageable) {
     LOGGER.debug("gets alert");
-    return alertService.findAllForCurrentUser();
+    return alertService.findAllForCurrentUser(pageable);
   }
 
   @GetMapping("/{id}")

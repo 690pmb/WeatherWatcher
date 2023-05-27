@@ -13,14 +13,14 @@ import pmb.weatherwatcher.weather.service.WeatherService;
 @RequestMapping(path = "/weathers")
 public class WeatherController {
 
-  private WeatherService weatherService;
+  private final WeatherService weatherService;
 
   public WeatherController(WeatherService weatherService) {
     this.weatherService = weatherService;
   }
 
   @GetMapping
-  public ForecastDto findForecastbyLocation(
+  public ForecastDto findForecastByLocation(
       @RequestParam(required = false) String location,
       @RequestParam(required = false) Integer days,
       @RequestParam(required = false) String lang) {

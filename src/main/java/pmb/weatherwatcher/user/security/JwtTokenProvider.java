@@ -1,6 +1,7 @@
 package pmb.weatherwatcher.user.security;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -17,6 +18,8 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import pmb.weatherwatcher.common.exception.InternalServerErrorException;
+import pmb.weatherwatcher.common.model.Language;
 import pmb.weatherwatcher.user.dto.UserDto;
 
 /** Jwt token utils class. */
@@ -26,6 +29,7 @@ public class JwtTokenProvider {
   private static final Logger LOGGER = LoggerFactory.getLogger(JwtTokenProvider.class);
 
   private static final String FAVOURITE_LOCATION = "location";
+  private static final String LANGUAGE = "lang";
 
   private final String secretKey;
   private final Integer tokenDuration;
@@ -49,6 +53,7 @@ public class JwtTokenProvider {
     return Jwts.builder()
         .setSubject(user.getUsername())
         .claim(FAVOURITE_LOCATION, user.getFavouriteLocation())
+        .claim(LANGUAGE, user.getLang().getCode())
         .signWith(SignatureAlgorithm.HS512, secretKey)
         .setId(UUID.randomUUID().toString())
         .setIssuedAt(issuedAt)
@@ -63,7 +68,7 @@ public class JwtTokenProvider {
    * @return its username
    */
   public String getUserName(String token) {
-    return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody().getSubject();
+    return parseToken(token).getBody().getSubject();
   }
 
   /**
@@ -74,7 +79,7 @@ public class JwtTokenProvider {
    */
   public boolean isValid(String token) {
     try {
-      Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token);
+      parseToken(token);
       return true;
     } catch (JwtException | IllegalArgumentException e) {
       LOGGER.debug("Invalid token", e);
@@ -90,9 +95,18 @@ public class JwtTokenProvider {
    * @return a {@link UsernamePasswordAuthenticationToken} authenticated
    */
   public Authentication getAuthentication(String token) {
-    Claims claims = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
+    Claims claims = parseToken(token).getBody();
     return new UsernamePasswordAuthenticationToken(
-        new UserDto(claims.getSubject(), null, claims.get(FAVOURITE_LOCATION, String.class)),
+        new UserDto(
+            claims.getSubject(),
+            null,
+            claims.get(FAVOURITE_LOCATION, String.class),
+            Language.fromCode(claims.get(LANGUAGE, String.class))
+                .orElseThrow(
+                    () ->
+                        new InternalServerErrorException(
+                            "Cant' find language from token with code: "
+                                + claims.get(LANGUAGE, String.class)))),
         token,
         null);
   }
@@ -115,5 +129,9 @@ public class JwtTokenProvider {
       return Optional.of((String) authentication.getPrincipal());
     }
     return Optional.empty();
+  }
+
+  private Jws<Claims> parseToken(String token) {
+    return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token);
   }
 }

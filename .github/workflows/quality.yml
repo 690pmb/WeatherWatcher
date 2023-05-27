@@ -1,0 +1,25 @@
+name: Quality
+
+on:
+  push:
+    branches:
+      - "main"
+      - "fix/**"
+      - "feat/**"
+      - "feature/**"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  maven:
+    runs-on: self-hosted
+    steps:
+      - uses: 69pmb/deploy/workflow/java-quality@main
+  deploy:
+    if: github.ref_name == 'main'
+    needs: maven
+    uses: ./.github/workflows/deploy.yml
+    secrets: inherit

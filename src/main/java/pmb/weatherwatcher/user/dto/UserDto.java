@@ -6,6 +6,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import pmb.weatherwatcher.common.model.Language;
 
 /**
  * User data, used for authentication and registration.
@@ -17,19 +18,27 @@ public class UserDto implements UserDetails {
   private static final long serialVersionUID = 1L;
 
   @NotNull
-  @Size(min = 4, max = 30)
+  @Size(min = 4, max = 30, groups = OnSignup.class)
   private String username;
 
   @NotNull
-  @Size(min = 6, max = 30)
+  @Size(min = 6, max = 30, groups = OnSignup.class)
   private String password;
 
   private String favouriteLocation;
 
-  public UserDto(String username, String password, String favouriteLocation) {
+  @NotNull(groups = OnSignup.class)
+  private Language lang;
+
+  public UserDto() {
+    super();
+  }
+
+  public UserDto(String username, String password, String favouriteLocation, Language lang) {
     this.username = username;
     this.password = password;
     this.favouriteLocation = favouriteLocation;
+    this.lang = lang;
   }
 
   @Override
@@ -56,6 +65,14 @@ public class UserDto implements UserDetails {
 
   public void setFavouriteLocation(String favouriteLocation) {
     this.favouriteLocation = favouriteLocation;
+  }
+
+  public Language getLang() {
+    return lang;
+  }
+
+  public void setLang(Language lang) {
+    this.lang = lang;
   }
 
   @Override

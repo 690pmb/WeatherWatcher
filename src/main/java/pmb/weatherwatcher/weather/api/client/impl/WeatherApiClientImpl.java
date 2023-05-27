@@ -12,11 +12,11 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import pmb.weatherwatcher.common.model.Language;
 import pmb.weatherwatcher.weather.api.client.WeatherApiClient;
 import pmb.weatherwatcher.weather.api.config.WeatherApiProperties;
 import pmb.weatherwatcher.weather.api.exception.WeatherApiClientException;
 import pmb.weatherwatcher.weather.api.model.ForecastJsonResponse;
-import pmb.weatherwatcher.weather.api.model.Language;
 import pmb.weatherwatcher.weather.api.model.SearchJsonResponse;
 
 @Component
@@ -32,8 +32,8 @@ public class WeatherApiClientImpl implements WeatherApiClient {
   private static final String URL_FORECAST = "/forecast.json";
   private static final String URL_SEARCH = "/search.json";
 
-  private RestTemplate restTemplate;
-  private WeatherApiProperties weatherApiProperties;
+  private final RestTemplate restTemplate;
+  private final WeatherApiProperties weatherApiProperties;
 
   public WeatherApiClientImpl(
       RestTemplate restTemplate, WeatherApiProperties weatherApiProperties) {
