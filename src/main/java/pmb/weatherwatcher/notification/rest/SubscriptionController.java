@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import pmb.weatherwatcher.notification.dto.DeleteSubscriptionDto;
 import pmb.weatherwatcher.notification.dto.SubscriptionDto;
 import pmb.weatherwatcher.notification.service.SubscriptionService;
 
@@ -35,8 +35,8 @@ public class SubscriptionController {
 
   @DeleteMapping
   @ResponseStatus(code = HttpStatus.NO_CONTENT)
-  public void delete(@RequestParam String userAgent) {
+  public void delete(@Valid @RequestBody DeleteSubscriptionDto deleteSubscription) {
     LOGGER.debug("Deleting subscriptions");
-    subscriptionService.deleteOtherByUserId(userAgent);
+    subscriptionService.deleteOthersByUserId(deleteSubscription.getUserAgent());
   }
 }

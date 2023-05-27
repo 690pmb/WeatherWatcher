@@ -25,5 +25,5 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Subs
 
   @Modifying
   @Query("delete from Subscription s where s.id.user = :user and s.id.userAgent <> :userAgent")
-  void deleteOtherByUserId(@Param("user") String user, @Param("userAgent") String userAgent);
+  void deleteOthersByUserId(@Param("user") String user, @Param("userAgent") String userAgent);
 }
