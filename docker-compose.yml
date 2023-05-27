@@ -15,7 +15,7 @@ services:
       - "WEB-PUSH_PUBLICKEY={{WEBPUSH_PUBLICKEY}}"
       - "WEB-PUSH_PRIVATEKEY={{WEBPUSH_PRIVATEKEY}}"
   maria_db:
-    image: "tobi312/rpi-mariadb:10.3"
+    image: "tobi312/rpi-mariadb:10.11-alpine"
     restart: unless-stopped
     volumes:
       - ./mariadb-data:/var/lib/mysql:rw

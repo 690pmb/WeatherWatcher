@@ -7,7 +7,7 @@
 ### How to run it in local:
 
 Docker command to run a MariaDB container:  
-`docker run -d --name maria -e MARIADB_ROOT_PASSWORD=weather -e MARIADB_DATABASE=weather -p 3306:3306 mariadb/server:10.3`  
+`docker run -d --name maria -e MARIADB_ROOT_PASSWORD=weather -e MARIADB_DATABASE=weather -p 3306:3306 mariadb:10.5`  
 To launch the application:  
 `mvn spring-boot:run -Dspring-boot.run.profiles=local`
 
