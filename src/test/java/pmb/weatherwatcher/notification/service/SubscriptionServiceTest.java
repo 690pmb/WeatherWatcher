@@ -136,12 +136,12 @@ class SubscriptionServiceTest {
         jwtTokenProvider
             .when(() -> JwtTokenProvider.getCurrentUserLogin())
             .thenReturn(Optional.of(login));
-        doNothing().when(subscriptionRepository).deleteOtherByUserId(login, userAgent);
+        doNothing().when(subscriptionRepository).deleteOthersByUserId(login, userAgent);
 
-        assertDoesNotThrow(() -> subscriptionService.deleteOtherByUserId(userAgent));
+        assertDoesNotThrow(() -> subscriptionService.deleteOthersByUserId(userAgent));
 
         jwtTokenProvider.verify(() -> JwtTokenProvider.getCurrentUserLogin());
-        verify(subscriptionRepository).deleteOtherByUserId(login, userAgent);
+        verify(subscriptionRepository).deleteOthersByUserId(login, userAgent);
       }
     }
 
@@ -153,10 +153,10 @@ class SubscriptionServiceTest {
             .thenReturn(Optional.empty());
 
         assertThrows(
-            UsernameNotFoundException.class, () -> subscriptionService.deleteOtherByUserId("ua"));
+            UsernameNotFoundException.class, () -> subscriptionService.deleteOthersByUserId("ua"));
 
         jwtTokenProvider.verify(() -> JwtTokenProvider.getCurrentUserLogin());
-        verify(subscriptionRepository, never()).deleteOtherByUserId(any(), any());
+        verify(subscriptionRepository, never()).deleteOthersByUserId(any(), any());
       }
     }
   }

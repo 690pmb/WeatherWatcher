@@ -58,20 +58,23 @@
 				},
 				"method": "DELETE",
 				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userAgent\": \"ua\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
 				"url": {
-					"raw": "{{url}}/notifications/subscriptions?userAgent=ua",
+					"raw": "{{url}}/notifications/subscriptions",
 					"host": [
 						"{{url}}"
 					],
 					"path": [
 						"notifications",
 						"subscriptions"
-					],
-					"query": [
-						{
-							"key": "userAgent",
-							"value": "ua"
-						}
 					]
 				}
 			},

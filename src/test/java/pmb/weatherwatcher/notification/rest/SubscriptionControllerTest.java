@@ -26,6 +26,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -37,6 +39,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import pmb.weatherwatcher.TestUtils;
 import pmb.weatherwatcher.notification.NotificationUtils;
+import pmb.weatherwatcher.notification.dto.DeleteSubscriptionDto;
 import pmb.weatherwatcher.notification.dto.SubscriptionDto;
 import pmb.weatherwatcher.notification.service.SubscriptionService;
 import pmb.weatherwatcher.user.security.JwtTokenProvider;
@@ -56,6 +59,8 @@ class SubscriptionControllerTest {
   private static final SubscriptionDto VALID_SUBSCRIPTION =
       NotificationUtils.buildSubscriptionDto(
           "USERAGENT", "ENDPOINT", "PUBLIC", "PRIVATE", 6L, null);
+  private static final String USER_AGENT = "userAgent";
+  private static final String DELETE_SUBSCRIPTION = "{\"userAgent\": \"" + USER_AGENT + "\"}";
 
   @AfterEach
   void tearDown() {
@@ -124,53 +129,63 @@ class SubscriptionControllerTest {
       mockMvc
           .perform(
               delete("/notifications/subscriptions")
-                  .content(objectMapper.writeValueAsString(VALID_SUBSCRIPTION)))
+                  .content(DELETE_SUBSCRIPTION)
+                  .contentType(MediaType.APPLICATION_JSON_VALUE))
           .andExpect(status().isUnauthorized());
 
-      verify(subscriptionService, never()).deleteOtherByUserId(any());
+      verify(subscriptionService, never()).deleteOthersByUserId(any());
     }
 
     @Test
     @WithMockUser
     void ok() throws Exception {
-      String ua = "userAgent";
-      doNothing().when(subscriptionService).deleteOtherByUserId(ua);
+      doNothing().when(subscriptionService).deleteOthersByUserId(USER_AGENT);
 
       mockMvc
           .perform(
               delete("/notifications/subscriptions")
-                  .param("userAgent", ua)
+                  .content(DELETE_SUBSCRIPTION)
                   .contentType(MediaType.APPLICATION_JSON_VALUE))
           .andExpect(status().isNoContent());
 
-      verify(subscriptionService).deleteOtherByUserId(ua);
+      verify(subscriptionService).deleteOthersByUserId(USER_AGENT);
     }
 
     @Test
     @WithMockUser
     void given_service_throws_not_found_then_unauthorized() throws Exception {
-      String ua = "userAgent";
-      doThrow(UsernameNotFoundException.class).when(subscriptionService).deleteOtherByUserId(ua);
+
+      doThrow(UsernameNotFoundException.class)
+          .when(subscriptionService)
+          .deleteOthersByUserId(USER_AGENT);
 
       mockMvc
           .perform(
               delete("/notifications/subscriptions")
-                  .param("userAgent", ua)
+                  .content(DELETE_SUBSCRIPTION)
                   .contentType(MediaType.APPLICATION_JSON_VALUE))
           .andExpect(status().isUnauthorized());
 
-      verify(subscriptionService).deleteOtherByUserId(ua);
+      verify(subscriptionService).deleteOthersByUserId(USER_AGENT);
     }
 
-    @Test
+    @ParameterizedTest
     @WithMockUser
-    void given_no_user_when_deleting_then_bad_request() throws Exception {
+    @NullAndEmptySource
+    @ValueSource(strings = {" ", "   ", "\t", "\n"})
+    void given_invalid_user_agent_when_deleting_then_bad_request(String userAgent)
+        throws Exception {
+      DeleteSubscriptionDto dto = new DeleteSubscriptionDto();
+      dto.setUserAgent(userAgent);
+
       mockMvc
           .perform(
-              delete("/notifications/subscriptions").contentType(MediaType.APPLICATION_JSON_VALUE))
+              delete("/notifications/subscriptions")
+                  .content(objectMapper.writeValueAsString(dto))
+                  .contentType(MediaType.APPLICATION_JSON_VALUE))
           .andExpect(status().isBadRequest());
 
-      verify(subscriptionService, never()).deleteOtherByUserId(any());
+      verify(subscriptionService, never()).deleteOthersByUserId(any());
     }
   }
 

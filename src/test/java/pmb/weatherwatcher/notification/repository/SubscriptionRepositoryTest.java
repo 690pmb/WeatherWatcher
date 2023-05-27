@@ -31,7 +31,7 @@ public class SubscriptionRepositoryTest {
     String userLoggued = "hnewling1";
     String otherUser = "rvakhonin0";
 
-    subscriptionRepository.deleteOtherByUserId(
+    subscriptionRepository.deleteOthersByUserId(
         userLoggued,
         "Mozilla/5.0 (Windows; U; Windows NT 6.1; fr-FR) AppleWebKit/533.20.25 (KHTML, like Gecko) Version/5.0.4 Safari/533.20.27");
 

@@ -75,8 +75,8 @@ public class SubscriptionService {
    * @param userAgent user agent of the subscription to keep
    */
   @Transactional
-  public void deleteOtherByUserId(String userAgent) {
-    subscriptionRepository.deleteOtherByUserId(
+  public void deleteOthersByUserId(String userAgent) {
+    subscriptionRepository.deleteOthersByUserId(
         JwtTokenProvider.getCurrentUserLogin()
             .orElseThrow(() -> new UsernameNotFoundException("User not found")),
         userAgent);
