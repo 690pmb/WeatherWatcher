@@ -21,7 +21,7 @@
         <json-unit-spring.version>2.38.0</json-unit-spring.version>
         <jjwt.version>0.9.1</jjwt.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
-        <guava.version>31.1-jre</guava.version>
+        <guava.version>32.0.0-jre</guava.version>
         <springdoc.version>1.7.0</springdoc.version>
         <web-push.version>5.1.1</web-push.version>
         <bcprov-ext-jdk18on.version>1.73</bcprov-ext-jdk18on.version>
