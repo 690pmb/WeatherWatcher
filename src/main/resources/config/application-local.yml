@@ -13,3 +13,5 @@ logging:
   level:
     ROOT: INFO
     pmb.weatherwatcher: DEBUG
+
+jwt.duration: 2592000 # 30j ( -> secondes)
