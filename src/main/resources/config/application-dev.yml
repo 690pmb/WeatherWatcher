@@ -3,4 +3,4 @@ spring:
 management:
   endpoint.health.show-details: WHEN_AUTHORIZED
 
-jwt.duration: 86400 # 24h ( -> secondes)
+jwt.duration: 604800 # one week ( -> secondes)
