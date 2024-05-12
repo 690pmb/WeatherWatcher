@@ -17,7 +17,7 @@
     <packaging>jar</packaging>
 
     <properties>
-        <java.version>11</java.version>
+        <java.version>17</java.version>
         <json-unit-spring.version>2.38.0</json-unit-spring.version>
         <jjwt.version>0.9.1</jjwt.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
