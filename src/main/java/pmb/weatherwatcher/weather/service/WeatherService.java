@@ -38,8 +38,8 @@ public class WeatherService {
    * @param lang language
    * @return a {@link ForecastDto}
    */
-  public ForecastDto findForecastbyLocation(String location, Integer days, String lang) {
-    LOGGER.debug("findForecastbyLocation: {}, {}, {}", location, days, lang);
+  public ForecastDto findForecastByLocation(String location, Integer days, String lang) {
+    LOGGER.debug("findForecastByLocation: {}, {}, {}", location, days, lang);
     String foundLocation =
         Optional.ofNullable(location)
             .map(StringUtils::trim)

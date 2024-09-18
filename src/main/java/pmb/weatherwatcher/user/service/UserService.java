@@ -113,9 +113,9 @@ public class UserService {
   }
 
   /**
-   * Edits current user's properties with given informations.
+   * Edits current user's properties with given information.
    *
-   * @param editUser new informations
+   * @param editUser new information
    * @return user updated
    */
   public JwtTokenDto edit(EditUserDto editUser) {

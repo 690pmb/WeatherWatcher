@@ -89,7 +89,7 @@ class WeatherServiceTest {
       when(weatherApiClient.getForecastWeather("lyon", 5, Language.BENGALI))
           .thenReturn(Optional.of(response));
 
-      ForecastDto actual = weatherService.findForecastbyLocation("lyon", 5, "bn");
+      ForecastDto actual = weatherService.findForecastByLocation("lyon", 5, "bn");
 
       verify(weatherApiClient).getForecastWeather("lyon", 5, Language.BENGALI);
 
@@ -121,7 +121,7 @@ class WeatherServiceTest {
           .thenReturn(new User("test", "test", "london", Language.FRENCH));
 
       assertThrows(
-          NotFoundException.class, () -> weatherService.findForecastbyLocation(null, null, null));
+          NotFoundException.class, () -> weatherService.findForecastByLocation(null, null, null));
 
       verify(weatherApiClient).getForecastWeather("london", null, Language.FRENCH);
       verify(userService).getCurrentUser();
@@ -133,7 +133,7 @@ class WeatherServiceTest {
           .thenReturn(new User("test", "test", null, Language.FRENCH));
 
       assertThrows(
-          NoContentException.class, () -> weatherService.findForecastbyLocation(null, null, null));
+          NoContentException.class, () -> weatherService.findForecastByLocation(null, null, null));
 
       verify(weatherApiClient, never()).getForecastWeather(any(), eq(null), eq(Language.FRENCH));
       verify(userService).getCurrentUser();

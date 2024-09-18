@@ -24,7 +24,7 @@ public class WeatherController {
       @RequestParam(required = false) String location,
       @RequestParam(required = false) Integer days,
       @RequestParam(required = false) String lang) {
-    return weatherService.findForecastbyLocation(location, days, lang);
+    return weatherService.findForecastByLocation(location, days, lang);
   }
 
   @GetMapping("/locations")

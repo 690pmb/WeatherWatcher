@@ -13,7 +13,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.IntFunction;
 import java.util.function.Predicate;
@@ -116,7 +115,8 @@ public class AlertScheduler {
 
         if(!forecastDaysByUserToNotify.isEmpty()) {
             Map<String, List<SubscriptionDto>> subsByUser =
-                subscriptionService.findAllByUsers(forecastDaysByUserToNotify.keySet().stream().map(Pair::getKey).collect(
+                subscriptionService.findAllByUsers(forecastDaysByUserToNotify.keySet().stream().map(Pair::getKey)
+                                                                             .collect(
                                        Collectors.toSet()))
                                    .stream()
                                    .collect(Collectors.groupingBy(SubscriptionDto::getUser));
@@ -142,9 +142,8 @@ public class AlertScheduler {
                                                             Map<Long, Map<String, Boolean>> monitoredDaysMap) {
         return forecastDto.getForecastDay()
                           .stream()
-                          .map(forecastDay -> Boolean.TRUE.equals(monitoredDaysMap.get(alert.getId())
-                                                                                  .get(forecastDay.getDate())) ? forecastDay : null)
-                          .filter(Objects::nonNull)
+                          .filter(forecastDay -> Boolean.TRUE.equals(monitoredDaysMap.get(alert.getId())
+                                                                                  .get(forecastDay.getDate())))
                           .peek(day -> day.setHour(day.getHour()
                                                       .stream()
                                                       .filter(h -> BooleanUtils.isTrue(alert.getForceNotification()) ||
@@ -156,10 +155,9 @@ public class AlertScheduler {
                                             .stream()
                                             .anyMatch(h -> alert.getMonitoredFields()
                                                                 .stream()
-                                                                .anyMatch(monitoredField ->
-                                                                              BooleanUtils.isTrue(alert.getForceNotification()) ||
-                                                                              isForecastHourToNotify(h,
-                                                                                                     monitoredField))))
+                                                                .anyMatch(monitoredField -> BooleanUtils.isTrue(alert.getForceNotification()) ||
+                                                                    isForecastHourToNotify(h,
+                                                                                           monitoredField))))
                           .collect(Collectors.toList());
     }
 
@@ -178,14 +176,14 @@ public class AlertScheduler {
                                                                        .getCode());
             field.setAccessible(true);
             Object value = field.get(h);
-            BigDecimal v = BigDecimal.ZERO;
+            BigDecimal v = null;
             if(value instanceof Double) {
                 v = BigDecimal.valueOf((Double) value);
             } else if(value instanceof Integer) {
                 v = BigDecimal.valueOf((Integer) value);
             }
-            return (monitoredField.getMax() != null && v.compareTo(BigDecimal.valueOf(monitoredField.getMax())) >= 0) ||
-                   (monitoredField.getMin() != null && v.compareTo(BigDecimal.valueOf(monitoredField.getMin())) <= 0);
+            return v!=null && ((monitoredField.getMax() != null && v.compareTo(BigDecimal.valueOf(monitoredField.getMax())) >= 0) ||
+                   (monitoredField.getMin() != null && v.compareTo(BigDecimal.valueOf(monitoredField.getMin())) <= 0));
         } catch(IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
             LOGGER.error("Error when accessing field: {}", monitoredField.getField(), e);
             return false;

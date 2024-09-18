@@ -1,5 +1,6 @@
 package pmb.weatherwatcher.common.mapper;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -41,7 +42,7 @@ public interface EntityDtoMapper<E, D> {
    */
   default List<D> toDtoList(List<E> entityList) {
     if (entityList == null) {
-      return null;
+      return Collections.emptyList();
     }
     return entityList.stream()
         .filter(Objects::nonNull)
