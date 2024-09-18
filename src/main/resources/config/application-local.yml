@@ -12,6 +12,7 @@ spring:
 logging:
   level:
     ROOT: INFO
+    org.hibernate.type: trace
     pmb.weatherwatcher: DEBUG
 
 jwt.duration: 2592000 # 30j ( -> secondes)
