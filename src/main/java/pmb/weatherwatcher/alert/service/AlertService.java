@@ -2,18 +2,16 @@ package pmb.weatherwatcher.alert.service;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.time.temporal.ChronoUnit;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
 import pmb.weatherwatcher.alert.dto.AlertDto;
 import pmb.weatherwatcher.alert.dto.MonitoredDaysDto;
 import pmb.weatherwatcher.alert.dto.MonitoredFieldDto;
@@ -88,7 +86,7 @@ public class AlertService {
             });
     MonitoredDaysDto monitoredDays = alert.getMonitoredDays();
     if (Stream.of(
-        monitoredDays.getNextDay(), monitoredDays.getSameDay(), monitoredDays.getTwoDayLater())
+            monitoredDays.getNextDay(), monitoredDays.getSameDay(), monitoredDays.getTwoDayLater())
         .allMatch(BooleanUtils::isNotTrue)) {
       throw new BadRequestException("Given alert has no monitored days");
     }
@@ -121,12 +119,13 @@ public class AlertService {
   /**
    * Finds alerts to trigger.
    *
-   * @param triggerDay  day
+   * @param triggerDay day
    * @param triggerHour hour
    * @return a list of alerts
    */
   public List<AlertDto> findAllToTrigger(DayOfWeek triggerDay, LocalTime triggerHour) {
-    return alertRepository.findAllByTriggerDaysAndTriggerHour(triggerDay, triggerHour.truncatedTo(ChronoUnit.SECONDS))
+    return alertRepository
+        .findAllByTriggerDaysAndTriggerHour(triggerDay, triggerHour.truncatedTo(ChronoUnit.SECONDS))
         .stream()
         .map(alertMapper::toDtoWithUser)
         .collect(Collectors.toList());
@@ -149,8 +148,9 @@ public class AlertService {
             })
         .map(currentUser -> save(alert, currentUser))
         .orElseThrow(
-            () -> new BadRequestException(
-                "Alert to update with id '" + alert.getId() + "' for logged user is unknown"));
+            () ->
+                new BadRequestException(
+                    "Alert to update with id '" + alert.getId() + "' for logged user is unknown"));
   }
 
   /**
@@ -161,13 +161,15 @@ public class AlertService {
   public void delete(List<Long> ids) {
     ids.stream()
         .map(
-            id -> alertRepository
-                .findByIdAndUserLogin(id, userService.getCurrentUser().getLogin())
-                .orElseThrow(
-                    () -> new BadRequestException(
-                        "Alert to delete with id '"
-                            + id
-                            + "' doesn't exist or doesn't belong to logged user")))
+            id ->
+                alertRepository
+                    .findByIdAndUserLogin(id, userService.getCurrentUser().getLogin())
+                    .orElseThrow(
+                        () ->
+                            new BadRequestException(
+                                "Alert to delete with id '"
+                                    + id
+                                    + "' doesn't exist or doesn't belong to logged user")))
         .forEach(alertRepository::delete);
   }
 }
