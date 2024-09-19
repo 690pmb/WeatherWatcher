@@ -137,7 +137,10 @@ class NotificationServiceTest {
 
     @Test
     void when_no_push_service()
-        throws GeneralSecurityException, IOException, JoseException, ExecutionException,
+        throws GeneralSecurityException,
+            IOException,
+            JoseException,
+            ExecutionException,
             InterruptedException {
       ReflectionTestUtils.setField(notificationService, "pushService", null);
 
@@ -153,7 +156,10 @@ class NotificationServiceTest {
 
     @Test
     void ok()
-        throws GeneralSecurityException, IOException, JoseException, ExecutionException,
+        throws GeneralSecurityException,
+            IOException,
+            JoseException,
+            ExecutionException,
             InterruptedException {
       ArgumentCaptor<Notification> notifCaptor = ArgumentCaptor.forClass(Notification.class);
       HttpResponse httpResponse =
@@ -192,7 +198,10 @@ class NotificationServiceTest {
           InterruptedException.class
         })
     void when_send_fails(Class<? extends Throwable> throwableType)
-        throws GeneralSecurityException, IOException, JoseException, ExecutionException,
+        throws GeneralSecurityException,
+            IOException,
+            JoseException,
+            ExecutionException,
             InterruptedException {
       when(pushService.send(any())).thenThrow(throwableType);
 

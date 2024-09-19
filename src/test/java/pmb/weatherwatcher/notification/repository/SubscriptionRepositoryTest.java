@@ -14,7 +14,7 @@ import org.springframework.test.context.jdbc.Sql;
 import pmb.weatherwatcher.notification.model.Subscription;
 
 @DataJpaTest(showSql = true)
-public class SubscriptionRepositoryTest {
+class SubscriptionRepositoryTest {
 
   @Autowired SubscriptionRepository subscriptionRepository;
 

@@ -53,7 +53,7 @@ class WeatherControllerTest {
   }
 
   @Nested
-  class FindForecastbyLocation {
+  class FindForecastByLocation {
 
     @Test
     @WithMockUser
@@ -63,7 +63,7 @@ class WeatherControllerTest {
       location.setName("test");
       response.setLocation(location);
 
-      when(weatherService.findForecastbyLocation("lyon", 5, "bn")).thenReturn(response);
+      when(weatherService.findForecastByLocation("lyon", 5, "bn")).thenReturn(response);
 
       assertEquals(
           "test",
@@ -82,13 +82,13 @@ class WeatherControllerTest {
               .getLocation()
               .getName());
 
-      verify(weatherService).findForecastbyLocation("lyon", 5, "bn");
+      verify(weatherService).findForecastByLocation("lyon", 5, "bn");
     }
 
     @Test
     @WithMockUser
     void not_found() throws Exception {
-      when(weatherService.findForecastbyLocation(null, null, null))
+      when(weatherService.findForecastByLocation(null, null, null))
           .thenThrow(new NotFoundException("Error"));
 
       mockMvc
@@ -96,13 +96,13 @@ class WeatherControllerTest {
           .andExpect(status().isNotFound())
           .andExpect(jsonPath("$").value("Error"));
 
-      verify(weatherService).findForecastbyLocation(null, null, null);
+      verify(weatherService).findForecastByLocation(null, null, null);
     }
 
     @Test
     @WithMockUser
     void not_content() throws Exception {
-      when(weatherService.findForecastbyLocation(null, 6, null))
+      when(weatherService.findForecastByLocation(null, 6, null))
           .thenThrow(new NoContentException("Error"));
 
       mockMvc
@@ -111,7 +111,7 @@ class WeatherControllerTest {
           .andExpect(status().isNoContent())
           .andExpect(jsonPath("$").value("Error"));
 
-      verify(weatherService).findForecastbyLocation(null, 6, null);
+      verify(weatherService).findForecastByLocation(null, 6, null);
     }
 
     @Test
@@ -125,7 +125,7 @@ class WeatherControllerTest {
           .andExpect(status().isUnauthorized())
           .andExpect(jsonPath("$").doesNotExist());
 
-      verify(weatherService, never()).findForecastbyLocation("lyon", 5, null);
+      verify(weatherService, never()).findForecastByLocation("lyon", 5, null);
     }
   }
 

@@ -49,7 +49,7 @@ public enum Language {
 
   private final String code;
 
-  private Language(String code) {
+  Language(String code) {
     this.code = code;
   }
 

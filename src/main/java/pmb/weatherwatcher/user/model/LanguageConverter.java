@@ -9,8 +9,8 @@ import pmb.weatherwatcher.common.model.Language;
 public class LanguageConverter implements AttributeConverter<Language, String> {
 
   @Override
-  public String convertToDatabaseColumn(Language Language) {
-    return Language.getCode();
+  public String convertToDatabaseColumn(Language language) {
+    return language.getCode();
   }
 
   @Override

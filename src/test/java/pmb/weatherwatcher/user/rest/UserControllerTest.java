@@ -293,6 +293,7 @@ class UserControllerTest {
       verify(userService, never()).edit(any());
     }
 
+    @Test
     @WithMockUser
     void when_failed_validation_then_bad_request() throws Exception {
       when(userService.edit(any())).thenThrow(BadRequestException.class);
@@ -304,7 +305,7 @@ class UserControllerTest {
                   .contentType(MediaType.APPLICATION_JSON_VALUE))
           .andExpect(status().isBadRequest());
 
-      verify(userService, never()).edit(any());
+      verify(userService).edit(any());
     }
 
     @Test
