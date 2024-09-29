@@ -1,6 +1,7 @@
 package pmb.weatherwatcher.weather.dto;
 
 import pmb.weatherwatcher.weather.api.model.Condition;
+import pmb.weatherwatcher.weather.api.model.Direction;
 
 public class HourDto {
 
@@ -9,7 +10,7 @@ public class HourDto {
   private Boolean isDay;
   private Condition condition;
   private Double windKph;
-  private String windDir;
+  private Direction windDir;
   private Double pressureMb;
   private Double precipMm;
   private Integer humidity;
@@ -61,11 +62,11 @@ public class HourDto {
     this.windKph = windKph;
   }
 
-  public String getWindDir() {
+  public Direction getWindDir() {
     return windDir;
   }
 
-  public void setWindDir(String windDir) {
+  public void setWindDir(Direction windDir) {
     this.windDir = windDir;
   }
 

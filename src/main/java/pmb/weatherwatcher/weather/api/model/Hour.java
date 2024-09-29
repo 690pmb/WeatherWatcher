@@ -26,7 +26,7 @@ public class Hour implements java.io.Serializable {
   private Integer windDegree;
 
   @JsonProperty("wind_dir")
-  private String windDir;
+  private Direction windDir;
 
   @JsonProperty("pressure_mb")
   private Double pressureMb;
@@ -144,12 +144,12 @@ public class Hour implements java.io.Serializable {
   }
 
   /** GETTER Wind direction as 16 point compass. e.g.: NSW */
-  public String getWindDir() {
+  public Direction getWindDir() {
     return windDir;
   }
 
   /** SETTER Wind direction as 16 point compass. e.g.: NSW */
-  public void setWindDir(String value) {
+  public void setWindDir(Direction value) {
     windDir = value;
   }
 

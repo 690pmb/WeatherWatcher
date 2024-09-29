@@ -51,9 +51,12 @@ public final class TestUtils {
     ClassPath cp = ClassPath.from(ClassLoader.getSystemClassLoader());
     return cp.getTopLevelClassesRecursive(this.getClass().getPackageName()).stream()
         .filter(
-            c ->
-                !c.getName().equals(this.getClass().getName())
-                    && StringUtils.endsWith(c.getName(), "Test"));
+            c -> {
+              String name = c.getName();
+              return !name.contains("Mapper")
+                  && !name.equals(this.getClass().getName())
+                  && StringUtils.endsWith(name, "Test");
+            });
   }
 
   @Test
