@@ -1,6 +1,7 @@
 package pmb.weatherwatcher.weather;
 
 import java.util.List;
+import pmb.weatherwatcher.weather.api.model.Direction;
 import pmb.weatherwatcher.weather.dto.ForecastDayDto;
 import pmb.weatherwatcher.weather.dto.ForecastDto;
 import pmb.weatherwatcher.weather.dto.HourDto;
@@ -31,7 +32,7 @@ public final class WeatherUtils {
       String time,
       Double tempC,
       Double windKph,
-      String windDir,
+      Direction windDir,
       Double pressureMb,
       Double precipMm,
       Integer humidity,
