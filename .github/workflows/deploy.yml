@@ -10,7 +10,7 @@ concurrency:
 
 jobs:
   deploy:
-    runs-on: self-hosted
+    runs-on: ubuntu-24.04
     steps:
       - uses: 69pmb/deploy/workflow/deploy@main
         with:
