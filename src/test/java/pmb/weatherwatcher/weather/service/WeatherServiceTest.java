@@ -30,6 +30,7 @@ import pmb.weatherwatcher.weather.api.client.WeatherApiClient;
 import pmb.weatherwatcher.weather.api.model.Astro;
 import pmb.weatherwatcher.weather.api.model.Condition;
 import pmb.weatherwatcher.weather.api.model.Day;
+import pmb.weatherwatcher.weather.api.model.Direction;
 import pmb.weatherwatcher.weather.api.model.Forecast;
 import pmb.weatherwatcher.weather.api.model.ForecastJsonResponse;
 import pmb.weatherwatcher.weather.api.model.Forecastday;
@@ -156,7 +157,7 @@ class WeatherServiceTest {
                           .get(0)
                           .getCondition()),
           () -> assertEquals(9D, hourDto.getWindKph()),
-          () -> assertEquals("dir", hourDto.getWindDir()),
+          () -> assertEquals(Direction.SE, hourDto.getWindDir()),
           () -> assertEquals(6D, hourDto.getPressureMb()),
           () -> assertEquals(32D, hourDto.getPrecipMm()),
           () -> assertEquals(89, hourDto.getHumidity()),
@@ -178,7 +179,7 @@ class WeatherServiceTest {
       hour.setCondition(buildCondition());
       hour.setWindKph(9D);
       hour.setWindDegree(62);
-      hour.setWindDir("dir");
+      hour.setWindDir(Direction.SE);
       hour.setPressureMb(6D);
       hour.setPrecipMm(32D);
       hour.setHumidity(89);
