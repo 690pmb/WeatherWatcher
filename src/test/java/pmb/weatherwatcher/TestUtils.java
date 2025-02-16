@@ -6,9 +6,10 @@ import com.google.common.reflect.ClassPath;
 import com.google.common.reflect.ClassPath.ClassInfo;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.OffsetTime;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -34,8 +35,8 @@ public final class TestUtils {
         }
       };
 
-  public static OffsetTime buildOffsetTime(int hour, int minute) {
-    return OffsetTime.of(LocalTime.of(hour, minute), ZoneOffset.UTC);
+  public static ZonedDateTime buildZonedDateTime(int hour, int minute) {
+    return ZonedDateTime.of(LocalDate.now(), LocalTime.of(hour, minute, 0), ZoneId.of("UTC"));
   }
 
   private boolean findClass(String className) {

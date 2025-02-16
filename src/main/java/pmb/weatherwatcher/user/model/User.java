@@ -34,6 +34,9 @@ public class User {
 
   private Language lang;
 
+  @Column(name = "timezone", nullable = false)
+  private String timezone;
+
   public User() {}
 
   /**
@@ -43,12 +46,15 @@ public class User {
    * @param password his password
    * @param favouriteLocation suggested location when needed location
    * @param lang user's language
+   * @param timezone user's timezone
    */
-  public User(String login, String password, String favouriteLocation, Language lang) {
+  public User(
+      String login, String password, String favouriteLocation, Language lang, String timezone) {
     this.login = login;
     this.password = password;
     this.favouriteLocation = favouriteLocation;
     this.lang = lang;
+    this.timezone = timezone;
   }
 
   public String getLogin() {
@@ -89,5 +95,13 @@ public class User {
 
   public void setLang(Language lang) {
     this.lang = lang;
+  }
+
+  public String getTimezone() {
+    return timezone;
+  }
+
+  public void setTimezone(String timezone) {
+    this.timezone = timezone;
   }
 }

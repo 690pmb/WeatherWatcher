@@ -1,13 +1,15 @@
 package pmb.weatherwatcher.alert.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.DayOfWeek;
-import java.time.OffsetTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Set;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Null;
 
 /** Alert data, used to monitor weather. */
 public class AlertDto {
@@ -20,10 +22,10 @@ public class AlertDto {
   @NotNull private MonitoredDaysDto monitoredDays;
 
   /** Tells the time alerts are triggered. */
-  @NotNull private OffsetTime triggerHour;
+  @NotNull private LocalTime triggerHour;
 
   /** Tells which hours are monitored. */
-  @NotEmpty private Set<OffsetTime> monitoredHours;
+  @NotEmpty private Set<LocalTime> monitoredHours;
 
   @NotEmpty private List<@Valid MonitoredFieldDto> monitoredFields;
 
@@ -32,6 +34,8 @@ public class AlertDto {
   private Boolean forceNotification;
 
   private String user;
+
+  @Null @JsonIgnore private String timezone;
 
   public Long getId() {
     return id;
@@ -57,19 +61,19 @@ public class AlertDto {
     this.monitoredDays = monitoredDays;
   }
 
-  public OffsetTime getTriggerHour() {
+  public LocalTime getTriggerHour() {
     return triggerHour;
   }
 
-  public void setTriggerHour(OffsetTime triggerHour) {
+  public void setTriggerHour(LocalTime triggerHour) {
     this.triggerHour = triggerHour;
   }
 
-  public Set<OffsetTime> getMonitoredHours() {
+  public Set<LocalTime> getMonitoredHours() {
     return monitoredHours;
   }
 
-  public void setMonitoredHours(Set<OffsetTime> monitoredHours) {
+  public void setMonitoredHours(Set<LocalTime> monitoredHours) {
     this.monitoredHours = monitoredHours;
   }
 
@@ -103,5 +107,13 @@ public class AlertDto {
 
   public void setUser(String user) {
     this.user = user;
+  }
+
+  public String getTimezone() {
+    return timezone;
+  }
+
+  public void setTimezone(String timezone) {
+    this.timezone = timezone;
   }
 }

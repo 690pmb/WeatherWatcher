@@ -18,17 +18,18 @@ class UserRepositoryTest {
 
   @Test
   void save() {
-    User user = new User("login", "pwd", "Lyon", Language.ARABIC);
+    User user = new User("login", "pwd", "Lyon", Language.ARABIC, "Asia/Tokyo");
     User saved = userRepository.save(user);
     assertAll(
         () -> assertEquals("login", saved.getLogin()),
         () -> assertEquals("pwd", saved.getPassword()),
         () -> assertEquals("Lyon", saved.getFavouriteLocation()),
-        () -> assertEquals("ar", saved.getLang().getCode()));
+        () -> assertEquals("ar", saved.getLang().getCode()),
+        () -> assertEquals("Asia/Tokyo", saved.getTimezone()));
   }
 
   @Test
-  @Sql(statements = "insert into user values ('login2', 'pwd2', 'Paris', 'fr')")
+  @Sql(statements = "insert into user values ('login2', 'pwd2', 'Paris', 'fr', 'Europe/Paris')")
   void findById() {
     Optional<User> user = userRepository.findById("login2");
     assertAll(
@@ -36,6 +37,7 @@ class UserRepositoryTest {
         () -> assertEquals("login2", user.get().getLogin()),
         () -> assertEquals("pwd2", user.get().getPassword()),
         () -> assertEquals("Paris", user.get().getFavouriteLocation()),
-        () -> assertEquals("fr", user.get().getLang().getCode()));
+        () -> assertEquals("fr", user.get().getLang().getCode()),
+        () -> assertEquals("Europe/Paris", user.get().getTimezone()));
   }
 }

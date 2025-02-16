@@ -1,7 +1,7 @@
 package pmb.weatherwatcher.alert;
 
 import java.time.DayOfWeek;
-import java.time.OffsetTime;
+import java.time.LocalTime;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
@@ -18,13 +18,14 @@ public final class AlertUtils {
   public static AlertDto buildAlertDto(
       Long id,
       Set<DayOfWeek> triggerDays,
-      OffsetTime triggerHour,
+      LocalTime triggerHour,
       MonitoredDaysDto monitoredDays,
-      Set<OffsetTime> monitoredHours,
+      Set<LocalTime> monitoredHours,
       List<MonitoredFieldDto> monitoredFields,
       String location,
       Boolean force,
-      String user) {
+      String user,
+      String timezone) {
     AlertDto alert = new AlertDto();
     alert.setId(id);
     alert.setTriggerDays(Optional.ofNullable(triggerDays).map(LinkedHashSet::new).orElse(null));
@@ -35,6 +36,7 @@ public final class AlertUtils {
     alert.setLocation(location);
     alert.setForceNotification(force);
     alert.setUser(user);
+    alert.setTimezone(timezone);
     return alert;
   }
 
