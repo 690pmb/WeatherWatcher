@@ -27,6 +27,7 @@ import pmb.weatherwatcher.user.repository.UserRepository;
 @ServiceTestRunner
 @Import({MyUserDetailsService.class, UserMapperImpl.class})
 class MyUserDetailsServiceTest {
+  // TODO
 
   @MockBean private UserRepository userRepository;
   @Autowired private MyUserDetailsService myUserDetailsService;

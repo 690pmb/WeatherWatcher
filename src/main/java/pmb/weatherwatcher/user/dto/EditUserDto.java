@@ -9,13 +9,16 @@ public class EditUserDto {
 
   private Language lang;
 
+  private String timezone;
+
   public EditUserDto() {
     super();
   }
 
-  public EditUserDto(String favouriteLocation, Language lang) {
+  public EditUserDto(String favouriteLocation, Language lang, String timezone) {
     this.favouriteLocation = favouriteLocation;
     this.lang = lang;
+    this.timezone = timezone;
   }
 
   public String getFavouriteLocation() {
@@ -32,5 +35,13 @@ public class EditUserDto {
 
   public void setLang(Language lang) {
     this.lang = lang;
+  }
+
+  public String getTimezone() {
+    return timezone;
+  }
+
+  public void setTimezone(String timezone) {
+    this.timezone = timezone;
   }
 }

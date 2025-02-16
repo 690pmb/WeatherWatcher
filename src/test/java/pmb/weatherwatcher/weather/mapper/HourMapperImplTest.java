@@ -18,4 +18,6 @@ class HourMapperImplTest {
     assertTrue(rounded.toString().length() > 0);
     assertTrue(wind.toString().contains(rounded.toString()));
   }
+
+  // TODO epoch hour
 }

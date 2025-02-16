@@ -50,6 +50,7 @@ import pmb.weatherwatcher.user.service.UserService;
 @WebMvcTest(controllers = UserController.class)
 @DisplayNameGeneration(value = ReplaceUnderscores.class)
 class UserControllerTest {
+  // TODO
 
   @Autowired private MockMvc mockMvc;
   @Autowired private ObjectMapper objectMapper;

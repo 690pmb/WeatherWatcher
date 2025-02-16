@@ -16,6 +16,10 @@ public interface HourMapper {
 
   @Mapping(target = "isDay", expression = "java(BooleanUtils.toBooleanObject(hour.getIsDay()))")
   @Mapping(target = "windDir", qualifiedByName = "roundWind")
+  @Mapping(
+      target = "zonedDateTime",
+      expression =
+          "java(java.time.ZonedDateTime.ofInstant(java.time.Instant.ofEpochSecond(hour.getTimeEpoch()), java.time.ZoneId.systemDefault()))")
   HourDto toDto(Hour hour);
 
   @AfterMapping

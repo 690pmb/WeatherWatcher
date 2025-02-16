@@ -46,6 +46,7 @@ import pmb.weatherwatcher.user.security.JwtTokenProvider;
 @Import({UserService.class, UserMapperImpl.class})
 @ServiceTestRunner
 class UserServiceTest {
+  // TODO
 
   @MockBean private UserRepository userRepository;
   @MockBean private AuthenticationManager authenticationManager;
