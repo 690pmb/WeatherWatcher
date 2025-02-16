@@ -55,9 +55,10 @@ class UserControllerTest {
   @Autowired private ObjectMapper objectMapper;
   @MockBean private UserService userService;
   private static final UserDto DUMMY_USER =
-      new UserDto("test", "password", "lyon", Language.FRENCH);
+      new UserDto("test", "password", "lyon", Language.FRENCH, "Europe/Paris");
   private static final PasswordDto DUMMY_PASSWORD = new PasswordDto("password", "password2");
-  private static final EditUserDto DUMMY_EDIT_USER = new EditUserDto("lyon", Language.ARABIC);
+  private static final EditUserDto DUMMY_EDIT_USER =
+      new EditUserDto("lyon", Language.ARABIC, "Asia/Tokyo");
   private static final JwtTokenDto DUMMY_TOKEN = new JwtTokenDto("jwtToken");
 
   @AfterEach
@@ -70,15 +71,15 @@ class UserControllerTest {
 
     @ParameterizedTest(
         name =
-            "Given user with login ''{0}'', password ''{1}'' and lang ''{2}'' when login then ok")
+            "Given user with login ''{0}'', password ''{1}'', lang ''{2}'' and timezone ''{3}'' when login then ok")
     @CsvSource({
-      "test, password, fr",
-      "o, password, pt",
-      "test, p, nl",
-      "01234567891011121314151617181920, password, en",
-      "test, 01234567891011121314151617181920,"
+      "test, password, fr,Europe/Paris",
+      "o, password,,",
+      "test, p, nl,Asia/Rangoon",
+      "01234567891011121314151617181920, password, en,America/Phoenix",
+      "test, 01234567891011121314151617181920,,Africa/Accra"
     })
-    void ok(String login, String password, String lang) throws Exception {
+    void ok(String login, String password, String lang, String timezone) throws Exception {
       ArgumentCaptor<UserDto> user = ArgumentCaptor.forClass(UserDto.class);
 
       when(userService.login(any())).thenReturn(DUMMY_TOKEN);
@@ -91,7 +92,7 @@ class UserControllerTest {
                       mockMvc
                           .perform(
                               post("/users/signin")
-                                  .content(buildUserJson(login, password, lang))
+                                  .content(buildUserJson(login, password, lang, timezone))
                                   .contentType(MediaType.APPLICATION_JSON_VALUE))
                           .andExpect(status().isOk())),
                   JwtTokenDto.class)
@@ -103,22 +104,20 @@ class UserControllerTest {
       assertAll(
           () -> assertEquals(login, signin.getUsername()),
           () -> assertEquals(password, signin.getPassword()),
-          () -> assertEquals("lyon", signin.getFavouriteLocation()));
+          () -> assertEquals("lyon", signin.getFavouriteLocation()),
+          () -> assertEquals(timezone, signin.getTimezone()));
     }
 
     @ParameterizedTest(
         name =
-            "Given user with login ''{0}'', password ''{1}'' and lang ''{2}'' when login then bad request")
-    @CsvSource({
-      ", password,fr",
-      "test,,fr",
-    })
-    void when_failed_validation_then_bad_request(String login, String password, String lang)
-        throws Exception {
+            "Given user with login ''{0}'', password ''{1}'', lang ''{2}'' and timezone ''{3}'' when login then bad request")
+    @CsvSource({", password,fr,", "test,,fr,Pacific/Fiji"})
+    void when_failed_validation_then_bad_request(
+        String login, String password, String lang, String timezone) throws Exception {
       mockMvc
           .perform(
               post("/users/signin")
-                  .content(buildUserJson(login, password, lang))
+                  .content(buildUserJson(login, password, lang, timezone))
                   .contentType(MediaType.APPLICATION_JSON_VALUE))
           .andExpect(status().isBadRequest());
 
@@ -179,26 +178,43 @@ class UserControllerTest {
       verify(userService).save(any());
     }
 
+    @Test
+    void when_bad_req_exception_then_bad_request() throws Exception {
+      when(userService.save(any())).thenThrow(BadRequestException.class);
+
+      mockMvc
+          .perform(
+              post("/users/signup")
+                  .content(buildUserJson(DUMMY_USER))
+                  .contentType(MediaType.APPLICATION_JSON_VALUE))
+          .andExpect(status().isBadRequest());
+
+      verify(userService).save(any());
+    }
+
     @ParameterizedTest(
         name =
             "Given user with signup ''{0}'', password ''{1}'' and lang ''{2}'' when signup then bad request")
     @CsvSource({
-      ", password,fr",
-      "o, password,fr",
-      "test,,fr",
-      "test, p,fr",
-      ",,fr",
-      "01234567891011121314151617181920, password,fr",
-      "test, 01234567891011121314151617181920,fr",
-      "test, password,",
-      "test, password,fra",
+      ", password,fr,Pacific/Fiji",
+      "o, password,fr,Pacific/Fiji",
+      "test,,fr,Pacific/Fiji",
+      "test, p,fr,Pacific/Fiji",
+      ",,fr,Pacific/Fiji",
+      "01234567891011121314151617181920, password,fr,Pacific/Fiji",
+      "test, 01234567891011121314151617181920,fr,Pacific/Fiji",
+      "test, password,,Pacific/Fiji",
+      "test, password,fra,Pacific/Fiji",
+      "test, password,'',Pacific/Fiji",
+      "test, password,fr,",
+      "test, password,fr,''",
     })
-    void when_invalid_then_bad_request(String login, String password, String lang)
+    void when_invalid_then_bad_request(String login, String password, String lang, String timezone)
         throws Exception {
       mockMvc
           .perform(
               post("/users/signup")
-                  .content(buildUserJson(login, password, lang))
+                  .content(buildUserJson(login, password, lang, timezone))
                   .contentType(MediaType.APPLICATION_JSON_VALUE))
           .andExpect(status().isBadRequest());
 
@@ -335,16 +351,19 @@ class UserControllerTest {
   }
 
   public static String buildUserJson(UserDto user) {
-    return buildUserJson(user.getUsername(), user.getPassword(), user.getLang().getCode());
+    return buildUserJson(
+        user.getUsername(), user.getPassword(), user.getLang().getCode(), user.getTimezone());
   }
 
-  public static String buildUserJson(String login, String password, String lang) {
+  public static String buildUserJson(String login, String password, String lang, String timezone) {
     return "{\"username\": "
         + buildField(login)
         + ",\"password\": "
         + buildField(password)
         + ",\"favouriteLocation\": \"lyon\",\"lang\": "
         + buildField(lang)
+        + ",\"timezone\": "
+        + buildField(timezone)
         + "}";
   }
 

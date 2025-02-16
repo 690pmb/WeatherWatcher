@@ -1,5 +1,6 @@
 package pmb.weatherwatcher.user.service;
 
+import java.time.ZoneId;
 import java.util.Optional;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -52,6 +53,9 @@ public class UserService {
    * @return saved user
    */
   public UserDto save(UserDto user) {
+    if (!ZoneId.getAvailableZoneIds().contains(user.getTimezone())) {
+      throw new BadRequestException("Invalid timezone: " + user.getTimezone());
+    }
     userRepository
         .findById(user.getUsername())
         .ifPresent(
@@ -68,7 +72,8 @@ public class UserService {
                     .map(StringUtils::trim)
                     .filter(StringUtils::isNotBlank)
                     .orElse(null),
-                user.getLang()));
+                user.getLang(),
+                user.getTimezone()));
     return userMapper.toDtoWithoutPassword(saved);
   }
 
@@ -119,8 +124,13 @@ public class UserService {
    * @return user updated
    */
   public JwtTokenDto edit(EditUserDto editUser) {
-    if (ObjectUtils.allNull(editUser.getFavouriteLocation(), editUser.getLang())) {
+    if (ObjectUtils.allNull(
+        editUser.getFavouriteLocation(), editUser.getLang(), editUser.getTimezone())) {
       throw new BadRequestException("At least one field must be filled when editing a user");
+    }
+    if (editUser.getTimezone() != null
+        && !ZoneId.getAvailableZoneIds().contains(editUser.getTimezone())) {
+      throw new BadRequestException("Invalid timezone: " + editUser.getTimezone());
     }
     return new JwtTokenDto(
         jwtTokenProvider.create(

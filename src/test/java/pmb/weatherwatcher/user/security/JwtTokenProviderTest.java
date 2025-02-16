@@ -23,13 +23,13 @@ import pmb.weatherwatcher.user.dto.UserDto;
 
 @ServiceTestRunner
 class JwtTokenProviderTest {
-
   private static final String SIGNING_KEY = "secretkey";
   private static final String DUMMY_TOKEN =
       Jwts.builder()
           .setSubject("test")
           .claim("location", "lyon")
           .claim("lang", "en")
+          .claim("timezone", "Europe/Paris")
           .signWith(SignatureAlgorithm.HS512, SIGNING_KEY)
           .compact();
 
@@ -37,7 +37,7 @@ class JwtTokenProviderTest {
 
   @Test
   void create() {
-    UserDto user = new UserDto("test", "pwd", "lyon", Language.FRENCH);
+    UserDto user = new UserDto("test", "pwd", "lyon", Language.FRENCH, "Europe/Paris");
     UsernamePasswordAuthenticationToken token =
         new UsernamePasswordAuthenticationToken(user, "pwd");
     Date now = new Date();
@@ -50,6 +50,7 @@ class JwtTokenProviderTest {
         () -> assertEquals("test", body.getSubject()),
         () -> assertEquals("lyon", body.get("location")),
         () -> assertEquals("fr", body.get("lang")),
+        () -> assertEquals("Europe/Paris", body.get("timezone")),
         () -> assertTrue(DateUtils.isSameDay(now, body.getIssuedAt())),
         () -> assertNotNull(body.getExpiration()),
         () -> assertNotNull(body.get(Claims.ID)));
@@ -70,6 +71,7 @@ class JwtTokenProviderTest {
         () -> assertEquals("test", user.getUsername()),
         () -> assertEquals("lyon", user.getFavouriteLocation()),
         () -> assertEquals("en", user.getLang().getCode()),
+        () -> assertEquals("Europe/Paris", user.getTimezone()),
         () -> assertNull(user.getPassword()),
         () -> assertEquals(DUMMY_TOKEN, authentication.getCredentials()));
   }
@@ -109,7 +111,7 @@ class JwtTokenProviderTest {
       SecurityContextHolder.getContext()
           .setAuthentication(
               new UsernamePasswordAuthenticationToken(
-                  new UserDto("test", "pwd", "lyon", Language.FRENCH), "pwd"));
+                  new UserDto("test", "pwd", "lyon", Language.FRENCH, "Europe/Paris"), "pwd"));
 
       Optional<String> result = JwtTokenProvider.getCurrentUserLogin();
 

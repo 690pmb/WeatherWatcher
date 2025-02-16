@@ -7,8 +7,10 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 import java.time.DayOfWeek;
-import java.time.OffsetTime;
-import java.time.ZoneOffset;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -49,7 +51,9 @@ class AlertServiceTest {
   @MockBean private UserService userService;
   @Autowired private AlertService alertService;
   private static AlertDto DUMMY_ALERT;
-  private static final OffsetTime time = OffsetTime.of(11, 25, 0, 0, ZoneOffset.ofHours(4));
+  private static User DUMMY_USER =
+      new User("test", "sfdg", "Lyon", Language.FRENCH, "Europe/Berlin");
+  private static final LocalTime time = LocalTime.of(11, 25, 0, 0);
 
   @BeforeEach
   void tearUp() {
@@ -62,7 +66,8 @@ class AlertServiceTest {
             Set.of(time),
             List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 10, 35)),
             "lyon",
-            null,
+            false,
+            "user",
             null);
   }
 
@@ -79,8 +84,7 @@ class AlertServiceTest {
       ArgumentCaptor<Alert> captureSaved = ArgumentCaptor.forClass(Alert.class);
 
       when(alertRepository.save(any())).thenAnswer(a -> a.getArgument(0));
-      when(userService.getCurrentUser())
-          .thenReturn(new User("test", "sfdg", "Lyon", Language.FRENCH));
+      when(userService.getCurrentUser()).thenReturn(DUMMY_USER);
 
       AlertDto result = alertService.create(DUMMY_ALERT);
 
@@ -93,7 +97,8 @@ class AlertServiceTest {
               assertThat(DUMMY_ALERT)
                   .usingRecursiveComparison(
                       RecursiveComparisonConfiguration.builder()
-                          .withIgnoredFields("triggerHour", "monitoredHours")
+                          .withIgnoredFields("triggerHour", "monitoredHours", "user")
+                          .withIgnoreCollectionOrder(true)
                           .build())
                   .as("result")
                   .isEqualTo(result),
@@ -104,18 +109,14 @@ class AlertServiceTest {
           () -> assertTrue(saved.getMonitoredDays().getSameDay(), "sameDay"),
           () -> assertFalse(saved.getMonitoredDays().getNextDay(), "nextDay"),
           () -> assertTrue(saved.getMonitoredDays().getTwoDayLater(), "twoDay"),
+          () -> assertEquals(DUMMY_ALERT.getTriggerHour(), saved.getTriggerHour(), "triggerHour"),
           () ->
               assertEquals(
-                  DUMMY_ALERT.getTriggerHour().toLocalTime(),
-                  saved.getTriggerHour().plusHours(4),
-                  "triggerHour"),
-          () ->
-              assertEquals(
-                  DUMMY_ALERT.getMonitoredHours().iterator().next().toLocalTime(),
-                  saved.getMonitoredHours().iterator().next().plusHours(4),
+                  DUMMY_ALERT.getMonitoredHours().iterator().next(),
+                  saved.getMonitoredHours().iterator().next(),
                   "monitoredHour"),
           () -> assertEquals("lyon", saved.getLocation(), "location"),
-          () -> assertNull(saved.getForceNotification(), "force"),
+          () -> assertFalse(saved.getForceNotification(), "force"),
           () -> assertNull(saved.getMonitoredFields().get(0).getId(), "fieldId"),
           () ->
               assertEquals(
@@ -124,7 +125,8 @@ class AlertServiceTest {
           () -> assertEquals(10, saved.getMonitoredFields().get(0).getMin(), "fieldMin"),
           () -> assertEquals("test", saved.getUser().getLogin()),
           () -> assertEquals("Lyon", saved.getUser().getFavouriteLocation()),
-          () -> assertEquals("sfdg", saved.getUser().getPassword()));
+          () -> assertEquals("sfdg", saved.getUser().getPassword()),
+          () -> assertEquals("Europe/Berlin", saved.getUser().getTimezone()));
     }
 
     @ParameterizedTest(name = "Given invalid alert #{index} then bad request exception")
@@ -138,15 +140,14 @@ class AlertServiceTest {
   }
 
   @Test
-  void findAll() {
+  void findAllForCurrentUser() {
     Pageable pageable = PageRequest.of(1, 20, Sort.by(Sort.Direction.ASC, "location"));
     Alert a1 = new Alert();
     a1.setId(1L);
     Alert a2 = new Alert();
     a2.setId(2L);
 
-    when(userService.getCurrentUser())
-        .thenReturn(new User("test", "sfdg", "Lyon", Language.FRENCH));
+    when(userService.getCurrentUser()).thenReturn(DUMMY_USER);
     when(alertRepository.findDistinctByUserLogin("test", pageable))
         .thenReturn(new PageImpl<>(List.of(a1, a2)));
 
@@ -163,6 +164,33 @@ class AlertServiceTest {
     verify(alertRepository).findDistinctByUserLogin("test", pageable);
   }
 
+  @Test
+  void findAllToTrigger() {
+    Alert a1 = new Alert();
+    a1.setId(1L);
+    a1.setTriggerHour(LocalTime.of(15, 12, 47));
+    a1.setUser(new User("a1", null, null, null, "Europe/Paris"));
+    Alert a2 = new Alert();
+    a2.setId(2L);
+    a2.setTriggerHour(LocalTime.of(14, 12, 47));
+    a2.setUser(new User("a2", null, null, null, "Europe/Paris"));
+
+    ZonedDateTime triggerHour =
+        ZonedDateTime.of(LocalDate.now(), LocalTime.of(14, 12, 47, 195), ZoneId.of("Z"));
+
+    when(alertRepository.findAllByTriggerDays(DayOfWeek.FRIDAY)).thenReturn(List.of(a1, a2));
+
+    List<AlertDto> trigger = alertService.findAllToTrigger(DayOfWeek.FRIDAY, triggerHour);
+
+    assertAll(
+        () -> assertEquals(1, trigger.size()),
+        () -> assertEquals(1, trigger.get(0).getId()),
+        () -> assertEquals("a1", trigger.get(0).getUser()),
+        () -> assertEquals("Europe/Paris", trigger.get(0).getTimezone()));
+
+    verify(alertRepository).findAllByTriggerDays(DayOfWeek.FRIDAY);
+  }
+
   @Nested
   class Update {
 
@@ -171,8 +199,7 @@ class AlertServiceTest {
       DUMMY_ALERT.setId(5L);
       DUMMY_ALERT.getMonitoredFields().get(0).setMax(null);
 
-      when(userService.getCurrentUser())
-          .thenReturn(new User("test", "sfdg", "Lyon", Language.FRENCH));
+      when(userService.getCurrentUser()).thenReturn(DUMMY_USER);
       when(alertRepository.findByIdAndUserLogin(5L, "test")).thenReturn(Optional.of(new Alert()));
       when(alertRepository.save(any())).thenAnswer(a -> a.getArgument(0));
 
@@ -181,7 +208,8 @@ class AlertServiceTest {
       assertThat(DUMMY_ALERT)
           .usingRecursiveComparison(
               RecursiveComparisonConfiguration.builder()
-                  .withIgnoredFields("triggerHour", "monitoredHours")
+                  .withIgnoredFields("triggerHour", "monitoredHours", "user")
+                  .withIgnoreCollectionOrder(true)
                   .build())
           .as("result")
           .isEqualTo(result);
@@ -206,8 +234,7 @@ class AlertServiceTest {
     @Test
     void alert_not_found_then_bad_request() {
       DUMMY_ALERT.setId(5L);
-      when(userService.getCurrentUser())
-          .thenReturn(new User("test", "sfdg", "Lyon", Language.FRENCH));
+      when(userService.getCurrentUser()).thenReturn(DUMMY_USER);
       when(alertRepository.findByIdAndUserLogin(5L, "test")).thenReturn(Optional.empty());
 
       assertThrows(
@@ -226,8 +253,7 @@ class AlertServiceTest {
 
     @Test
     void when_alert_not_exist_then_not_found_exception() {
-      when(userService.getCurrentUser())
-          .thenReturn(new User("test", "sfdg", "Lyon", Language.FRENCH));
+      when(userService.getCurrentUser()).thenReturn(DUMMY_USER);
       when(alertRepository.findByIdAndUserLogin(5L, "test")).thenReturn(Optional.empty());
 
       assertThrows(
@@ -244,8 +270,7 @@ class AlertServiceTest {
       Alert alert = new Alert();
       alert.setId(56L);
 
-      when(userService.getCurrentUser())
-          .thenReturn(new User("test", "sfdg", "Lyon", Language.FRENCH));
+      when(userService.getCurrentUser()).thenReturn(DUMMY_USER);
       when(alertRepository.findByIdAndUserLogin(5L, "test")).thenReturn(Optional.of(alert));
 
       AlertDto actual = alertService.findById(5L);
@@ -262,8 +287,7 @@ class AlertServiceTest {
 
     @Test
     void alert_not_found_then_bad_request() {
-      when(userService.getCurrentUser())
-          .thenReturn(new User("test", "sfdg", "Lyon", Language.FRENCH));
+      when(userService.getCurrentUser()).thenReturn(DUMMY_USER);
       when(alertRepository.findByIdAndUserLogin(5L, "test")).thenReturn(Optional.empty());
 
       assertThrows(
@@ -282,8 +306,7 @@ class AlertServiceTest {
       alert.setId(56L);
       ArgumentCaptor<Alert> deletedCaptor = ArgumentCaptor.forClass(Alert.class);
 
-      when(userService.getCurrentUser())
-          .thenReturn(new User("test", "sfdg", "Lyon", Language.FRENCH));
+      when(userService.getCurrentUser()).thenReturn(DUMMY_USER);
       when(alertRepository.findByIdAndUserLogin(5L, "test")).thenReturn(Optional.of(alert));
       when(alertRepository.findByIdAndUserLogin(8L, "test")).thenReturn(Optional.of(alert));
       doNothing().when(alertRepository).delete(any());
@@ -305,62 +328,67 @@ class AlertServiceTest {
             AlertUtils.buildAlertDto(
                 null,
                 Set.of(DayOfWeek.MONDAY),
-                OffsetTime.now(),
+                LocalTime.now(),
                 AlertUtils.buildMonitoredDaysDto(true, false, true),
-                Set.of(OffsetTime.now()),
+                Set.of(LocalTime.now()),
                 List.of(
                     AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, null, null)),
                 "lyon",
                 null,
-                "user"),
+                "user",
+                null),
             "Monitored field 'FEELS_LIKE' has its min and max values undefined"),
         Arguments.of(
             AlertUtils.buildAlertDto(
                 null,
                 Set.of(DayOfWeek.MONDAY),
-                OffsetTime.now(),
+                LocalTime.now(),
                 AlertUtils.buildMonitoredDaysDto(true, false, true),
-                Set.of(OffsetTime.now()),
+                Set.of(LocalTime.now()),
                 List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 35, 10)),
                 "lyon",
                 true,
-                "user"),
+                "user",
+                null),
             "Monitored field 'FEELS_LIKE' has its min value greater than its max value: '[35, 10]'"),
         Arguments.of(
             AlertUtils.buildAlertDto(
                 null,
                 Set.of(DayOfWeek.MONDAY),
-                OffsetTime.now(),
+                LocalTime.now(),
                 AlertUtils.buildMonitoredDaysDto(null, false, null),
-                Set.of(OffsetTime.now()),
+                Set.of(LocalTime.now()),
                 List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 2, 10)),
                 "lyon",
                 null,
-                "user"),
+                "user",
+                null),
             "Given alert has no monitored days"),
         Arguments.of(
             AlertUtils.buildAlertDto(
                 6L,
                 Set.of(DayOfWeek.MONDAY),
-                OffsetTime.now(),
+                LocalTime.now(),
                 AlertUtils.buildMonitoredDaysDto(null, false, null),
-                Set.of(OffsetTime.now()),
+                Set.of(LocalTime.now()),
                 List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 2, 10)),
                 "lyon",
                 false,
-                "user"),
+                "user",
+                null),
             "Ids must be null when creating an alert"),
         Arguments.of(
             AlertUtils.buildAlertDto(
                 null,
                 Set.of(DayOfWeek.MONDAY),
-                OffsetTime.now(),
+                LocalTime.now(),
                 AlertUtils.buildMonitoredDaysDto(null, false, null),
-                Set.of(OffsetTime.now()),
+                Set.of(LocalTime.now()),
                 List.of(AlertUtils.buildMonitoredFieldDto(3L, WeatherField.FEELS_LIKE, 2, 10)),
                 "lyon",
                 null,
-                "user"),
+                "user",
+                null),
             "Ids must be null when creating an alert"));
   }
 }

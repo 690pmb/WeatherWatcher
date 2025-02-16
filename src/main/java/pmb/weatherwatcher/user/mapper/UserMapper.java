@@ -38,5 +38,8 @@ public interface UserMapper extends EntityDtoMapper<User, UserDto> {
   @Mapping(
       nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
       target = "favouriteLocation")
+  @Mapping(
+      nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
+      target = "timezone")
   User edit(@MappingTarget User user, EditUserDto editUser);
 }

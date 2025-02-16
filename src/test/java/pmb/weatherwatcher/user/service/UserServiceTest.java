@@ -53,7 +53,8 @@ class UserServiceTest {
   @MockBean private BCryptPasswordEncoder bCryptPasswordEncoder;
   @Autowired private UserService userService;
 
-  private final UserDto DUMMY_USER = new UserDto("test", "pwd", "lyon", Language.FRENCH);
+  private static final String TZ = "Europe/Paris";
+  private final UserDto DUMMY_USER = new UserDto("test", "pwd", "lyon", Language.FRENCH, TZ);
   private final PasswordDto DUMMY_PASSWORD = new PasswordDto("password", "newPassword");
 
   @AfterEach
@@ -78,6 +79,19 @@ class UserServiceTest {
     }
 
     @Test
+    void invalid_time_zone() {
+      assertThrows(
+          BadRequestException.class,
+          () -> userService.save(new UserDto("test", "pwd", "lyon", Language.FRENCH, "timezone")),
+          "Invalid timezone: timezone");
+
+      verify(userRepository, never()).findById("test");
+      verify(userRepository, never()).save(any());
+      verify(bCryptPasswordEncoder, never()).encode(any());
+      verify(authenticationManager, never()).authenticate(any());
+    }
+
+    @Test
     void success() {
       when(userRepository.findById("test")).thenReturn(Optional.empty());
       when(bCryptPasswordEncoder.encode("test")).thenAnswer(a -> a.getArgument(0));
@@ -90,6 +104,7 @@ class UserServiceTest {
           () -> assertEquals("test", saved.getUsername()),
           () -> assertEquals("lyon", saved.getFavouriteLocation()),
           () -> assertEquals("fr", saved.getLang().getCode()),
+          () -> assertEquals("Europe/Paris", saved.getTimezone()),
           () -> assertNull(saved.getPassword()),
           () -> assertTrue(saved.isEnabled()),
           () -> assertTrue(saved.isAccountNonLocked()),
@@ -163,7 +178,7 @@ class UserServiceTest {
     @Test
     @WithMockUser(username = "test")
     void ok() {
-      User user = new User("test", "encryptedPassword", "lyon", Language.FRENCH);
+      User user = new User("test", "encryptedPassword", "lyon", Language.FRENCH, TZ);
       ArgumentCaptor<User> captured = ArgumentCaptor.forClass(User.class);
 
       when(userRepository.findById("test")).thenReturn(Optional.of(user));
@@ -213,7 +228,7 @@ class UserServiceTest {
     @Test
     @WithMockUser(username = "test")
     void incorrect_password() {
-      User user = new User("test", "encryptedPassword", "lyon", Language.FRENCH);
+      User user = new User("test", "encryptedPassword", "lyon", Language.FRENCH, TZ);
 
       when(userRepository.findById("test")).thenReturn(Optional.of(user));
       when(bCryptPasswordEncoder.matches("password", "encryptedPassword")).thenReturn(false);
@@ -231,14 +246,28 @@ class UserServiceTest {
   class Edit {
 
     @ParameterizedTest(
-        name = "Given location ''{0}'' and lang ''{1}'' when editing a user then all good")
+        name =
+            "Given location ''{0}'', lang ''{1}'' and timezone ''{2}'' when editing a user then all good")
     @WithMockUser(username = "test")
-    @CsvSource(value = {"lyon,", ",fr", "lyon,fr", "'',"})
-    void ok(String location, String lang) {
+    @CsvSource(
+        value = {
+          "lyon,,",
+          ",fr,",
+          "lyon,fr,",
+          "'',,",
+          "lyon,,America/Araguaina",
+          ",fr,America/Araguaina",
+          "lyon,fr,America/Araguaina",
+          "'',,America/Araguaina",
+          ",,America/Araguaina"
+        })
+    void ok(String location, String lang, String timezone) {
       EditUserDto editUser =
           new EditUserDto(
-              location, Optional.ofNullable(lang).flatMap(Language::fromCode).orElse(null));
-      User currentUser = new User("test", "pwd2", "Paris", Language.GREEK);
+              location,
+              Optional.ofNullable(lang).flatMap(Language::fromCode).orElse(null),
+              timezone);
+      User currentUser = new User("test", "pwd2", "Paris", Language.GREEK, TZ);
       ArgumentCaptor<UsernamePasswordAuthenticationToken> token =
           ArgumentCaptor.forClass(UsernamePasswordAuthenticationToken.class);
       ArgumentCaptor<User> save = ArgumentCaptor.forClass(User.class);
@@ -262,12 +291,27 @@ class UserServiceTest {
           () ->
               assertEquals(
                   Optional.ofNullable(lang).orElse("el"), save.getValue().getLang().getCode()),
+          () ->
+              assertEquals(Optional.ofNullable(timezone).orElse(TZ), save.getValue().getTimezone()),
           () -> assertEquals("test", save.getValue().getLogin()),
           () -> assertEquals("test", ((UserDto) token.getValue().getPrincipal()).getUsername()),
           () -> assertFalse(token.getValue().isAuthenticated()),
           () ->
               assertEquals(
                   "test", SecurityContextHolder.getContext().getAuthentication().getName()));
+    }
+
+    @Test
+    @WithMockUser(username = "test")
+    void given_invalid_timezone_when_edting_user_then_bad_request_exception() {
+      assertThrows(
+          BadRequestException.class,
+          () -> userService.edit(new EditUserDto(null, null, "timezone")),
+          "Invalid timezone: timezone");
+
+      verify(jwtTokenProvider, never()).create(any());
+      verify(userRepository, never()).findById(any());
+      verify(userRepository, never()).save(any());
     }
 
     @Test

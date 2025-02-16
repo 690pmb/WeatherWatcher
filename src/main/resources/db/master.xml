@@ -12,5 +12,6 @@
     <include file="db/changelog/local/006_init_subscription.xml" relativeToChangelogFile="false"/>
     <include file="db/changelog/007_user_lang.xml" relativeToChangelogFile="false"/>
     <include file="db/changelog/008_subscription_user_agent.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/009_timezone.xml" relativeToChangelogFile="false"/>
 
 </databaseChangeLog>

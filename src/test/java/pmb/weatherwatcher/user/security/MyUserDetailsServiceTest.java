@@ -28,6 +28,8 @@ import pmb.weatherwatcher.user.repository.UserRepository;
 @Import({MyUserDetailsService.class, UserMapperImpl.class})
 class MyUserDetailsServiceTest {
 
+  private static final String TZ = "Europe/Paris";
+
   @MockBean private UserRepository userRepository;
   @Autowired private MyUserDetailsService myUserDetailsService;
 
@@ -42,14 +44,16 @@ class MyUserDetailsServiceTest {
     @Test
     void ok() {
       when(userRepository.findById("test"))
-          .thenReturn(Optional.of(new User("test", "pwd", "lyon", Language.FRENCH)));
+          .thenReturn(Optional.of(new User("test", "pwd", "lyon", Language.FRENCH, TZ)));
 
       UserDto actual = (UserDto) myUserDetailsService.loadUserByUsername("test");
 
       assertAll(
           () -> assertEquals("test", actual.getUsername()),
           () -> assertEquals("pwd", actual.getPassword()),
-          () -> assertEquals("lyon", actual.getFavouriteLocation()));
+          () -> assertEquals("lyon", actual.getFavouriteLocation()),
+          () -> assertEquals("fr", actual.getLang().getCode()),
+          () -> assertEquals(TZ, actual.getTimezone()));
 
       verify(userRepository).findById("test");
     }
@@ -70,10 +74,10 @@ class MyUserDetailsServiceTest {
 
     @Test
     void ok() {
-      UserDto dto = new UserDto("test", "pwd", "lyon", Language.FRENCH);
+      UserDto dto = new UserDto("test", "pwd", "lyon", Language.FRENCH, TZ);
 
       when(userRepository.findById("test"))
-          .thenReturn(Optional.of(new User("test", "pwd", "lyon", Language.FRENCH)));
+          .thenReturn(Optional.of(new User("test", "pwd", "lyon", Language.FRENCH, TZ)));
       when(userRepository.save(any())).thenAnswer(a -> a.getArgument(0));
 
       UserDto actual = (UserDto) myUserDetailsService.updatePassword(dto, "password");
@@ -81,7 +85,9 @@ class MyUserDetailsServiceTest {
       assertAll(
           () -> assertEquals("test", actual.getUsername()),
           () -> assertEquals("password", actual.getPassword()),
-          () -> assertEquals("lyon", actual.getFavouriteLocation()));
+          () -> assertEquals("lyon", actual.getFavouriteLocation()),
+          () -> assertEquals("fr", actual.getLang().getCode()),
+          () -> assertEquals(TZ, actual.getTimezone()));
 
       verify(userRepository).findById("test");
       verify(userRepository).save(any());
@@ -89,7 +95,7 @@ class MyUserDetailsServiceTest {
 
     @Test
     void not_found() {
-      UserDto dto = new UserDto("test", "pwd", "lyon", Language.FRENCH);
+      UserDto dto = new UserDto("test", "pwd", "lyon", Language.FRENCH, TZ);
 
       when(userRepository.findById("test")).thenReturn(Optional.empty());
 

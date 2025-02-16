@@ -6,9 +6,8 @@ import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.OffsetTime;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
@@ -70,7 +69,7 @@ public class AlertScheduler {
     LOGGER.debug("schedule");
     List<AlertDto> alertTriggered =
         this.alertService.findAllToTrigger(
-            LocalDate.now(CLOCK).getDayOfWeek(), LocalTime.now(CLOCK));
+            ZonedDateTime.now(CLOCK).getDayOfWeek(), ZonedDateTime.now(CLOCK));
 
     Map<String, ForecastDto> forecastByLocation =
         alertTriggered.stream()
@@ -159,12 +158,11 @@ public class AlertScheduler {
   }
 
   private static boolean isHourMonitored(HourDto hour, AlertDto alert) {
-    return alert
-        .getMonitoredHours()
-        .contains(
-            OffsetTime.of(
-                LocalTime.parse(hour.getTime(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),
-                ZoneOffset.UTC));
+    return alert.getMonitoredHours().stream()
+        .anyMatch(
+            monitored ->
+                ZonedDateTime.of(LocalDate.now(CLOCK), monitored, ZoneId.of(alert.getTimezone()))
+                    .isEqual(hour.getZonedDateTime()));
   }
 
   private static boolean isForecastHourToNotify(HourDto h, MonitoredFieldDto monitoredField) {

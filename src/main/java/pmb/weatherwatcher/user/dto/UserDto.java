@@ -2,6 +2,7 @@ package pmb.weatherwatcher.user.dto;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import org.springframework.security.core.GrantedAuthority;
@@ -30,15 +31,20 @@ public class UserDto implements UserDetails {
   @NotNull(groups = OnSignup.class)
   private Language lang;
 
+  @NotBlank(groups = OnSignup.class)
+  private String timezone;
+
   public UserDto() {
     super();
   }
 
-  public UserDto(String username, String password, String favouriteLocation, Language lang) {
+  public UserDto(
+      String username, String password, String favouriteLocation, Language lang, String timezone) {
     this.username = username;
     this.password = password;
     this.favouriteLocation = favouriteLocation;
     this.lang = lang;
+    this.timezone = timezone;
   }
 
   @Override
@@ -98,5 +104,13 @@ public class UserDto implements UserDetails {
   @Override
   public boolean isEnabled() {
     return true;
+  }
+
+  public String getTimezone() {
+    return timezone;
+  }
+
+  public void setTimezone(String timezone) {
+    this.timezone = timezone;
   }
 }
