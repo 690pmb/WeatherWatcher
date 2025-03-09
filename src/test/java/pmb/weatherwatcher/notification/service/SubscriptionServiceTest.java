@@ -38,6 +38,7 @@ import pmb.weatherwatcher.user.service.UserService;
 @ServiceTestRunner
 @Import({SubscriptionService.class, SubscriptionMapperImpl.class})
 class SubscriptionServiceTest {
+  private static final String TZ = "Europe/Paris";
 
   @MockBean private SubscriptionRepository subscriptionRepository;
   @MockBean private UserService userService;
@@ -62,12 +63,12 @@ class SubscriptionServiceTest {
       existing.setEndpoint("point");
       existing.setExpirationTime(98L);
       existing.setId(new SubscriptionId("userAgent2", "login2"));
-      existing.setUser(new User("login2", "mdp", "Paris", Language.FRENCH));
+      existing.setUser(new User("login2", "mdp", "Paris", Language.FRENCH, TZ));
       existing.setPublicKey("public");
       existing.setPrivateKey("private");
 
       when(userService.getCurrentUser())
-          .thenReturn(new User("login", "pwd", "Lyon", Language.FRENCH));
+          .thenReturn(new User("login", "pwd", "Lyon", Language.FRENCH, TZ));
       when(subscriptionRepository.findById(new SubscriptionId(userAgent, "login")))
           .thenReturn(Optional.of(existing));
       when(subscriptionRepository.save(any(Subscription.class))).thenAnswer(a -> a.getArgument(0));
@@ -88,7 +89,8 @@ class SubscriptionServiceTest {
           () -> assertEquals("userAgent", saved.getId().getUserAgent(), "UserAgent"),
           () -> assertEquals("login2", saved.getUser().getLogin(), "login"),
           () -> assertEquals("mdp", saved.getUser().getPassword(), "password"),
-          () -> assertEquals("Paris", saved.getUser().getFavouriteLocation(), "location"));
+          () -> assertEquals("Paris", saved.getUser().getFavouriteLocation(), "location"),
+          () -> assertEquals(TZ, saved.getUser().getTimezone(), "timezone"));
     }
 
     @Test
@@ -100,7 +102,7 @@ class SubscriptionServiceTest {
               userAgent, "end", "public2", "private2", 56L, null);
 
       when(userService.getCurrentUser())
-          .thenReturn(new User("login", "pwd", "Lyon", Language.FRENCH));
+          .thenReturn(new User("login", "pwd", "Lyon", Language.FRENCH, TZ));
       when(subscriptionRepository.findById(new SubscriptionId(userAgent, "login")))
           .thenReturn(Optional.empty());
       when(subscriptionRepository.save(any(Subscription.class))).thenAnswer(a -> a.getArgument(0));
@@ -121,7 +123,8 @@ class SubscriptionServiceTest {
           () -> assertEquals("userAgent", saved.getId().getUserAgent(), "UserAgent"),
           () -> assertEquals("login", saved.getUser().getLogin(), "login"),
           () -> assertEquals("pwd", saved.getUser().getPassword(), "password"),
-          () -> assertEquals("Lyon", saved.getUser().getFavouriteLocation(), "location"));
+          () -> assertEquals("Lyon", saved.getUser().getFavouriteLocation(), "location"),
+          () -> assertEquals(TZ, saved.getUser().getTimezone(), "timezone"));
     }
   }
 

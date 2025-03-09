@@ -15,8 +15,11 @@ import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.DayOfWeek;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -33,7 +36,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import pmb.weatherwatcher.ServiceTestRunner;
-import pmb.weatherwatcher.TestUtils;
 import pmb.weatherwatcher.alert.AlertUtils;
 import pmb.weatherwatcher.alert.dto.AlertDto;
 import pmb.weatherwatcher.alert.model.WeatherField;
@@ -54,12 +56,14 @@ class AlertSchedulerTest {
   @MockBean NotificationService notificationService;
   @Autowired AlertScheduler alertScheduler;
   @Captor ArgumentCaptor<List<SubscriptionDto>> sentSubscriptions;
+  private static final String TZ = "Europe/Paris";
   private static final String PAYLOAD =
       "{\"notification\":{\"title\":\"Alerte Météo !\",\"body\":\"Voir la météo en alerte\",\"data\":{\"onActionClick\":{\"default\":{\"operation\":\"navigateLastFocusedOrOpen\",\"url\":\"dashboard/details/%s?location=%s&alert=%s\"}}},\"requireInteraction\":true}}";
 
   private static final Clock CLOCK =
-      Clock.fixed(Instant.parse("2022-10-22T10:00:00Z"), ZoneOffset.UTC);
-  private static final LocalTime DUMMY_LOCAL_TIME = LocalTime.of(10, 0, 0);
+      Clock.fixed(Instant.parse("2022-10-22T10:00:00.00Z"), ZoneOffset.UTC);
+  private static final ZonedDateTime DUMMY_ZONED_TIME =
+      ZonedDateTime.of(LocalDate.of(2022, 10, 22), LocalTime.of(10, 0, 0), ZoneId.of("Z"));
 
   @BeforeAll
   static void setupClock() {
@@ -74,12 +78,12 @@ class AlertSchedulerTest {
 
   @Test
   void given_no_alert_triggered_then_no_notification() {
-    when(alertService.findAllToTrigger(DayOfWeek.SATURDAY, DUMMY_LOCAL_TIME))
+    when(alertService.findAllToTrigger(DayOfWeek.SATURDAY, DUMMY_ZONED_TIME))
         .thenReturn(Collections.emptyList());
 
     alertScheduler.schedule();
 
-    verify(alertService).findAllToTrigger(DayOfWeek.SATURDAY, DUMMY_LOCAL_TIME);
+    verify(alertService).findAllToTrigger(DayOfWeek.SATURDAY, DUMMY_ZONED_TIME);
     verify(weatherService, never()).findForecastByLocation(any(), any(), any());
     verify(subscriptionService, never()).findAllByUsers(any());
     verify(notificationService, never()).send(any(), any());
@@ -106,47 +110,48 @@ class AlertSchedulerTest {
             null,
             null,
             AlertUtils.buildMonitoredDaysDto(true, false, false),
-            Set.of(TestUtils.buildOffsetTime(10, 0)),
+            Set.of(LocalTime.of(10, 0, 0)),
             List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 10, 20)),
             "Lyon",
             false,
-            "user1");
+            "user1",
+            TZ);
     AlertDto alert2 =
         AlertUtils.buildAlertDto(
             2L,
             null,
             null,
             AlertUtils.buildMonitoredDaysDto(true, true, true),
-            Set.of(
-                TestUtils.buildOffsetTime(10, 0),
-                TestUtils.buildOffsetTime(20, 0),
-                TestUtils.buildOffsetTime(17, 0)),
+            Set.of(LocalTime.of(10, 0, 0), LocalTime.of(20, 0, 0), LocalTime.of(17, 0, 0)),
             List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.CHANCE_OF_RAIN, 10, 60)),
             "Lyon",
             false,
-            "user1");
+            "user1",
+            TZ);
     AlertDto alert3 =
         AlertUtils.buildAlertDto(
             3L,
             null,
             null,
             AlertUtils.buildMonitoredDaysDto(true, false, false),
-            Set.of(TestUtils.buildOffsetTime(10, 0)),
+            Set.of(LocalTime.of(10, 0, 0)),
             List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 10, 30)),
             "Lyon",
             true,
-            "user2");
+            "user2",
+            TZ);
     AlertDto alert4 =
         AlertUtils.buildAlertDto(
             4L,
             null,
             null,
             AlertUtils.buildMonitoredDaysDto(true, false, true),
-            Set.of(TestUtils.buildOffsetTime(14, 0), TestUtils.buildOffsetTime(17, 0)),
+            Set.of(LocalTime.of(14, 0, 0), LocalTime.of(17, 0, 0)),
             List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.CHANCE_OF_RAIN, 10, 60)),
             "Paris",
             false,
-            "user3");
+            "user3",
+            TZ);
     SubscriptionDto sub1 =
         NotificationUtils.buildSubscriptionDto("ua1", "end1", "pk1", "pk11", null, "user1");
     SubscriptionDto sub2 =
@@ -155,7 +160,7 @@ class AlertSchedulerTest {
         NotificationUtils.buildSubscriptionDto("ua3", "end3", "pk3", "pk33", null, "user3");
     ArgumentCaptor<byte[]> sentPayload = ArgumentCaptor.forClass(byte[].class);
 
-    when(alertService.findAllToTrigger(DayOfWeek.SATURDAY, DUMMY_LOCAL_TIME))
+    when(alertService.findAllToTrigger(DayOfWeek.SATURDAY, DUMMY_ZONED_TIME))
         .thenReturn(List.of(alert1, alert2, alert3, alert4));
     when(weatherService.findForecastByLocation("Lyon", 3, "fr"))
         .thenReturn(
@@ -168,6 +173,7 @@ class AlertSchedulerTest {
                         List.of(
                             WeatherUtils.buildHourDto(
                                 "2022-10-22 10:00",
+                                ZonedDateTime.of(2022, 10, 22, 10, 0, 0, 0, ZoneId.of(TZ)),
                                 null,
                                 null,
                                 null,
@@ -187,6 +193,7 @@ class AlertSchedulerTest {
                         List.of(
                             WeatherUtils.buildHourDto(
                                 "2022-10-23 10:00",
+                                ZonedDateTime.of(2022, 10, 23, 10, 0, 0, 0, ZoneId.of(TZ)),
                                 null,
                                 null,
                                 null,
@@ -211,6 +218,7 @@ class AlertSchedulerTest {
                         List.of(
                             WeatherUtils.buildHourDto(
                                 "2022-10-22 14:00",
+                                ZonedDateTime.of(2022, 10, 22, 14, 0, 0, 0, ZoneId.of(TZ)),
                                 null,
                                 null,
                                 null,
@@ -230,7 +238,7 @@ class AlertSchedulerTest {
 
     alertScheduler.schedule();
 
-    verify(alertService).findAllToTrigger(DayOfWeek.SATURDAY, DUMMY_LOCAL_TIME);
+    verify(alertService).findAllToTrigger(DayOfWeek.SATURDAY, DUMMY_ZONED_TIME);
     verify(weatherService).findForecastByLocation("Lyon", 3, "fr");
     verify(weatherService).findForecastByLocation("Paris", 3, "fr");
     verify(subscriptionService).findAllByUsers(Set.of("user1", "user2", "user3"));

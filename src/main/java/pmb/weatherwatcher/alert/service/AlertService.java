@@ -1,7 +1,9 @@
 package pmb.weatherwatcher.alert.service;
 
 import java.time.DayOfWeek;
-import java.time.LocalTime;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
@@ -123,11 +125,16 @@ public class AlertService {
    * @param triggerHour hour
    * @return a list of alerts
    */
-  public List<AlertDto> findAllToTrigger(DayOfWeek triggerDay, LocalTime triggerHour) {
-    return alertRepository
-        .findAllByTriggerDaysAndTriggerHour(triggerDay, triggerHour.truncatedTo(ChronoUnit.SECONDS))
-        .stream()
-        .map(alertMapper::toDtoWithUser)
+  public List<AlertDto> findAllToTrigger(DayOfWeek triggerDay, ZonedDateTime triggerHour) {
+    return alertRepository.findAllByTriggerDays(triggerDay).stream()
+        .filter(
+            a ->
+                ZonedDateTime.of(
+                        LocalDate.now(ZoneId.of("Z")),
+                        a.getTriggerHour(),
+                        ZoneId.of(a.getUser().getTimezone()))
+                    .isEqual(triggerHour.truncatedTo(ChronoUnit.SECONDS)))
+        .map(alertMapper::toDtoWithUserData)
         .collect(Collectors.toList());
   }
 

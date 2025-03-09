@@ -1,11 +1,13 @@
 package pmb.weatherwatcher.weather.dto;
 
+import java.time.ZonedDateTime;
 import pmb.weatherwatcher.weather.api.model.Condition;
 import pmb.weatherwatcher.weather.api.model.Direction;
 
 public class HourDto {
 
   private String time;
+  private ZonedDateTime zonedDateTime;
   private Double tempC;
   private Boolean isDay;
   private Condition condition;
@@ -28,6 +30,14 @@ public class HourDto {
 
   public void setTime(String time) {
     this.time = time;
+  }
+
+  public ZonedDateTime getZonedDateTime() {
+    return zonedDateTime;
+  }
+
+  public void setZonedDateTime(ZonedDateTime zonedDateTime) {
+    this.zonedDateTime = zonedDateTime;
   }
 
   public Double getTempC() {

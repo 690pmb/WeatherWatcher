@@ -119,7 +119,7 @@ class WeatherServiceTest {
       when(weatherApiClient.getForecastWeather("london", null, Language.FRENCH))
           .thenReturn(Optional.empty());
       when(userService.getCurrentUser())
-          .thenReturn(new User("test", "test", "london", Language.FRENCH));
+          .thenReturn(new User("test", "test", "london", Language.FRENCH, "Europe/Berlin"));
 
       assertThrows(
           NotFoundException.class, () -> weatherService.findForecastByLocation(null, null, null));
@@ -131,7 +131,7 @@ class WeatherServiceTest {
     @Test
     void no_location_nor_user_favorite_then_no_content() {
       when(userService.getCurrentUser())
-          .thenReturn(new User("test", "test", null, Language.FRENCH));
+          .thenReturn(new User("test", "test", null, Language.FRENCH, "Europe/Berlin"));
 
       assertThrows(
           NoContentException.class, () -> weatherService.findForecastByLocation(null, null, null));

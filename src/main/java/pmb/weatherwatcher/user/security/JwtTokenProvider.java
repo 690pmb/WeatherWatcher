@@ -30,6 +30,7 @@ public class JwtTokenProvider {
 
   private static final String FAVOURITE_LOCATION = "location";
   private static final String LANGUAGE = "lang";
+  private static final String TIMEZONE = "timezone";
 
   private final String secretKey;
   private final Integer tokenDuration;
@@ -54,6 +55,7 @@ public class JwtTokenProvider {
         .setSubject(user.getUsername())
         .claim(FAVOURITE_LOCATION, user.getFavouriteLocation())
         .claim(LANGUAGE, user.getLang().getCode())
+        .claim(TIMEZONE, user.getTimezone())
         .signWith(SignatureAlgorithm.HS512, secretKey)
         .setId(UUID.randomUUID().toString())
         .setIssuedAt(issuedAt)
@@ -106,7 +108,8 @@ public class JwtTokenProvider {
                     () ->
                         new InternalServerErrorException(
                             "Cant' find language from token with code: "
-                                + claims.get(LANGUAGE, String.class)))),
+                                + claims.get(LANGUAGE, String.class))),
+            claims.get(TIMEZONE, String.class)),
         token,
         null);
   }

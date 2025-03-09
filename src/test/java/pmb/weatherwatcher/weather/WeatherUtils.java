@@ -1,5 +1,6 @@
 package pmb.weatherwatcher.weather;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 import pmb.weatherwatcher.weather.api.model.Direction;
 import pmb.weatherwatcher.weather.dto.ForecastDayDto;
@@ -30,6 +31,7 @@ public final class WeatherUtils {
 
   public static HourDto buildHourDto(
       String time,
+      ZonedDateTime zdt,
       Double tempC,
       Double windKph,
       Direction windDir,
@@ -45,6 +47,7 @@ public final class WeatherUtils {
       Double uv) {
     HourDto hour = new HourDto();
     hour.setTime(time);
+    hour.setZonedDateTime(zdt);
     hour.setTempC(tempC);
     hour.setWindKph(windKph);
     hour.setWindDir(windDir);
