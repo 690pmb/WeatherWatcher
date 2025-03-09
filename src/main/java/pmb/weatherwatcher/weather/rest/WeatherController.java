@@ -1,10 +1,12 @@
 package pmb.weatherwatcher.weather.rest;
 
 import java.util.List;
+import java.util.stream.Stream;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import pmb.weatherwatcher.common.model.Language;
 import pmb.weatherwatcher.weather.api.model.SearchJsonResponse;
 import pmb.weatherwatcher.weather.dto.ForecastDto;
 import pmb.weatherwatcher.weather.service.WeatherService;
@@ -30,5 +32,10 @@ public class WeatherController {
   @GetMapping("/locations")
   public List<SearchJsonResponse> searchLocations(@RequestParam String query) {
     return weatherService.searchLocations(query);
+  }
+
+  @GetMapping("/langs")
+  public List<String> getAvailableLanguages() {
+    return Stream.of(Language.values()).map(Language::getCode).toList();
   }
 }

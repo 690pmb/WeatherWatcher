@@ -1,6 +1,8 @@
 package pmb.weatherwatcher.weather.rest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.matchesPattern;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.never;
@@ -171,5 +173,14 @@ class WeatherControllerTest {
 
       verify(weatherService, never()).searchLocations("");
     }
+  }
+
+  @Test
+  void getLangs() throws Exception {
+    mockMvc
+        .perform(get("/weathers/langs").contentType(MediaType.APPLICATION_JSON_VALUE))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$").isArray())
+        .andExpect(jsonPath("$[*]").value(everyItem(matchesPattern("^[a-z_]{2,6}$"))));
   }
 }

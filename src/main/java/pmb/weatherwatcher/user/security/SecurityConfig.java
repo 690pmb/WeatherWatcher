@@ -64,6 +64,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .permitAll()
         .antMatchers("/weathers/locations*")
         .permitAll()
+        .antMatchers("/weathers/langs*")
+        .permitAll()
         .antMatchers("/users/signup*")
         .permitAll()
         .anyRequest()
