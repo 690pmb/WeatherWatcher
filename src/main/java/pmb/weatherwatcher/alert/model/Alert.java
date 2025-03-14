@@ -8,7 +8,6 @@ import javax.persistence.CascadeType;
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
-import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -41,7 +40,14 @@ public class Alert {
   @ElementCollection(targetClass = DayOfWeek.class)
   private Set<DayOfWeek> triggerDays;
 
-  @Embedded private MonitoredDays monitoredDays;
+  /** Tells which days are monitored. */
+  @Column(name = "day")
+  @Enumerated(EnumType.STRING)
+  @CollectionTable(
+      name = "monitored_day",
+      joinColumns = @JoinColumn(name = "alert", referencedColumnName = "id"))
+  @ElementCollection(targetClass = DayOfWeek.class)
+  private Set<DayOfWeek> monitoredDays;
 
   /** Tells the time alerts are triggered. */
   @Column(name = "trigger_hour")
@@ -84,11 +90,11 @@ public class Alert {
     this.triggerDays = triggerDays;
   }
 
-  public MonitoredDays getMonitoredDays() {
+  public Set<DayOfWeek> getMonitoredDays() {
     return monitoredDays;
   }
 
-  public void setMonitoredDays(MonitoredDays monitoredDays) {
+  public void setMonitoredDays(Set<DayOfWeek> monitoredDays) {
     this.monitoredDays = monitoredDays;
   }
 

@@ -1,15 +1,30 @@
 package pmb.weatherwatcher.alert.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
+import java.time.Clock;
 import java.time.DayOfWeek;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -23,11 +38,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
+import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.util.CollectionUtils;
 import pmb.weatherwatcher.ServiceTestRunner;
 import pmb.weatherwatcher.alert.AlertUtils;
@@ -44,16 +65,26 @@ import pmb.weatherwatcher.user.model.User;
 import pmb.weatherwatcher.user.service.UserService;
 
 @ServiceTestRunner
-@Import({AlertService.class, AlertMapperImpl.class, MonitoredFieldMapperImpl.class})
+@Import({
+  AlertService.class,
+  AlertMapperImpl.class,
+  MonitoredFieldMapperImpl.class,
+})
 class AlertServiceTest {
 
   @MockBean private AlertRepository alertRepository;
   @MockBean private UserService userService;
   @Autowired private AlertService alertService;
+
   private static AlertDto DUMMY_ALERT;
-  private static User DUMMY_USER =
-      new User("test", "sfdg", "Lyon", Language.FRENCH, "Europe/Berlin");
   private static final LocalTime time = LocalTime.of(11, 25, 0, 0);
+  private static final User DUMMY_USER =
+      new User("test", "sfdg", "Lyon", Language.FRENCH, "Europe/Berlin");
+  private static final String TZ = "Europe/Paris";
+  private static final Clock CLOCK =
+      Clock.fixed(Instant.parse("2022-12-22T10:00:00.00Z"), ZoneOffset.UTC);
+  private static final Clock CLOCK_DST =
+      Clock.fixed(Instant.parse("2022-08-22T10:00:00.00Z"), ZoneOffset.UTC);
 
   @BeforeEach
   void tearUp() {
@@ -62,7 +93,7 @@ class AlertServiceTest {
             null,
             Set.of(DayOfWeek.MONDAY),
             time,
-            AlertUtils.buildMonitoredDaysDto(true, false, true),
+            Set.of(DayOfWeek.MONDAY, DayOfWeek.TUESDAY),
             Set.of(time),
             List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 10, 35)),
             "lyon",
@@ -106,9 +137,9 @@ class AlertServiceTest {
           () ->
               assertEquals(
                   DayOfWeek.MONDAY, saved.getTriggerDays().iterator().next(), "triggerDays"),
-          () -> assertTrue(saved.getMonitoredDays().getSameDay(), "sameDay"),
-          () -> assertFalse(saved.getMonitoredDays().getNextDay(), "nextDay"),
-          () -> assertTrue(saved.getMonitoredDays().getTwoDayLater(), "twoDay"),
+          () -> assertEquals(2, saved.getMonitoredDays().size(), "monitoredDays"),
+          () -> assertTrue(saved.getMonitoredDays().contains(DayOfWeek.MONDAY), "monitoredDays"),
+          () -> assertTrue(saved.getMonitoredDays().contains(DayOfWeek.TUESDAY), "monitoredDays"),
           () -> assertEquals(DUMMY_ALERT.getTriggerHour(), saved.getTriggerHour(), "triggerHour"),
           () ->
               assertEquals(
@@ -164,31 +195,38 @@ class AlertServiceTest {
     verify(alertRepository).findDistinctByUserLogin("test", pageable);
   }
 
-  @Test
-  void findAllToTrigger() {
-    Alert a1 = new Alert();
-    a1.setId(1L);
-    a1.setTriggerHour(LocalTime.of(15, 12, 47));
-    a1.setUser(new User("a1", null, null, null, "Europe/Paris"));
-    Alert a2 = new Alert();
-    a2.setId(2L);
-    a2.setTriggerHour(LocalTime.of(14, 12, 47));
-    a2.setUser(new User("a2", null, null, null, "Europe/Paris"));
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void findAllToTrigger(boolean dst) {
+    try (MockedStatic<Clock> clock = mockStatic(Clock.class)) {
+      clock.when(Clock::systemUTC).thenReturn(dst ? CLOCK_DST : CLOCK);
+      LocalDate now = LocalDate.now(dst ? CLOCK_DST : CLOCK);
 
-    ZonedDateTime triggerHour =
-        ZonedDateTime.of(LocalDate.now(), LocalTime.of(14, 12, 47, 195), ZoneId.of("Z"));
+      Alert a1 = new Alert();
+      a1.setId(1L);
+      a1.setTriggerHour(LocalTime.of(dst ? 16 : 15, 12, 47));
+      a1.setUser(new User("a1", null, null, null, TZ));
+      Alert a2 = new Alert();
+      a2.setId(2L);
+      a2.setTriggerHour(LocalTime.of(14, 12, 47));
+      a2.setUser(new User("a2", null, null, null, TZ));
 
-    when(alertRepository.findAllByTriggerDays(DayOfWeek.FRIDAY)).thenReturn(List.of(a1, a2));
+      ZonedDateTime triggerHour =
+          ZonedDateTime.of(now, LocalTime.of(14, 12, 47, 195), ZoneId.of("Z"));
 
-    List<AlertDto> trigger = alertService.findAllToTrigger(DayOfWeek.FRIDAY, triggerHour);
+      when(alertRepository.findAllByTriggerDays(DayOfWeek.FRIDAY)).thenReturn(List.of(a1, a2));
 
-    assertAll(
-        () -> assertEquals(1, trigger.size()),
-        () -> assertEquals(1, trigger.get(0).getId()),
-        () -> assertEquals("a1", trigger.get(0).getUser()),
-        () -> assertEquals("Europe/Paris", trigger.get(0).getTimezone()));
+      List<AlertDto> trigger = alertService.findAllToTrigger(DayOfWeek.FRIDAY, triggerHour);
 
-    verify(alertRepository).findAllByTriggerDays(DayOfWeek.FRIDAY);
+      assertEquals(1, trigger.size(), "Found no alert to trigger");
+      assertAll(
+          () -> assertEquals(1, trigger.get(0).getId()),
+          () -> assertEquals("a1", trigger.get(0).getUser()),
+          () -> assertEquals(TZ, trigger.get(0).getTimezone()));
+
+      clock.verify(Clock::systemUTC, atLeastOnce());
+      verify(alertRepository).findAllByTriggerDays(DayOfWeek.FRIDAY);
+    }
   }
 
   @Nested
@@ -323,14 +361,15 @@ class AlertServiceTest {
   }
 
   static Stream<Arguments> invalidAlertProvider() {
+    LocalTime now = LocalTime.now(CLOCK);
     return Stream.of(
         Arguments.of(
             AlertUtils.buildAlertDto(
                 null,
                 Set.of(DayOfWeek.MONDAY),
-                LocalTime.now(),
-                AlertUtils.buildMonitoredDaysDto(true, false, true),
-                Set.of(LocalTime.now()),
+                now,
+                Set.of(DayOfWeek.MONDAY, DayOfWeek.TUESDAY),
+                Set.of(now),
                 List.of(
                     AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, null, null)),
                 "lyon",
@@ -342,35 +381,36 @@ class AlertServiceTest {
             AlertUtils.buildAlertDto(
                 null,
                 Set.of(DayOfWeek.MONDAY),
-                LocalTime.now(),
-                AlertUtils.buildMonitoredDaysDto(true, false, true),
-                Set.of(LocalTime.now()),
+                now,
+                Set.of(DayOfWeek.MONDAY, DayOfWeek.TUESDAY),
+                Set.of(now),
                 List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 35, 10)),
                 "lyon",
                 true,
                 "user",
                 null),
-            "Monitored field 'FEELS_LIKE' has its min value greater than its max value: '[35, 10]'"),
+            "Monitored field 'FEELS_LIKE' has its min value greater than its max value: '[35,"
+                + " 10]'"),
         Arguments.of(
             AlertUtils.buildAlertDto(
                 null,
-                Set.of(DayOfWeek.MONDAY),
-                LocalTime.now(),
-                AlertUtils.buildMonitoredDaysDto(null, false, null),
-                Set.of(LocalTime.now()),
+                Set.of(DayOfWeek.MONDAY, DayOfWeek.TUESDAY),
+                now,
+                Set.of(DayOfWeek.FRIDAY),
+                Set.of(now),
                 List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 2, 10)),
                 "lyon",
                 null,
                 "user",
                 null),
-            "Given alert has no monitored days"),
+            "Given alert has incorrect monitored days"),
         Arguments.of(
             AlertUtils.buildAlertDto(
                 6L,
                 Set.of(DayOfWeek.MONDAY),
-                LocalTime.now(),
-                AlertUtils.buildMonitoredDaysDto(null, false, null),
-                Set.of(LocalTime.now()),
+                now,
+                Set.of(DayOfWeek.MONDAY, DayOfWeek.TUESDAY),
+                Set.of(now),
                 List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 2, 10)),
                 "lyon",
                 false,
@@ -381,9 +421,9 @@ class AlertServiceTest {
             AlertUtils.buildAlertDto(
                 null,
                 Set.of(DayOfWeek.MONDAY),
-                LocalTime.now(),
-                AlertUtils.buildMonitoredDaysDto(null, false, null),
-                Set.of(LocalTime.now()),
+                now,
+                Set.of(DayOfWeek.MONDAY, DayOfWeek.TUESDAY),
+                Set.of(now),
                 List.of(AlertUtils.buildMonitoredFieldDto(3L, WeatherField.FEELS_LIKE, 2, 10)),
                 "lyon",
                 null,

@@ -58,7 +58,8 @@ class AlertSchedulerTest {
   @Captor ArgumentCaptor<List<SubscriptionDto>> sentSubscriptions;
   private static final String TZ = "Europe/Paris";
   private static final String PAYLOAD =
-      "{\"notification\":{\"title\":\"Alerte Météo !\",\"body\":\"Voir la météo en alerte\",\"data\":{\"onActionClick\":{\"default\":{\"operation\":\"navigateLastFocusedOrOpen\",\"url\":\"dashboard/details/%s?location=%s&alert=%s\"}}},\"requireInteraction\":true}}";
+      "{\"notification\":{\"title\":\"Alerte Météo !\",\"body\":\"Voir la météo en"
+          + " alerte\",\"data\":{\"onActionClick\":{\"default\":{\"operation\":\"navigateLastFocusedOrOpen\",\"url\":\"dashboard/details/%s?location=%s&alert=%s\"}}},\"requireInteraction\":true}}";
 
   private static final Clock CLOCK =
       Clock.fixed(Instant.parse("2022-10-22T10:00:00.00Z"), ZoneOffset.UTC);
@@ -90,17 +91,15 @@ class AlertSchedulerTest {
   }
 
   /**
-   * Mocked data
-   *
-   * <p>Alerts: alert1: lyon, user1, today, feels like 10<x>20, [10h] alert2: lyon, user1, all days,
-   * chance rain 10<x>60, [10, 20h, 17h] alert3: lyon, user2, today, feels fike, 10<x>30, [10h],
-   * force alert4: paris, user3, today and day after tomorrow, rain 10<x>60, [14h, 17h]
+   * Mocked data Alerts: alert1: lyon, user1, saturday, feels like 10<x>20, [10h] alert2: lyon,
+   * user1, all days, chance rain 10<x>60, [10, 20h, 17h] alert3: lyon, user2, saturday, feels fike,
+   * 10<x>30, [10h], force alert4: paris, user3, saturday and monday, rain 10<x>60, [14h, 17h]
    *
    * <p>Forecast Weather lyon: - today 10h, feels like 25° - tomorrow 10h rain 30 Paris: - today 14h
    * feels like 25 & rain 70
    *
-   * <p>Notification that should be sent: - alert1 today, lyon, user1 - alert2: non - alert3: today,
-   * lyon, user2 - alert4: today, paris, user4
+   * <p>Notification that should be sent: - alert1: today, lyon, user1 - alert2: non - alert3:
+   * today, lyon, user2 - alert4: today, paris, user4
    */
   @Test
   void given_alert_then_notification() {
@@ -109,7 +108,7 @@ class AlertSchedulerTest {
             1L,
             null,
             null,
-            AlertUtils.buildMonitoredDaysDto(true, false, false),
+            Set.of(DayOfWeek.SATURDAY),
             Set.of(LocalTime.of(10, 0, 0)),
             List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 10, 20)),
             "Lyon",
@@ -121,7 +120,7 @@ class AlertSchedulerTest {
             2L,
             null,
             null,
-            AlertUtils.buildMonitoredDaysDto(true, true, true),
+            Set.of(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY, DayOfWeek.MONDAY),
             Set.of(LocalTime.of(10, 0, 0), LocalTime.of(20, 0, 0), LocalTime.of(17, 0, 0)),
             List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.CHANCE_OF_RAIN, 10, 60)),
             "Lyon",
@@ -133,7 +132,7 @@ class AlertSchedulerTest {
             3L,
             null,
             null,
-            AlertUtils.buildMonitoredDaysDto(true, false, false),
+            Set.of(DayOfWeek.SATURDAY),
             Set.of(LocalTime.of(10, 0, 0)),
             List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.FEELS_LIKE, 10, 30)),
             "Lyon",
@@ -145,7 +144,7 @@ class AlertSchedulerTest {
             4L,
             null,
             null,
-            AlertUtils.buildMonitoredDaysDto(true, false, true),
+            Set.of(DayOfWeek.SATURDAY, DayOfWeek.MONDAY),
             Set.of(LocalTime.of(14, 0, 0), LocalTime.of(17, 0, 0)),
             List.of(AlertUtils.buildMonitoredFieldDto(null, WeatherField.CHANCE_OF_RAIN, 10, 60)),
             "Paris",

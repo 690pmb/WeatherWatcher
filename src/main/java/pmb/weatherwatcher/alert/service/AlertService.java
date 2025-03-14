@@ -1,5 +1,6 @@
 package pmb.weatherwatcher.alert.service;
 
+import java.time.Clock;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -9,13 +10,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import org.apache.commons.lang3.BooleanUtils;
+import java.util.stream.LongStream;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import pmb.weatherwatcher.alert.dto.AlertDto;
-import pmb.weatherwatcher.alert.dto.MonitoredDaysDto;
 import pmb.weatherwatcher.alert.dto.MonitoredFieldDto;
 import pmb.weatherwatcher.alert.mapper.AlertMapper;
 import pmb.weatherwatcher.alert.model.Alert;
@@ -86,11 +85,18 @@ public class AlertService {
                         + "]'");
               }
             });
-    MonitoredDaysDto monitoredDays = alert.getMonitoredDays();
-    if (Stream.of(
-            monitoredDays.getNextDay(), monitoredDays.getSameDay(), monitoredDays.getTwoDayLater())
-        .allMatch(BooleanUtils::isNotTrue)) {
-      throw new BadRequestException("Given alert has no monitored days");
+    if (alert.getMonitoredDays().size() < 4
+        && !alert.getMonitoredDays().stream()
+            .allMatch(
+                m ->
+                    alert.getTriggerDays().stream()
+                        .anyMatch(
+                            t ->
+                                LongStream.range(0, 3)
+                                    .mapToObj(t::plus)
+                                    .distinct()
+                                    .anyMatch(td -> td == m)))) {
+      throw new BadRequestException("Requested monitored days can not be fetch by weather api");
     }
   }
 
@@ -130,7 +136,7 @@ public class AlertService {
         .filter(
             a ->
                 ZonedDateTime.of(
-                        LocalDate.now(ZoneId.of("Z")),
+                        LocalDate.now(Clock.systemUTC()),
                         a.getTriggerHour(),
                         ZoneId.of(a.getUser().getTimezone()))
                     .isEqual(triggerHour.truncatedTo(ChronoUnit.SECONDS)))

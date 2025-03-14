@@ -8,12 +8,11 @@ import java.time.Clock;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.function.IntFunction;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.BooleanUtils;
@@ -41,9 +40,6 @@ import pmb.weatherwatcher.weather.service.WeatherService;
 public class AlertScheduler {
   private static final Logger LOGGER = LoggerFactory.getLogger(AlertScheduler.class);
   private static final Clock CLOCK = Clock.systemUTC();
-  private static final IntFunction<String> NOW_PLUS_DAYS =
-      amountToAdd ->
-          LocalDate.now(CLOCK).plusDays(amountToAdd).format(DateTimeFormatter.ISO_LOCAL_DATE);
   private static final String DETAIL_URL = "dashboard/details/%s?location=%s&alert=%s";
   private final AlertService alertService;
   private final WeatherService weatherService;
@@ -84,15 +80,13 @@ public class AlertScheduler {
     Map<Pair<String, Long>, List<ForecastDayDto>> forecastDaysByUserToNotify =
         alertTriggered.stream().collect(Collectors.groupingBy(AlertDto::getUser)).values().stream()
             .map(
-                v -> {
-                  Map<Long, Map<String, Boolean>> monitoredDays = buildMonitoredDays(v);
-                  return v.stream()
+                alerts -> {
+                  return alerts.stream()
                       .map(
                           a ->
                               Triple.of(
                                   a.getUser(),
-                                  forecastDayToNotify(
-                                      a, forecastByLocation.get(a.getLocation()), monitoredDays),
+                                  forecastDayToNotify(a, forecastByLocation.get(a.getLocation())),
                                   a.getId()))
                       .collect(Collectors.toSet());
                 })
@@ -118,7 +112,8 @@ public class AlertScheduler {
                           day -> {
                             try {
                               notificationService.send(
-                                  subsByUser.get(e.getKey().getLeft()),
+                                  subsByUser.getOrDefault(
+                                      e.getKey().getLeft(), Collections.emptyList()),
                                   buildPayload(
                                       day.getDate(), day.getLocation(), e.getKey().getRight()));
                             } catch (JsonProcessingException e1) {
@@ -128,12 +123,13 @@ public class AlertScheduler {
     }
   }
 
-  private static List<ForecastDayDto> forecastDayToNotify(
-      AlertDto alert, ForecastDto forecastDto, Map<Long, Map<String, Boolean>> monitoredDaysMap) {
+  private static List<ForecastDayDto> forecastDayToNotify(AlertDto alert, ForecastDto forecastDto) {
     return forecastDto.getForecastDay().stream()
         .filter(
             forecastDay ->
-                Boolean.TRUE.equals(monitoredDaysMap.get(alert.getId()).get(forecastDay.getDate())))
+                alert
+                    .getMonitoredDays()
+                    .contains(LocalDate.parse(forecastDay.getDate()).getDayOfWeek()))
         .peek(
             day ->
                 day.setHour(
@@ -188,22 +184,6 @@ public class AlertScheduler {
       LOGGER.error("Error when accessing field: {}", monitoredField.getField(), e);
       return false;
     }
-  }
-
-  private Map<Long, Map<String, Boolean>> buildMonitoredDays(List<AlertDto> alerts) {
-    return alerts.stream()
-        .map(
-            alert ->
-                Pair.of(
-                    alert.getId(),
-                    Map.of(
-                        NOW_PLUS_DAYS.apply(0),
-                        alert.getMonitoredDays().getSameDay(),
-                        NOW_PLUS_DAYS.apply(1),
-                        alert.getMonitoredDays().getNextDay(),
-                        NOW_PLUS_DAYS.apply(2),
-                        alert.getMonitoredDays().getTwoDayLater())))
-        .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
   }
 
   private byte[] buildPayload(String date, String location, Long alertId)

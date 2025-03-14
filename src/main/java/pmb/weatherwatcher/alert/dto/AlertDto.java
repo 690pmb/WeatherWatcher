@@ -19,7 +19,8 @@ public class AlertDto {
   /** Tells which days of week alerts are triggered. */
   @NotEmpty private Set<DayOfWeek> triggerDays;
 
-  @NotNull private MonitoredDaysDto monitoredDays;
+  /** Tells which days are monitored. */
+  @NotEmpty private Set<DayOfWeek> monitoredDays;
 
   /** Tells the time alerts are triggered. */
   @NotNull private LocalTime triggerHour;
@@ -53,11 +54,11 @@ public class AlertDto {
     this.triggerDays = triggerDays;
   }
 
-  public MonitoredDaysDto getMonitoredDays() {
+  public Set<DayOfWeek> getMonitoredDays() {
     return monitoredDays;
   }
 
-  public void setMonitoredDays(MonitoredDaysDto monitoredDays) {
+  public void setMonitoredDays(Set<DayOfWeek> monitoredDays) {
     this.monitoredDays = monitoredDays;
   }
 
