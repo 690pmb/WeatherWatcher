@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import pmb.weatherwatcher.alert.dto.AlertDto;
-import pmb.weatherwatcher.alert.dto.MonitoredDaysDto;
 import pmb.weatherwatcher.alert.dto.MonitoredFieldDto;
 import pmb.weatherwatcher.alert.model.WeatherField;
 
@@ -19,7 +18,7 @@ public final class AlertUtils {
       Long id,
       Set<DayOfWeek> triggerDays,
       LocalTime triggerHour,
-      MonitoredDaysDto monitoredDays,
+      Set<DayOfWeek> monitoredDays,
       Set<LocalTime> monitoredHours,
       List<MonitoredFieldDto> monitoredFields,
       String location,
@@ -48,13 +47,5 @@ public final class AlertUtils {
     monitoredFieldDto.setMin(min);
     monitoredFieldDto.setMax(max);
     return monitoredFieldDto;
-  }
-
-  public static MonitoredDaysDto buildMonitoredDaysDto(Boolean same, Boolean next, Boolean two) {
-    MonitoredDaysDto monitoredDaysDto = new MonitoredDaysDto();
-    monitoredDaysDto.setSameDay(same);
-    monitoredDaysDto.setNextDay(next);
-    monitoredDaysDto.setTwoDayLater(two);
-    return monitoredDaysDto;
   }
 }

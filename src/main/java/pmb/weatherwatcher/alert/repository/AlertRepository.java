@@ -20,11 +20,18 @@ import pmb.weatherwatcher.alert.model.Alert;
 @Transactional(readOnly = true)
 public interface AlertRepository extends JpaRepository<Alert, Long> {
 
-  @EntityGraph(attributePaths = {"triggerDays", "monitoredHours"})
+  @EntityGraph(attributePaths = {"triggerDays", "monitoredDays", "monitoredHours"})
   Page<Alert> findDistinctByUserLogin(String login, Pageable pageable);
 
   Optional<Alert> findByIdAndUserLogin(Long id, String login);
 
-  @EntityGraph(attributePaths = {"triggerDays", "monitoredHours", "monitoredFields", "user"})
+  @EntityGraph(
+      attributePaths = {
+        "triggerDays",
+        "monitoredDays",
+        "monitoredHours",
+        "monitoredFields",
+        "user"
+      })
   List<Alert> findAllByTriggerDays(DayOfWeek triggerDay);
 }

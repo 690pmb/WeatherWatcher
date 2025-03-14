@@ -4,14 +4,15 @@
     xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
 
-    <include file="db/changelog/001_create_user.xml" relativeToChangelogFile="false"/>
-    <include file="db/changelog/local/002_init_user.xml" relativeToChangelogFile="false"/>
-    <include file="db/changelog/003_create_alert.xml" relativeToChangelogFile="false"/>
-    <include file="db/changelog/local/004_init_alert.xml" relativeToChangelogFile="false"/>
-    <include file="db/changelog/005_create_subscription.xml" relativeToChangelogFile="false"/>
-    <include file="db/changelog/local/006_init_subscription.xml" relativeToChangelogFile="false"/>
-    <include file="db/changelog/007_user_lang.xml" relativeToChangelogFile="false"/>
-    <include file="db/changelog/008_subscription_user_agent.xml" relativeToChangelogFile="false"/>
-    <include file="db/changelog/009_timezone.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/001_create_user.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/local/002_init_user.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/003_create_alert.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/local/004_init_alert.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/005_create_subscription.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/local/006_init_subscription.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/007_user_lang.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/008_subscription_user_agent.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/009_timezone.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/010_rework_monitored_days.xml" relativeToChangelogFile="false" />
 
 </databaseChangeLog>
