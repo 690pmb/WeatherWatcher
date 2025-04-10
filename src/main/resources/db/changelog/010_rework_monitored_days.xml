@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <changeSet id="20250314-1" author="PMB">
+
+        <createTable tableName="monitored_day">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="alert" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="day" type="VARCHAR(30)">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseColumnNames="alert" baseTableName="monitored_day"
+            constraintName="fk_alert_monitored_day" referencedColumnNames="id"
+            referencedTableName="alert" />
+
+        <sql> INSERT INTO monitored_day (alert, day) SELECT alert, max(day) FROM trigger_day GROUP
+            BY alert; </sql>
+
+        <dropColumn tableName="alert" columnName="same_day" />
+        <dropColumn tableName="alert" columnName="next_day" />
+        <dropColumn tableName="alert" columnName="two_day_later" />
+    </changeSet>
+
+</databaseChangeLog>
