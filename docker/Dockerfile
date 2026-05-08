@@ -1,4 +1,4 @@
-FROM eclipse-temurin:17-jre-jammy
+FROM eclipse-temurin:17.0.19_10-jre-jammy
 
 LABEL MAINTAINER 69pmb <pmbroca@gmail.com>
 
